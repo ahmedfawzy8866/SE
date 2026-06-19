@@ -226,6 +226,33 @@ export default function SearchInsightsPage({ T, isAr = false }: SearchInsightsPa
     }
   };
 
+  // Export search telemetry logs as a CSV file
+  const downloadCsvLogs = () => {
+    try {
+      const headers = ['Timestamp', 'Query', 'Scope', 'Input Method'];
+      const rows = searches.map(item => {
+        const timestamp = item.timestamp instanceof Date ? item.timestamp.toISOString() : new Date(item.timestamp).toISOString();
+        const query = `"${item.query.replace(/"/g, '""')}"`; // escape quotes
+        const scope = item.scope;
+        const method = item.isVoice ? 'Voice' : 'Typed';
+        return [timestamp, query, scope, method].join(',');
+      });
+
+      const csvContent = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `crm_search_logs_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to download CSV logs:", err);
+    }
+  };
+
   const downloadPDFReport = async () => {
     try {
       setGeneratingPdf(true);
@@ -746,6 +773,14 @@ export default function SearchInsightsPage({ T, isAr = false }: SearchInsightsPa
                 id="btn-download-search-telemetry"
               >
                 📥 {isAr ? 'تنزيل القياسات الفورية' : 'Export Logs (.JSON)'}
+              </button>
+
+              <button
+                onClick={downloadCsvLogs}
+                className="px-3.5 py-1.5 text-[11px] font-mono text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 rounded border border-emerald-500/30 transition-all font-semibold uppercase flex items-center gap-1.5 cursor-pointer"
+                id="btn-download-search-csv"
+              >
+                📊 {isAr ? 'تصدير بصيغة CSV' : 'Download CSV'}
               </button>
             </>
           )}

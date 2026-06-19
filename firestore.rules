@@ -12,14 +12,13 @@ service cloud.firestore {
     function isAdmin() {
       return isSignedIn() && (
         request.auth.uid == "n5AwnuWrwhTm5brJJiJDU6uJunM2" ||
-        ("email" in request.auth.token && (
+        (request.auth.token.email != null && (
           request.auth.token.email == "emeraldestatesegypt@gmail.com" ||
           request.auth.token.email == "Emeraldestatesegypt@gmail.com" ||
           request.auth.token.email == "a.fawzy8866@gmail.com" ||
           request.auth.token.email == "A.fawzy8866@gmail.com"
         )) ||
-        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.status != "pending")
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
 
