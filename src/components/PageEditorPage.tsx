@@ -170,10 +170,14 @@ export default function PageEditorPage({ T, isAr = false }: PageEditorPageProps)
             {isAr ? 'لا توجد صفحات بعد. أنشئ أول صفحة!' : 'No pages yet. Create your first one!'}
           </div>
         ) : (
-          pages.map((page) => (
-            <div
+          pages.map((page, index) => (
+            <motion.div
               key={page.id}
-              className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 hover:border-slate-300 dark:hover:border-slate-700 transition"
+              initial={{ opacity: 0, y: 10, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94], delay: index * 0.05 }}
+              whileHover={{ y: -2, transition: { duration: 0.15 } }}
+              className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
             >
               {/* Top row: slug + status badge */}
               <div className="flex items-start justify-between gap-2 mb-3">
@@ -233,7 +237,7 @@ export default function PageEditorPage({ T, isAr = false }: PageEditorPageProps)
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))
         )}
       </div>

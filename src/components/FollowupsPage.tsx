@@ -212,16 +212,17 @@ export default function FollowupsPage({ T, isAr = false }: FollowupsPageProps) {
             <p className="text-[13px]">{isAr ? 'لا توجد متابعات' : 'No follow-ups found'}</p>
           </div>
         ) : (
-          followups.map((f) => {
+          followups.map((f, index) => {
             const Icon = TYPE_ICONS[f.type] || FileText;
             const due = new Date(f.dueAt);
             const isOverdue = due < new Date() && f.status === 'pending';
             return (
               <motion.div
                 key={f.id}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.18 }}
+                initial={{ opacity: 0, y: 10, scale: 0.99 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94], delay: index * 0.04 }}
+                whileHover={{ y: -1, transition: { duration: 0.12 } }}
                 className={`group bg-white dark:bg-slate-900 border rounded-xl p-4 flex items-start gap-4 transition-colors ${
                   isOverdue
                     ? 'border-red-200 dark:border-red-900/40'

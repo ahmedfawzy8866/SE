@@ -151,7 +151,7 @@ export default function BotsControlPage({ T, isAr = false }: BotsControlPageProp
             <p className="text-[13px]">{isAr ? 'لا توجد بوتات مسجلة' : 'No bots registered'}</p>
           </div>
         ) : (
-          bots.map((bot) => {
+          bots.map((bot, index) => {
             const config = STATUS_CONFIG[bot.status] || STATUS_CONFIG.offline;
             const StatusIcon = config.icon;
             const desc = BOT_DESCRIPTIONS[bot.id] || { en: bot.id, ar: bot.id, icon: Bot };
@@ -161,9 +161,10 @@ export default function BotsControlPage({ T, isAr = false }: BotsControlPageProp
             return (
               <motion.div
                 key={bot.id}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.18 }}
+                initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94], delay: index * 0.05 }}
+                whileHover={{ y: -2, transition: { duration: 0.15 } }}
                 className={`group bg-white dark:bg-slate-900 border rounded-xl p-5 transition-colors ${
                   bot.status === 'error'
                     ? 'border-red-200 dark:border-red-900/40'
