@@ -1,0 +1,63 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+/build
+
+# production
+/dist
+
+# misc
+.DS_Store
+*.pem
+Thumbs.db
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.preview
+
+# firebase
+/firebase-debug.log
+/firestore-debug.log
+/ui-debug.log
+**/service-account.json
+**/firebase-adminsdk-*.json
+.firebaserc
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts.bak
+
+# tests
+/coverage
+/.coverage
+jest.config.ts.bak
+
+# IDEs
+/.idea
+/.vscode/*
+!/.vscode/settings.json
+!/.vscode/extensions.json
+
+# python (none expected, but defensive)
+__pycache__/
+*.pyc
+.venv/
+venv/
