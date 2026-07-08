@@ -155,6 +155,7 @@ window.HZDATA = {
         type: type, beds: beds, bath: bath, area: area, floor: floor,
         mode: mode, egpM: egpM, usd: usd, ai: ai,
         status: r() < 0.14 ? 'reserved' : 'available',
+        delivery: r() < 0.65 ? 'ready' : 'under_construction',
         agent: AGENTS[Math.floor(r() * AGENTS.length)],
         img: IMGS[Math.floor(r() * IMGS.length)]
       });
