@@ -1,24 +1,72 @@
+import express from 'express';
+import * as admin from 'firebase-admin';
+
 /**
  * 01-whatsapp-scraper
  * 
- * Monitors WhatsApp groups for property listings, dumping raw data to Google Sheets 
- * or directly to Firestore for further processing.
+ * Sets up an Express webhook to receive incoming WhatsApp messages (e.g. from n8n or Cloud API),
+ * parses them, and saves raw leads to Firestore.
  */
 
-export async function runWhatsAppScraper(groupId: string) {
-  console.log(`[WhatsApp Scraper] Starting scrape for group: ${groupId}`);
-  // TODO: Implement WhatsApp Web API or n8n webhook logic
-  // TODO: Extract text, images, and sender info
-  // TODO: Dump to Google Sheets / Firestore "raw_listings" collection
-  
-  return {
-    success: true,
-    scrapedCount: 0,
-    timestamp: new Date().toISOString()
-  };
+if (!admin.apps.length) {
+  try {
+    admin.initializeApp();
+  } catch (error) {
+    console.warn('[WhatsApp Scraper] Firebase admin could not be initialized.');
+  }
+}
+
+export function startWhatsAppWebhookServer(port: number = 3000) {
+  const app = express();
+  app.use(express.json());
+
+  app.post('/webhook/whatsapp', async (req, res) => {
+    try {
+      const payload = req.body;
+      console.log('[WhatsApp Webhook] Received payload:', JSON.stringify(payload).substring(0, 100));
+
+      // 1. Extract message content and sender
+      // Note: This parsing logic depends on the specific WhatsApp API provider format
+      const messageBody = payload?.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.text?.body || payload?.message || '';
+      const sender = payload?.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from || payload?.sender || '';
+
+      if (!messageBody) {
+        return res.status(200).send('No message content');
+      }
+
+      // 2. Simple regex/keyword matching for properties
+      const lowerMsg = messageBody.toLowerCase();
+      const isPropertyLead = lowerMsg.includes('for sale') || lowerMsg.includes('للبيع') || lowerMsg.includes('mivida');
+
+      if (isPropertyLead) {
+        const db = admin.firestore();
+        
+        const lead = {
+          sender,
+          originalMessage: messageBody,
+          status: 'raw',
+          source: 'whatsapp_group',
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        // 3. Save to raw_leads collection
+        await db.collection('raw_leads').add(lead);
+        console.log(`[WhatsApp Scraper] Lead captured from ${sender}`);
+      }
+
+      res.status(200).send('OK');
+    } catch (error) {
+      console.error('[WhatsApp Webhook] Error:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+
+  app.listen(port, () => {
+    console.log(`[WhatsApp Scraper] Webhook server listening on port ${port}`);
+  });
 }
 
 // Allow direct execution
 if (require.main === module) {
-  runWhatsAppScraper('example_group_id').catch(console.error);
+  startWhatsAppWebhookServer(process.env.PORT ? parseInt(process.env.PORT) : 3000);
 }
