@@ -94,7 +94,7 @@ h1,h2,h3,h4{color:var(--ink);font-weight:700;line-height:1.2;letter-spacing:-.01
 .rv.d1{transition-delay:.08s}.rv.d2{transition-delay:.16s}.rv.d3{transition-delay:.24s}
 .rv.d4{transition-delay:.32s}.rv.d5{transition-delay:.4s}
 @media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none;}}
-@keyframes kenburns{from{transform:scale(1.02)}to{transform:scale(1.12)}}
+/* @keyframes kenburns removed — was causing unwanted hero image movement */
 @keyframes pulseDot{0%{box-shadow:0 0 0 0 rgba(0,174,255,.5)}70%{box-shadow:0 0 0 12px rgba(0,174,255,0)}100%{box-shadow:0 0 0 0 rgba(0,174,255,0)}}
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 
