@@ -128,11 +128,15 @@ footer .brand .mark.logo{width:44px;height:44px;}
 .brand b{font-size:19px;color:var(--ink);font-weight:800;letter-spacing:-.02em;}
 .brand small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-top:1px;white-space:nowrap;}
 [dir="rtl"] .brand small{letter-spacing:.04em;font-family:var(--font);}
-.menu{display:flex;gap:26px;margin-inline-start:8px;}
+.menu{display:flex;gap:26px;margin-inline-start:8px;align-items:center;}
 .menu a{font-size:14.5px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:5px;padding:6px 0;position:relative;white-space:nowrap;}
 .menu a.active,.menu a:hover{color:var(--pri);}
 .menu a.active::after{content:"";position:absolute;left:0;right:0;bottom:-27px;height:3px;background:var(--pri);border-radius:3px 3px 0 0;}
-.nav-right{margin-inline-start:auto;display:flex;align-items:center;gap:16px;}
+/* "Open Map" button styled to match nav links */
+.nav-link-btn{font-family:var(--font);font-size:14.5px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:5px;padding:6px 12px;position:relative;white-space:nowrap;background:rgba(0,174,255,.08);border:1px solid rgba(0,174,255,.2);border-radius:8px;cursor:pointer;transition:.2s var(--silk);}
+.nav-link-btn:hover{color:var(--pri);background:rgba(0,174,255,.14);border-color:rgba(0,174,255,.4);}
+[data-theme="dark"] .nav-link-btn{color:var(--ink);}
+.nav-right{margin-inline-start:auto;display:flex;align-items:center;gap:10px;}
 .nav-icon{color:var(--ink);position:relative;display:inline-flex;}
 .nav-icon .dot{position:absolute;top:-4px;inset-inline-end:-6px;background:var(--pri);color:#fff;font-size:10px;font-weight:700;width:16px;height:16px;border-radius:50%;display:grid;place-items:center;}
 

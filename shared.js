@@ -7,7 +7,7 @@
     en: {
       dir: 'ltr',
       brandSub: 'Future of Real Estate',
-      navHome: 'Home', navProps: 'Properties', navCpds: 'Show Map', navAgents: 'Agents', navContact: 'Contact', navAI: 'AI Tools',
+      navHome: 'Home', navProps: 'Properties', navCpds: 'Search by Compound', navMap: 'Open Map', navAgents: 'Agents', navContact: 'Contact', navAI: 'AI Tools',
       addListing: 'Add Listing', signIn: 'Sign In', langBtn: 'العربية',
       themeLight: 'Light', themeDark: 'Dark',
       addr: 'Banafseg 2, Villa 402, New Cairo',
@@ -87,7 +87,7 @@
     ar: {
       dir: 'rtl',
       brandSub: 'مستقبل العقارات',
-      navHome: 'الرئيسية', navProps: 'العقارات', navCpds: 'اعرض الخريطة', navAgents: 'المستشارون', navContact: 'تواصل', navAI: 'أدوات الذكاء',
+      navHome: 'الرئيسية', navProps: 'العقارات', navCpds: 'بحث بالكمبوند', navMap: 'افتح الخريطة', navAgents: 'المستشارون', navContact: 'تواصل', navAI: 'أدوات الذكاء',
       addListing: 'أضف عقارك', signIn: 'دخول', langBtn: 'English',
       themeLight: 'فاتح', themeDark: 'غامق',
       addr: 'البنفسج 2، فيلا 402، القاهرة الجديدة',
@@ -174,20 +174,8 @@
   /* ── chrome templates ── */
   function chromeHTML(active) {
     function act(k) { return active === k ? ' class="active"' : ''; }
+    // Minimalist header: brand + 4 nav items + theme/lang toggles
     return '' +
-    '<div class="topbar"><div class="wrap">' +
-      '<div class="tb-left">' +
-        '<span><i data-lucide="phone" class="i" style="width:14px;height:14px"></i> +2 01092048333</span>' +
-        '<span><i data-lucide="mail" class="i" style="width:14px;height:14px"></i> Info@sierra-estates.net</span>' +
-        '<span><i data-lucide="map-pin" class="i" style="width:14px;height:14px"></i> <span data-i18n="addr">' + t('addr') + '</span></span>' +
-      '</div>' +
-      '<div class="tb-right">' +
-        '<button class="tb-toggle" id="theme-toggle" type="button"><i data-lucide="' + (theme === 'dark' ? 'sun' : 'moon') + '" class="i"></i><span id="theme-label">' + (theme === 'dark' ? t('themeLight') : t('themeDark')) + '</span></button>' +
-        '<button class="tb-toggle" id="lang-toggle" type="button"><i data-lucide="languages" class="i"></i><span>' + t('langBtn') + '</span></button>' +
-        '<div class="divider"></div>' +
-        '<a href="#"><i data-lucide="user" class="i" style="width:14px;height:14px"></i> <span data-i18n="signIn">' + t('signIn') + '</span></a>' +
-      '</div>' +
-    '</div></div>' +
     '<nav class="nav" id="main-nav"><div class="wrap">' +
       '<a href="index.html" class="brand">' +
         '<span class="mark logo"><img src="logo-gold.png" alt="Sierra Estates"/></span>' +
@@ -195,15 +183,13 @@
       '</a>' +
       '<div class="menu">' +
         '<a href="index.html"' + act('home') + ' data-i18n="navHome">' + t('navHome') + '</a>' +
-        '<a href="properties.html"' + act('props') + ' data-i18n="navProps">' + t('navProps') + '</a>' +
         '<a href="compounds.html"' + act('cpds') + ' data-i18n="navCpds">' + t('navCpds') + '</a>' +
-        '<a href="index.html#ai" data-i18n="navAI">' + t('navAI') + '</a>' +
-        '<a href="index.html#agents"' + ' data-i18n="navAgents">' + t('navAgents') + '</a>' +
-        '<a href="index.html#contact" data-i18n="navContact">' + t('navContact') + '</a>' +
+        '<button class="nav-link-btn" id="nav-open-map" type="button"><i data-lucide="map" class="i" style="width:15px;height:15px"></i> <span data-i18n="navMap">' + t('navMap') + '</span></button>' +
+        '<a href="index.html#contact"' + act('contact') + ' data-i18n="navContact">' + t('navContact') + '</a>' +
       '</div>' +
       '<div class="nav-right">' +
-        '<a href="#" class="nav-icon"><i data-lucide="heart" class="i" style="width:21px;height:21px"></i><span class="dot">3</span></a>' +
-        '<button class="btn btn-pri" type="button"><i data-lucide="plus" class="i"></i> <span data-i18n="addListing">' + t('addListing') + '</span></button>' +
+        '<button class="tb-toggle" id="theme-toggle" type="button"><i data-lucide="' + (theme === 'dark' ? 'sun' : 'moon') + '" class="i"></i></button>' +
+        '<button class="tb-toggle" id="lang-toggle" type="button"><i data-lucide="languages" class="i"></i><span>' + t('langBtn') + '</span></button>' +
       '</div>' +
     '</div></nav>';
   }
@@ -347,7 +333,6 @@
       localStorage.setItem('hzp-theme', theme);
       applyTheme();
       this.querySelector('i, svg').outerHTML = '<i data-lucide="' + (theme === 'dark' ? 'sun' : 'moon') + '" class="i"></i>';
-      document.getElementById('theme-label').textContent = theme === 'dark' ? t('themeLight') : t('themeDark');
       if (window.lucide) lucide.createIcons();
       document.dispatchEvent(new CustomEvent('hzp:theme', { detail: theme }));
     });
@@ -356,6 +341,20 @@
       localStorage.setItem('hzp-lang', lang);
       location.reload();
     });
+
+    // "Open Map" nav button → go to compounds page
+    var openMapBtn = document.getElementById('nav-open-map');
+    if (openMapBtn) {
+      openMapBtn.addEventListener('click', function () {
+        // If we're on a page with a map (#cpd-map), scroll to it; otherwise navigate
+        var mapEl = document.getElementById('cpd-map');
+        if (mapEl) {
+          mapEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          location.href = 'compounds.html';
+        }
+      });
+    }
 
     var nav = document.getElementById('main-nav');
     window.addEventListener('scroll', function () {
