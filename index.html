@@ -793,55 +793,15 @@
     });
   }
 
-  // ─── Smooth scroll (Percipio-style, non-destructive) ────────────────────
-  // Unlike the previous version, this does NOT call preventDefault() on wheel
-  // events. The browser scrolls natively (so trackpads, mouse wheels, arrow
-  // keys, Page Up/Down, and Cmd+Up/Down all work normally on Windows + Mac).
-  // We just lerp the visual scroll position toward the browser's target for
-  // a subtle smoothing effect. Disabled on touch (native momentum scroll is
-  // already smooth) and when prefers-reduced-motion is set.
-  if (!reduced && !window.matchMedia('(hover: none), (pointer: coarse)').matches) {
-    var seScrollTarget = window.pageYOffset;
-    var seScrollCurrent = window.pageYOffset;
-    var seScrollRunning = false;
-
-    function seScrollLoop() {
-      seScrollCurrent += (seScrollTarget - seScrollCurrent) * 0.1;
-      if (Math.abs(seScrollTarget - seScrollCurrent) < 0.5) {
-        seScrollCurrent = seScrollTarget;
-        seScrollRunning = false;
-      }
-      window.scrollTo(0, seScrollCurrent);
-      if (seScrollRunning) requestAnimationFrame(seScrollLoop);
-    }
-
-    // Listen to native scroll (fires after the browser updates position) and
-    // lerp toward it. This doesn't block any input method.
-    var seScrollTick = false;
-    window.addEventListener('scroll', function () {
-      if (seScrollTick) return; // skip our own scrollTo
-      var native = window.pageYOffset;
-      // If the jump is huge (e.g. user pressed End or Cmd+Down), don't smooth — just follow
-      if (Math.abs(native - seScrollTarget) > 600) {
-        seScrollTarget = native;
-        seScrollCurrent = native;
-        return;
-      }
-      seScrollTarget = native;
-      if (!seScrollRunning) {
-        seScrollRunning = true;
-        requestAnimationFrame(seScrollLoop);
-      }
-    }, { passive: true });
-
-    // Mark our own scrollTo so the scroll listener skips it
-    var _origScrollTo = window.scrollTo.bind(window);
-    window.scrollTo = function (x, y) {
-      seScrollTick = true;
-      _origScrollTo(x, y);
-      requestAnimationFrame(function () { seScrollTick = false; });
-    };
-  }
+  // ─── Smooth scroll: REMOVED ─────────────────────────────────────────────
+  // The custom smooth scroll (both the wheel-hijack version and the lerp
+  // version) was causing issues:
+  //   - wheel preventDefault blocked native scroll on some setups
+  //   - window.scrollTo override broke nav link clicks + scrollIntoView
+  // Native browser scrolling is now used — it works perfectly on Windows
+  // (mouse wheel, trackpad) and Mac (trackpad momentum scroll) without
+  // any JavaScript intervention. The scroll-triggered fade-up reveals
+  // still work because they listen to the native 'scroll' event.
 
   // ─── Init ────────────────────────────────────────────────────────────────
   if (reduced) {
