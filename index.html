@@ -11,7 +11,10 @@
 <link rel="stylesheet" href="shared.css"/>
 <script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="data.js"></script>
 <script src="shared.js"></script>
 <style>
@@ -301,6 +304,13 @@
 
 .leaflet-container{font-family:var(--font);}
 .leaflet-control-attribution{font-size:9px !important;opacity:.6;}
+
+/* ─── Marker cluster styles ─── */
+.cpd-cluster{display:flex !important;align-items:center;justify-content:center;border-radius:50% !important;background:linear-gradient(135deg,#00aeff,#0098e0) !important;color:#fff !important;font-family:var(--mono);font-weight:800;font-size:14px;box-shadow:0 4px 14px rgba(0,174,255,.4);border:2px solid #fff;}
+[data-theme="dark"] .cpd-cluster{background:linear-gradient(135deg,#e9c176,#c8961a) !important;color:#0d0d0f !important;border-color:#26241e;}
+.cpd-cluster-small{width:36px !important;height:36px !important;font-size:12px !important;}
+.cpd-cluster-medium{width:44px !important;height:44px !important;font-size:14px !important;}
+.cpd-cluster-large{width:52px !important;height:52px !important;font-size:16px !important;}
 .btn-navy{background:var(--navy);color:#fff;border:none;border-radius:var(--r-btn);padding:10px 22px;font-family:var(--font);font-weight:700;font-size:14px;cursor:pointer;transition:.25s var(--silk);}
 .btn-navy:hover{background:#001f38;transform:translateY(-1px);}
 [data-theme="dark"] .btn-navy{background:#c8961a;color:#0d0d0f;}
@@ -419,30 +429,9 @@
   </div>
 </section>
 
-<!-- ═══ LIVE MAP ═══════════════════════════════════════════════════════════
-     Interactive Leaflet map showing all New Cairo compounds with live
-     unit-count badges. Clicking a marker navigates to compounds.html. -->
-<section class="block" id="map-section" data-screen-label="Live map">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div>
-        <div class="eyebrow" data-i18n="eyeCpd"></div>
-        <h2 data-i18n="mapTit">Live Compound Map</h2>
-        <p data-i18n="mapSub">Explore all New Cairo compounds on the map — click any badge for details.</p>
-      </div>
-      <a href="compounds.html" class="sec-link"><span data-i18n="allCpds"></span> <i data-lucide="arrow-right" class="i" style="width:16px;height:16px"></i></a>
-    </div>
-    <div id="home-map" style="height:480px;border-radius:var(--r-card);border:1px solid var(--line);z-index:1;background:var(--bg);margin-bottom:8px;"></div>
-    <div style="text-align:center;margin-top:12px;">
-      <a href="compounds.html" class="btn btn-navy" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;">
-        <i data-lucide="map" class="i" style="width:16px;height:16px;"></i>
-        <span>Open Full Map</span>
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- VIRTUAL TOUR (inline 3D player — listing3d.com embed) -->
+<!-- ═══ 3D VIRTUAL TOUR (FIRST — premium cover image + lazy-load iframe) ════
+     High-res cover image displays instantly. "Explore 3D" button activates
+     the 3D engine only when clicked — keeps page load fast. -->
 <section class="block well" id="tour" data-screen-label="Virtual tour">
   <div class="wrap">
     <div class="sec-head rv" style="display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;">
@@ -460,16 +449,17 @@
       </a>
     </div>
     <div id="vtv-frame" style="position:relative;width:100%;aspect-ratio:16/9;background:#0a1622;border-radius:12px;overflow:hidden;box-shadow:0 12px 34px rgba(13,33,54,.10);margin-top:24px;">
-      <button id="vtv-poster" type="button" aria-label="Play 3D virtual tour" style="position:absolute;inset:0;width:100%;height:100%;border:0;padding:0;cursor:pointer;background-color:#0a1622;background-image:url('https://3dapartment.com/spheres/listing_preview/listing_preview_89476a3cf015e27b51.80462088.jpg');background-size:cover;background-position:center;display:flex;align-items:flex-end;justify-content:flex-start;">
-        <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,25,45,0) 30%,rgba(0,25,45,.85) 100%);z-index:1;"></span>
-        <span style="position:relative;z-index:2;padding:24px 28px;display:flex;align-items:center;gap:16px;color:#fff;">
-          <span style="width:56px;height:56px;border-radius:50%;background:#00aeff;display:grid;place-items:center;flex:none;box-shadow:0 8px 24px rgba(0,174,255,.45);transition:transform .25s ease;">
-            <i data-lucide="play" class="i" style="width:24px;height:24px;color:#fff;fill:#fff;"></i>
+      <button id="vtv-poster" type="button" aria-label="Explore 3D virtual tour" style="position:absolute;inset:0;width:100%;height:100%;border:0;padding:0;cursor:pointer;background-color:#0a1622;background-image:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=85');background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;">
+        <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,25,45,.15) 0%,rgba(0,25,45,.25) 50%,rgba(0,25,45,.8) 100%);z-index:1;"></span>
+        <span style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:18px;color:#fff;">
+          <span style="width:78px;height:78px;border-radius:50%;background:rgba(0,174,255,.9);display:grid;place-items:center;flex:none;box-shadow:0 10px 36px rgba(0,174,255,.5);transition:transform .3s ease;animation:vtvPulse 2.5s ease-in-out infinite;">
+            <i data-lucide="play" class="i" style="width:32px;height:32px;color:#fff;fill:#fff;"></i>
           </span>
-          <span>
-            <span style="display:block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.16em;color:#8fe1ff;margin-bottom:6px;text-transform:uppercase;">3D Virtual Tour</span>
-            <span style="display:block;font-size:18px;font-weight:700;line-height:1.3;max-width:540px;">108 Central Street #3R — Somerville, MA</span>
-          </span>
+          <span style="display:block;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.22em;color:#8fe1ff;text-transform:uppercase;">Explore 3D</span>
+        </span>
+        <span style="position:absolute;bottom:24px;left:28px;z-index:2;display:flex;flex-direction:column;gap:4px;">
+          <span style="font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.16em;color:#8fe1ff;text-transform:uppercase;">3D Virtual Tour</span>
+          <span style="font-size:18px;font-weight:700;line-height:1.3;color:#fff;max-width:540px;">108 Central Street #3R — Somerville, MA</span>
         </span>
         <span style="position:absolute;top:18px;right:22px;z-index:2;font-family:var(--mono);font-size:11px;font-weight:600;color:#bfeaff;background:rgba(0,43,75,.6);padding:5px 10px;border-radius:5px;">4 Bed · 1 Bath · 1300 sqft</span>
       </button>
@@ -489,9 +479,10 @@
 </section>
 <style>
   @keyframes vtv-spin { to { transform: rotate(360deg); } }
-  #vtv-poster:hover span:nth-child(2) span:first-child { transform: scale(1.08); }
+  @keyframes vtvPulse { 0%,100%{transform:scale(1);box-shadow:0 10px 36px rgba(0,174,255,.5);} 50%{transform:scale(1.08);box-shadow:0 14px 44px rgba(0,174,255,.7);} }
+  #vtv-poster:hover span:nth-child(2) span:first-child { transform: scale(1.1); }
   #vtv-frame:fullscreen { border-radius:0; }
-  @media (prefers-reduced-motion: reduce) { #vtv-loading i { animation:none !important; } }
+  @media (prefers-reduced-motion: reduce) { #vtv-loading i { animation:none !important; } #vtv-poster .vtvPulse { animation:none !important; } }
 </style>
 <script>
 (function () {
@@ -517,6 +508,30 @@
   });
 })();
 </script>
+
+<!-- ═══ LIVE MAP (SECOND — now below the 3D tour) ═══════════════════════════
+     Interactive Leaflet map with marker clustering. When zoomed out,
+     nearby compounds group into styled clusters. When zoomed in, individual
+     compound markers space out and are clearly visible. -->
+<section class="block" id="map-section" data-screen-label="Live map">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div>
+        <div class="eyebrow" data-i18n="eyeCpd"></div>
+        <h2 data-i18n="mapTit">Live Compound Map</h2>
+        <p data-i18n="mapSub">Explore all New Cairo compounds on the map — click any badge for details.</p>
+      </div>
+      <a href="compounds.html" class="sec-link"><span data-i18n="allCpds"></span> <i data-lucide="arrow-right" class="i" style="width:16px;height:16px"></i></a>
+    </div>
+    <div id="home-map" style="height:520px;border-radius:var(--r-card);border:1px solid var(--line);z-index:1;background:var(--bg);margin-bottom:8px;"></div>
+    <div style="text-align:center;margin-top:12px;">
+      <a href="compounds.html" class="btn btn-navy" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;">
+        <i data-lucide="map" class="i" style="width:16px;height:16px;"></i>
+        <span>Open Full Map</span>
+      </a>
+    </div>
+  </div>
+</section>
 
 <!-- STATS -->
 <section class="stats" data-screen-label="Stats strip">
@@ -789,11 +804,11 @@
 })();
 </script>
 
-<!-- ═══ HOME PAGE MAP — Leaflet init ════════════════════════════════════════
-     Shows all compounds on an interactive map. Featured compounds (Mivida,
-     Hyde Park, Mountain View, Villette, Madinaty, Taj City) pulse with a
-     glow animation. Clicking any marker → compounds.html?cpd=<name> which
-     auto-opens the units sheet for that compound. -->
+<!-- ═══ HOME PAGE MAP — Leaflet init with marker clustering ══════════════════
+     Shows all compounds on an interactive map. Featured compounds pulse.
+     Uses Leaflet.markercluster so nearby compounds group into styled
+     clusters when zoomed out, and spread out when zoomed in.
+     Clicking any marker → compounds.html?cpd=<name> -->
 <script>
 (function () {
   'use strict';
@@ -824,21 +839,39 @@
     });
   }
 
-  var pts = [];
-  D.compounds.forEach(function (c) {
-    var isFeatured = featured.indexOf(c.n) >= 0;
-    L.marker(c.c, { icon: markerIcon(c, isFeatured), title: c.n }).on('click', function () {
-      // Navigate to compounds.html with the compound name in the URL
-      // compounds.html reads ?cpd=<name> and auto-opens the units sheet
-      location.href = 'compounds.html?cpd=' + encodeURIComponent(c.n);
-    }).addTo(map);
-    pts.push(c.c);
+  // ═══ Marker Cluster Group ═══
+  // When zoomed out, nearby markers group into styled clusters.
+  // When zoomed in, markers spread out and are individually visible.
+  var clusterGroup = L.markerClusterGroup({
+    showCoverageOnHover: false,
+    maxClusterRadius: 50,
+    spiderfyOnMaxZoom: true,
+    iconCreateFunction: function (cluster) {
+      var count = cluster.getChildCount();
+      var size = count >= 10 ? 'large' : count >= 5 ? 'medium' : 'small';
+      return L.divIcon({
+        className: 'cpd-cluster cpd-cluster-' + size,
+        html: '<span>' + count + '</span>',
+        iconSize: [40, 40]
+      });
+    }
   });
 
-  if (pts.length) {
-    try { map.fitBounds(pts, { padding: [40, 40], maxZoom: 13 }); } catch (e) {}
-  }
+  D.compounds.forEach(function (c) {
+    var isFeatured = featured.indexOf(c.n) >= 0;
+    var marker = L.marker(c.c, { icon: markerIcon(c, isFeatured), title: c.n });
+    marker.on('click', function () {
+      location.href = 'compounds.html?cpd=' + encodeURIComponent(c.n);
+    });
+    clusterGroup.addLayer(marker);
+  });
 
+  map.addLayer(clusterGroup);
+
+  // Fit bounds to show all compounds
+  try { map.fitBounds(clusterGroup.getBounds(), { padding: [40, 40], maxZoom: 13 }); } catch (e) {}
+
+  // Fix tile rendering after layout settles
   setTimeout(function () { map.invalidateSize(); }, 200);
   setTimeout(function () { map.invalidateSize(); }, 800);
   window.addEventListener('resize', function () { map.invalidateSize(); });
