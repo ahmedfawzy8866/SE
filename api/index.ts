@@ -1,4 +1,5 @@
 import express from 'express';
+import { verifyIdToken } from './firebaseAdmin.js';
 
 const app = express();
 app.use(express.json());
@@ -69,22 +70,17 @@ app.get("/api/admin/auth/verify", async (req, res) => {
       return res.status(401).json({ isAdmin: false, error: 'No token provided' });
     }
 
-    // Decode the JWT without full verification (client-side Firebase token)
-    // Check email claim from the token payload
-    try {
-      const parts = token.split('.');
-      if (parts.length !== 3) {
-        return res.status(401).json({ isAdmin: false, error: 'Invalid token format' });
-      }
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8'));
-      const email: string = payload.email || '';
-      const isAdmin = ADMIN_EMAILS.some(
-        (adminEmail) => adminEmail.toLowerCase() === email.toLowerCase()
-      );
-      return res.json({ isAdmin, email });
-    } catch (decodeErr) {
-      return res.status(401).json({ isAdmin: false, error: 'Token decode failed' });
+    // Verify the Firebase Auth ID token's signature + expiry server-side
+    // (via firebase-admin) instead of trusting an unverified JWT payload.
+    const decoded = await verifyIdToken(token);
+    if (!decoded) {
+      return res.status(401).json({ isAdmin: false, error: 'Token verification failed' });
     }
+    const email = decoded.email || '';
+    const isAdmin = !!decoded.email_verified && ADMIN_EMAILS.some(
+      (adminEmail) => adminEmail.toLowerCase() === email.toLowerCase()
+    );
+    return res.json({ isAdmin, email });
   } catch (e: any) {
     console.error('Auth verify error:', e);
     return res.status(500).json({ isAdmin: false, error: e.message });
