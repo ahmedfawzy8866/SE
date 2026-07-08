@@ -1,0 +1,208 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* --- DARK THEME LIGHTER OVERRIDES (Restored to Premium Dark) --- */
+[data-theme="dark"] {
+  background-color: #05080f !important;
+}
+
+[data-theme="dark"] .bg-\[\#05080f\] {
+  background-color: #05080f !important;
+}
+
+[data-theme="dark"] .bg-\[\#0a0f1d\],
+[data-theme="dark"] .bg-\[\#0a0f1d\]\/80,
+[data-theme="dark"] .bg-slate-900\/40,
+[data-theme="dark"] .bg-\[\#07111E\]\/40 {
+  background-color: #0a0f1d !important;
+}
+
+[data-theme="dark"] .bg-slate-950,
+[data-theme="dark"] .bg-\[\#0b1329\] {
+  background-color: #0b1329 !important;
+}
+
+[data-theme="dark"] .border-slate-800,
+[data-theme="dark"] .border-slate-800\/55,
+[data-theme="dark"] .border-slate-700,
+[data-theme="dark"] .border-slate-805 {
+  border-color: #1e293b !important;
+}
+
+/* --- LIGHT THEME STYLES AND OVERRIDES --- */
+[data-theme="light"] {
+  background-color: #fafafa !important;
+  color: #1f2937 !important;
+}
+
+[data-theme="light"] h1, 
+[data-theme="light"] h2, 
+[data-theme="light"] h3, 
+[data-theme="light"] h4, 
+[data-theme="light"] h5, 
+[data-theme="light"] h6,
+[data-theme="light"] .text-white,
+[data-theme="light"] .text-slate-100,
+[data-theme="light"] .text-slate-200 {
+  color: #111827 !important;
+}
+
+[data-theme="light"] .text-slate-300, 
+[data-theme="light"] .text-slate-400,
+[data-theme="light"] .text-slate-350 {
+  color: #4b5563 !important;
+}
+
+[data-theme="light"] .text-slate-500 {
+  color: #6b7280 !important;
+}
+
+[data-theme="light"] .bg-\[\#05080f\] {
+  background-color: #fafafa !important;
+}
+
+[data-theme="light"] .bg-\[\#0a0f1d\],
+[data-theme="light"] .bg-\[\#0a0f1d\]\/80,
+[data-theme="light"] .bg-slate-900\/40,
+[data-theme="light"] .bg-\[\#07111E\]\/40 {
+  background-color: #ffffff !important;
+}
+
+[data-theme="light"] .border-slate-800,
+[data-theme="light"] .border-slate-800\/55,
+[data-theme="light"] .border-slate-700,
+[data-theme="light"] .border-slate-805 {
+  border-color: #e5e7eb !important;
+}
+
+[data-theme="light"] .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .hover\:bg-white\/5:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .hover\:bg-white\/10:hover {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  border-color: #d1d5db !important;
+}
+
+/* Sidebar Specific Overrides */
+[data-theme="light"] #admin-sidebar,
+[data-theme="light"] #admin-sidebar .bg-\[\#0a0f1d\] {
+  background-color: #f3f4f6 !important;
+  border-color: #e5e7eb !important;
+}
+
+[data-theme="light"] #admin-sidebar .nav-item-btn {
+  color: #4b5563 !important;
+}
+
+[data-theme="light"] #admin-sidebar .nav-item-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #111827 !important;
+}
+
+/* Header Specific Overrides */
+[data-theme="light"] header.h-\[64px\] {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: #e5e7eb !important;
+}
+
+[data-theme="light"] header.h-\[64px\] h1 {
+  color: #111827 !important;
+}
+
+/* Form and Page Components Inputs and Buttons */
+[data-theme="light"] .bg-slate-950,
+[data-theme="light"] .bg-[#0b1329] {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .text-cyan-400 {
+  color: #0284c7 !important;
+}
+
+[data-theme="light"] .border-cyan-500\/30 {
+  border-color: rgba(2, 132, 199, 0.3) !important;
+}
+
+[data-theme="light"] .bg-cyan-500\/10 {
+  background-color: rgba(2, 132, 199, 0.1) !important;
+}
+
+[data-theme="light"] button.bg-white\/5 {
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+
+[data-theme="light"] button.bg-white\/5:hover {
+  background-color: #f3f4f6 !important;
+}
+
+/* --- 360 TOUR SECTION - LIGHT THEME OVERRIDES --- */
+[data-theme="light"] #tour-360 .bg-slate-950\/90 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: #e5e7eb !important;
+}
+
+[data-theme="light"] #tour-360 .border-slate-800 {
+  border-color: #d1d5db !important;
+}
+
+[data-theme="light"] #tour-360 .text-slate-400 {
+  color: #6b7280 !important;
+}
+
+[data-theme="light"] #tour-360 .bg-slate-950\/80 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  color: #374151 !important;
+}
+
+/* Tour loading spinner in light mode */
+[data-theme="light"] #tour-360 .bg-slate-950\/90.flex {
+  background-color: rgba(248, 250, 252, 0.92) !important;
+}
+
+/* D-pad control buttons in light mode */
+[data-theme="light"] #tour-360 .bg-slate-950\/90.flex.items-center {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  color: #374151 !important;
+  border-color: #d1d5db !important;
+}
+
+/* --- LISTING CARDS - LIGHT THEME OVERRIDES --- */
+[data-theme="light"] .bg-slate-900\/40 {
+  background-color: #f3f4f6 !important;
+}
+
+[data-theme="light"] .border-slate-900 {
+  border-color: #e5e7eb !important;
+}
+
+/* Listing card grid stat cells */
+[data-theme="light"] .border-y.border-slate-900\/60 {
+  border-color: #e5e7eb !important;
+}
+
+/* 3D Tour button (cyan) in light mode */
+[data-theme="light"] .text-cyan-400 {
+  color: #0369a1 !important;
+}
+

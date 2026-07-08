@@ -1,0 +1,6 @@
+{
+  "name": "@sierra-estates/agents-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Operational agent scripts (stage-9 closer, WhatsApp scraper). NOT part of the pnpm install graph — each subdirectory has its own manifest and runs standalone. This file exists only to make the directory discoverable as private."
+}
