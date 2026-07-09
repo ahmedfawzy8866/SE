@@ -166,15 +166,15 @@
     }
   };
 
-  var lang = localStorage.getItem('hzp-lang') || 'en';
-  var theme = localStorage.getItem('hzp-theme') || 'light';
+  var lang = localStorage.getItem('hzp-lang') || 'ar';
+  var theme = localStorage.getItem('hzp-theme') || 'dark';
 
   function t(k) { return (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k; }
 
   /* ── chrome templates ── */
   function chromeHTML(active) {
     function act(k) { return active === k ? ' class="active"' : ''; }
-    // Minimalist header: brand + 4 nav items + theme/lang toggles
+    // Header: brand + nav items (no Career — moved to footer) + Request Now + toggles
     return '' +
     '<nav class="nav" id="main-nav"><div class="wrap">' +
       '<a href="index.html" class="brand">' +
@@ -185,14 +185,26 @@
         '<a href="index.html"' + act('home') + ' data-i18n="navHome">' + t('navHome') + '</a>' +
         '<a href="compounds.html"' + act('cpds') + ' data-i18n="navCpds">' + t('navCpds') + '</a>' +
         '<a href="properties.html"' + act('best') + ' data-i18n="navBest">' + t('navBest') + '</a>' +
-        '<a href="career.html"' + act('career') + ' data-i18n="navCareer">' + t('navCareer') + '</a>' +
         '<a href="index.html#contact"' + act('contact') + ' data-i18n="navContact">' + t('navContact') + '</a>' +
       '</div>' +
       '<div class="nav-right">' +
+        '<a href="index.html#contact" class="req-now-btn" id="req-now">' +
+          '<span class="req-badge">25% OFF</span>' +
+          '<span class="req-text">' + (lang === 'ar' ? 'اطلب الآن' : 'Request Now') + '</span>' +
+          '<i data-lucide="arrow-right" class="i" style="width:14px;height:14px;"></i>' +
+        '</a>' +
         '<button class="tb-toggle" id="theme-toggle" type="button"><i data-lucide="' + (theme === 'dark' ? 'sun' : 'moon') + '" class="i"></i></button>' +
         '<button class="tb-toggle" id="lang-toggle" type="button"><i data-lucide="languages" class="i"></i><span>' + t('langBtn') + '</span></button>' +
       '</div>' +
-    '</div></nav>';
+    '</div></nav>' +
+    // ─── Mobile bottom navigation bar (5 buttons) ───
+    '<nav class="bottom-nav" id="bottom-nav">' +
+      '<a href="index.html"' + act('home') + ' class="bn-item"><i data-lucide="home" class="i"></i><span data-i18n="navHome">' + t('navHome') + '</span></a>' +
+      '<a href="properties.html"' + act('best') + ' class="bn-item"><i data-lucide="search" class="i"></i><span data-i18n="navBest">' + t('navBest') + '</span></a>' +
+      '<a href="compounds.html"' + act('cpds') + ' class="bn-item"><i data-lucide="map" class="i"></i><span data-i18n="navCpds">' + t('navCpds') + '</span></a>' +
+      '<a href="index.html#ai" class="bn-item"><i data-lucide="sparkles" class="i"></i><span>AI Hub</span></a>' +
+      '<a href="index.html#contact" class="bn-item"><i data-lucide="heart" class="i"></i><span data-i18n="navContact">' + t('navContact') + '</span></a>' +
+    '</nav>';
   }
 
   function footerHTML() {
@@ -213,7 +225,7 @@
           '<a href="#" data-i18n="fAgent">' + t('fAgent') + '</a></div>' +
         '<div class="fcol"><h5 data-i18n="fCompany">' + t('fCompany') + '</h5>' +
           '<a href="#" data-i18n="fAbout">' + t('fAbout') + '</a><a href="#" data-i18n="fBrokers">' + t('fBrokers') + '</a>' +
-          '<a href="#" data-i18n="fJournal">' + t('fJournal') + '</a><a href="#" data-i18n="fCareers">' + t('fCareers') + '</a>' +
+          '<a href="#" data-i18n="fJournal">' + t('fJournal') + '</a><a href="career.html" data-i18n="fCareers">' + t('fCareers') + '</a>' +
           '<a href="#" data-i18n="fContact">' + t('fContact') + '</a></div>' +
         '<div class="fcol"><h5 data-i18n="fDiscover">' + t('fDiscover') + '</h5>' +
           '<a href="compounds.html" data-i18n="z1">' + t('z1') + '</a><a href="compounds.html" data-i18n="z2">' + t('z2') + '</a>' +

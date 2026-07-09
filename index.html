@@ -294,43 +294,43 @@
 .sec-head h2 sup, .ai-hub h2 sup{font-size:0.45em;font-weight:800;color:var(--pri);vertical-align:super;margin-inline-start:2px;letter-spacing:0;}
 .ai-hub h2 sup{color:#34d399;text-shadow:0 0 8px rgba(52,211,153,.4);}
 
-/* ─── Framer-motion style animations ─── */
-/* Cards spin/fade in on scroll */
+/* ─── Framer-motion + GSAP style animations ─── */
 @keyframes fmCardSpin{from{opacity:0;transform:translateY(30px) rotateX(-12deg) scale(.96);}to{opacity:1;transform:translateY(0) rotateX(0) scale(1);}}
-/* Headings slide down from top */
 @keyframes fmSlideDown{from{opacity:0;transform:translateY(-40px);}to{opacity:1;transform:translateY(0);}}
-/* Content slides from left */
-@keyframes fmSlideLeft{from{opacity:0;transform:translateX(-50px);}to{opacity:1;transform:translateX(0);}}
-/* Content slides from right */
-@keyframes fmSlideRight{from{opacity:0;transform:translateX(50px);}to{opacity:1;transform:translateX(0);}}
-/* Words write-on effect */
+@keyframes fmSlideLeft{from{opacity:0;transform:translateX(-60px);}to{opacity:1;transform:translateX(0);}}
+@keyframes fmSlideRight{from{opacity:0;transform:translateX(60px);}to{opacity:1;transform:translateX(0);}}
 @keyframes fmWriteOn{from{opacity:0;transform:translateY(8px);filter:blur(4px);}to{opacity:1;transform:translateY(0);filter:blur(0);}}
+@keyframes fmScaleUp{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:scale(1);}}
+@keyframes fmFlip3D{from{opacity:0;transform:perspective(800px) rotateY(-15deg) translateY(20px);}to{opacity:1;transform:perspective(800px) rotateY(0) translateY(0);}}
+@keyframes fmBlurIn{from{opacity:0;filter:blur(12px);transform:scale(1.05);}to{opacity:1;filter:blur(0);transform:scale(1);}}
+@keyframes fmClipReveal{from{opacity:0;clip-path:inset(0 100% 0 0);}to{opacity:1;clip-path:inset(0 0 0 0);}}
 
-/* Apply animations when elements enter viewport */
-.fm-spin{opacity:0;}
-.fm-spin.fm-in{animation:fmCardSpin .7s cubic-bezier(.16,1,.3,1) both;}
-.fm-down{opacity:0;}
-.fm-down.fm-in{animation:fmSlideDown .8s cubic-bezier(.16,1,.3,1) both;}
-.fm-left{opacity:0;}
-.fm-left.fm-in{animation:fmSlideLeft .8s cubic-bezier(.16,1,.3,1) both;}
-.fm-right{opacity:0;}
-.fm-right.fm-in{animation:fmSlideRight .8s cubic-bezier(.16,1,.3,1) both;}
-.fm-write{opacity:0;}
-.fm-write.fm-in{animation:fmWriteOn .6s cubic-bezier(.16,1,.3,1) both;}
+.fm-spin{opacity:0;}.fm-spin.fm-in{animation:fmCardSpin .7s cubic-bezier(.16,1,.3,1) both;}
+.fm-down{opacity:0;}.fm-down.fm-in{animation:fmSlideDown .8s cubic-bezier(.16,1,.3,1) both;}
+.fm-left{opacity:0;}.fm-left.fm-in{animation:fmSlideLeft .8s cubic-bezier(.16,1,.3,1) both;}
+.fm-right{opacity:0;}.fm-right.fm-in{animation:fmSlideRight .8s cubic-bezier(.16,1,.3,1) both;}
+.fm-write{opacity:0;}.fm-write.fm-in{animation:fmWriteOn .6s cubic-bezier(.16,1,.3,1) both;}
+.fm-scale{opacity:0;}.fm-scale.fm-in{animation:fmScaleUp .6s cubic-bezier(.16,1,.3,1) both;}
+.fm-flip{opacity:0;}.fm-flip.fm-in{animation:fmFlip3D .8s cubic-bezier(.16,1,.3,1) both;}
+.fm-blur{opacity:0;}.fm-blur.fm-in{animation:fmBlurIn .8s cubic-bezier(.16,1,.3,1) both;}
+.fm-clip{opacity:0;}.fm-clip.fm-in{animation:fmClipReveal .7s cubic-bezier(.16,1,.3,1) both;}
 
-/* Stagger delays */
 .fm-d1{animation-delay:.08s}.fm-d2{animation-delay:.16s}.fm-d3{animation-delay:.24s}.fm-d4{animation-delay:.32s}.fm-d5{animation-delay:.4s}.fm-d6{animation-delay:.48s}
 
 @media(prefers-reduced-motion:reduce){
-  .fm-spin,.fm-down,.fm-left,.fm-right,.fm-write{opacity:1 !important;animation:none !important;}
+  .fm-spin,.fm-down,.fm-left,.fm-right,.fm-write,.fm-scale,.fm-flip,.fm-blur,.fm-clip{opacity:1 !important;animation:none !important;}
 }
 
-/* ─── Home page map markers ─── */
-.cpd-marker{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:14px;background:#fff;border:2px solid var(--pri);color:var(--navy);font-family:var(--font);font-weight:700;font-size:11px;padding:0 10px;box-shadow:0 3px 10px rgba(13,33,54,.15);cursor:pointer;transition:.2s var(--silk);white-space:nowrap;}
-.cpd-marker:hover{transform:scale(1.08);box-shadow:0 5px 16px rgba(0,174,255,.3);z-index:999;}
-.cpd-marker.hot{background:linear-gradient(135deg,var(--pri),#0098e0);color:#fff;border-color:var(--pri);}
-[data-theme="dark"] .cpd-marker{background:#17181b;border-color:#c8961a;color:#e9c176;}
-[data-theme="dark"] .cpd-marker.hot{background:linear-gradient(135deg,#e9c176,#c8961a);color:#0d0d0f;}
+/* ─── Home page map markers (premium dark navy style) ─── */
+#home-map{border:1px solid var(--line) !important;border-radius:14px !important;overflow:hidden;}
+[data-theme="dark"] #home-map{border-color:#1a1a26 !important;}
+.cpd-marker{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:14px;background:rgba(0,43,75,.9);border:2px solid #00aeff;color:#bfeaff;font-family:var(--font);font-weight:700;font-size:11px;padding:0 10px;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;transition:.2s var(--silk);white-space:nowrap;backdrop-filter:blur(4px);}
+.cpd-marker:hover{transform:scale(1.12);box-shadow:0 6px 20px rgba(0,174,255,.5);z-index:999;border-color:#34d399;color:#fff;}
+.cpd-marker.hot{background:linear-gradient(135deg,#00aeff,#0098e0);color:#fff;border-color:#00aeff;}
+.cpd-marker.pulse{background:rgba(0,174,255,.85);color:#fff;border-color:#34d399;}
+[data-theme="dark"] .cpd-marker{background:rgba(15,15,26,.85);border-color:#c8961a;color:#e9c176;backdrop-filter:blur(4px);}
+[data-theme="dark"] .cpd-marker.hot{background:linear-gradient(135deg,#e9c176,#c8961a);color:#09090f;}
+[data-theme="dark"] .cpd-marker.pulse{background:rgba(200,150,26,.7);border-color:#34d399;color:#fff;}
 
 /* ═══ Featured compound markers — pulsing glow ═══ */
 .cpd-marker.pulse{background:linear-gradient(135deg,#00aeff,#0098e0);color:#fff;border-color:#00aeff;font-weight:800;position:relative;}
@@ -956,6 +956,13 @@
   if (aiHub && whySierra && whySierra.nextElementSibling !== aiHub) {
     whySierra.parentNode.insertBefore(aiHub, whySierra.nextElementSibling);
   }
+
+  // ═══ Move 3D Tour to right after Featured Properties (before Why Sierra) ═══
+  var tour = document.getElementById('tour');
+  var props = document.getElementById('properties');
+  if (tour && props && props.nextElementSibling !== tour) {
+    props.parentNode.insertBefore(tour, props.nextElementSibling);
+  }
 })();
 </script>
 
@@ -1103,6 +1110,32 @@
       if (el.dataset.fmDone) return;
       el.classList.add('fm-write', 'fm-d' + ((i % 4) + 1));
       el.dataset.fmDone = '1';
+    });
+
+    // Framer-motion: 3D tour section blur-in
+    var tourSec = document.getElementById('tour');
+    if (tourSec && !tourSec.dataset.fmDone) { tourSec.classList.add('fm-blur'); tourSec.dataset.fmDone = '1'; }
+
+    // Framer-motion: map section clip-reveal
+    var mapSec = document.getElementById('map-section');
+    if (mapSec && !mapSec.dataset.fmDone) { mapSec.classList.add('fm-clip'); mapSec.dataset.fmDone = '1'; }
+
+    // Framer-motion: insights cards flip-3D
+    document.querySelectorAll('#insights-grid > a').forEach(function (el, i) {
+      if (el.dataset.fmDone) return;
+      el.classList.add('fm-flip', 'fm-d' + ((i % 3) + 1));
+      el.dataset.fmDone = '1';
+    });
+
+    // Framer-motion: CTA scale-up
+    var cta = document.querySelector('.cta');
+    if (cta && !cta.dataset.fmDone) { cta.classList.add('fm-scale'); cta.dataset.fmDone = '1'; }
+
+    // Framer-motion: AI preview images blur-in
+    document.querySelectorAll('.ai-hub a img').forEach(function (el, i) {
+      if (el.parentElement.dataset.fmDone) return;
+      el.parentElement.classList.add('fm-blur', 'fm-d' + ((i % 3) + 1));
+      el.parentElement.dataset.fmDone = '1';
     });
   }
 
