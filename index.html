@@ -51,14 +51,15 @@
 .hero .map-cta .i{width:17px;height:17px;}
 @media(max-width:680px){.hero .map-cta{bottom:96px;font-size:13px;padding:11px 18px;}}
 
-/* ── scroll-down indicator (laser line) ── */
+/* ── scroll-down indicator (green laser line — bigger, more visible) ── */
 .scroll-cue{position:absolute;bottom:28px;right:36px;z-index:5;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;}
-.scroll-cue-line{position:relative;width:2px;height:54px;background:rgba(255,255,255,.22);border-radius:2px;overflow:hidden;}
-.scroll-cue-line::after{content:"";position:absolute;top:0;left:0;width:100%;height:18px;background:linear-gradient(180deg,transparent,#34d399,#34d399,transparent);border-radius:2px;animation:scrollLaser 1.8s var(--silk) infinite;box-shadow:0 0 8px rgba(52,211,153,.5);}
-[data-theme="dark"] .scroll-cue-line::after{background:linear-gradient(180deg,transparent,#34d399,#34d399,transparent);box-shadow:0 0 10px rgba(52,211,153,.6);}
-.scroll-cue-label{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.28em;color:rgba(255,255,255,.55);text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;}
-@keyframes scrollLaser{0%{transform:translateY(-18px);opacity:0;}15%{opacity:1;}85%{opacity:1;}100%{transform:translateY(54px);opacity:0;}}
-@media(max-width:680px){.scroll-cue{bottom:18px;right:20px;}.scroll-cue-line{height:40px;}.scroll-cue-line::after{height:14px;}@keyframes scrollLaser{0%{transform:translateY(-14px);opacity:0;}15%{opacity:1;}85%{opacity:1;}100%{transform:translateY(40px);opacity:0;}}}
+.scroll-cue-line{position:relative;width:3px;height:72px;background:rgba(255,255,255,.15);border-radius:3px;overflow:visible;}
+.scroll-cue-line::before{content:"";position:absolute;inset:0;border-radius:3px;background:rgba(52,211,153,.08);}
+.scroll-cue-line::after{content:"";position:absolute;top:0;left:-1px;width:5px;height:28px;background:linear-gradient(180deg,transparent,#34d399 30%,#34d399 70%,transparent);border-radius:3px;animation:scrollLaser 1.6s cubic-bezier(.16,1,.3,1) infinite;box-shadow:0 0 12px rgba(52,211,153,.8),0 0 24px rgba(52,211,153,.4);}
+[data-theme="dark"] .scroll-cue-line::after{background:linear-gradient(180deg,transparent,#34d399 30%,#34d399 70%,transparent);box-shadow:0 0 14px rgba(52,211,153,.9),0 0 28px rgba(52,211,153,.5);}
+.scroll-cue-label{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.28em;color:rgba(52,211,153,.7);text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;}
+@keyframes scrollLaser{0%{transform:translateY(-28px);opacity:0;}15%{opacity:1;}85%{opacity:1;}100%{transform:translateY(72px);opacity:0;}}
+@media(max-width:680px){.scroll-cue{bottom:18px;right:20px;}.scroll-cue-line{height:56px;width:3px;}.scroll-cue-line::after{height:22px;width:5px;}@keyframes scrollLaser{0%{transform:translateY(-22px);opacity:0;}15%{opacity:1;}85%{opacity:1;}100%{transform:translateY(56px);opacity:0;}}}
 @media(prefers-reduced-motion:reduce){.scroll-cue-line::after{animation:none;opacity:.6;}}
 
 /* ── search card ── */
@@ -292,6 +293,37 @@
 /* ─── Split text sup styling (Why Sierra + AI Hub headings) ─── */
 .sec-head h2 sup, .ai-hub h2 sup{font-size:0.45em;font-weight:800;color:var(--pri);vertical-align:super;margin-inline-start:2px;letter-spacing:0;}
 .ai-hub h2 sup{color:#34d399;text-shadow:0 0 8px rgba(52,211,153,.4);}
+
+/* ─── Framer-motion style animations ─── */
+/* Cards spin/fade in on scroll */
+@keyframes fmCardSpin{from{opacity:0;transform:translateY(30px) rotateX(-12deg) scale(.96);}to{opacity:1;transform:translateY(0) rotateX(0) scale(1);}}
+/* Headings slide down from top */
+@keyframes fmSlideDown{from{opacity:0;transform:translateY(-40px);}to{opacity:1;transform:translateY(0);}}
+/* Content slides from left */
+@keyframes fmSlideLeft{from{opacity:0;transform:translateX(-50px);}to{opacity:1;transform:translateX(0);}}
+/* Content slides from right */
+@keyframes fmSlideRight{from{opacity:0;transform:translateX(50px);}to{opacity:1;transform:translateX(0);}}
+/* Words write-on effect */
+@keyframes fmWriteOn{from{opacity:0;transform:translateY(8px);filter:blur(4px);}to{opacity:1;transform:translateY(0);filter:blur(0);}}
+
+/* Apply animations when elements enter viewport */
+.fm-spin{opacity:0;}
+.fm-spin.fm-in{animation:fmCardSpin .7s cubic-bezier(.16,1,.3,1) both;}
+.fm-down{opacity:0;}
+.fm-down.fm-in{animation:fmSlideDown .8s cubic-bezier(.16,1,.3,1) both;}
+.fm-left{opacity:0;}
+.fm-left.fm-in{animation:fmSlideLeft .8s cubic-bezier(.16,1,.3,1) both;}
+.fm-right{opacity:0;}
+.fm-right.fm-in{animation:fmSlideRight .8s cubic-bezier(.16,1,.3,1) both;}
+.fm-write{opacity:0;}
+.fm-write.fm-in{animation:fmWriteOn .6s cubic-bezier(.16,1,.3,1) both;}
+
+/* Stagger delays */
+.fm-d1{animation-delay:.08s}.fm-d2{animation-delay:.16s}.fm-d3{animation-delay:.24s}.fm-d4{animation-delay:.32s}.fm-d5{animation-delay:.4s}.fm-d6{animation-delay:.48s}
+
+@media(prefers-reduced-motion:reduce){
+  .fm-spin,.fm-down,.fm-left,.fm-right,.fm-write{opacity:1 !important;animation:none !important;}
+}
 
 /* ─── Home page map markers ─── */
 .cpd-marker{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:14px;background:#fff;border:2px solid var(--pri);color:var(--navy);font-family:var(--font);font-weight:700;font-size:11px;padding:0 10px;box-shadow:0 3px 10px rgba(13,33,54,.15);cursor:pointer;transition:.2s var(--silk);white-space:nowrap;}
@@ -687,7 +719,10 @@
       </div>
       <div class="ct-act">
         <button class="btn btn-white" type="button"><i data-lucide="plus" class="i"></i> <span data-i18n="ctaBtn1"></span></button>
-        <button class="btn btn-out" type="button"><i data-lucide="phone" class="i"></i> <span data-i18n="ctaBtn2"></span></button>
+        <a href="https://wa.me/201092048333" target="_blank" rel="noopener noreferrer" class="btn btn-out" style="text-decoration:none;"><i data-lucide="phone" class="i"></i> <span>+2 01092048333</span></a>
+      </div>
+      <div style="margin-top:14px;font-family:var(--mono);font-size:13px;color:rgba(255,255,255,.6);">
+        <i data-lucide="mail" class="i" style="width:14px;height:14px;vertical-align:-2px;"></i> <a href="mailto:info@Sierra-Estates.net" style="color:rgba(255,255,255,.7);text-decoration:none;">info@Sierra-Estates.net</a>
       </div>
     </div>
   </div>
@@ -926,34 +961,85 @@
   'use strict';
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ─── Apply .se-fade to key content blocks ───────────────────────────────
+  // ─── Apply .se-fade + framer-motion classes to key content blocks ───────
   function setupFades() {
-    var selectors = [
-      '.sec-head', '.sec-head h2', '.sec-head .eyebrow',
-      '.hz-sec-head', '.hz-sec-head h2',
+    // Basic fade-up for general elements
+    var fadeSelectors = [
+      '.sec-head .eyebrow', '.hz-sec-head h2',
       '.hz-block h2', '.hz-cta h3',
       '.search-card', '.hz-search-card',
-      '.hz-comp', '.hz-room', '.hz-pcard',
-      '.hz-stats .stat', '.hz-cta',
+      '.hz-comp', '.hz-room', '.hz-stats .stat', '.hz-cta',
       '.block .wrap > p', '.cpd-card',
       '.testi-card', '.ai-tile',
       '#tour .wrap > div'
     ];
-    var els = document.querySelectorAll(selectors.join(','));
-    els.forEach(function (el) {
+    document.querySelectorAll(fadeSelectors.join(',')).forEach(function (el) {
       if (el.dataset.seFade) return;
       el.classList.add('se-fade');
       el.dataset.seFade = '1';
+    });
+
+    // Framer-motion: headings slide down from top
+    document.querySelectorAll('.sec-head h2, .ai-hub h2').forEach(function (el) {
+      if (el.dataset.fmDone) return;
+      el.classList.add('fm-down');
+      el.dataset.fmDone = '1';
+    });
+
+    // Framer-motion: listing cards spin-in with stagger
+    document.querySelectorAll('.grid-props .pcard, #prop-grid .pcard').forEach(function (el, i) {
+      if (el.dataset.fmDone) return;
+      el.classList.add('fm-spin', 'fm-d' + ((i % 6) + 1));
+      el.dataset.fmDone = '1';
+    });
+
+    // Framer-motion: Why Sierra features slide from left/right alternating
+    document.querySelectorAll('.grid-feat .feat').forEach(function (el, i) {
+      if (el.dataset.fmDone) return;
+      el.classList.add(i % 2 === 0 ? 'fm-left' : 'fm-right', 'fm-d' + ((i % 4) + 1));
+      el.dataset.fmDone = '1';
+    });
+
+    // Framer-motion: net-banner slides from left
+    var nb = document.querySelector('.net-banner');
+    if (nb && !nb.dataset.fmDone) { nb.classList.add('fm-left'); nb.dataset.fmDone = '1'; }
+
+    // Framer-motion: AI cards spin-in
+    document.querySelectorAll('.ai-card').forEach(function (el, i) {
+      if (el.dataset.fmDone) return;
+      el.classList.add('fm-spin', 'fm-d' + ((i % 4) + 1));
+      el.dataset.fmDone = '1';
+    });
+
+    // Framer-motion: compound cards slide from left/right
+    document.querySelectorAll('.grid-comp .comp, #comp-grid .comp').forEach(function (el, i) {
+      if (el.dataset.fmDone) return;
+      el.classList.add(i % 2 === 0 ? 'fm-left' : 'fm-right', 'fm-d' + ((i % 4) + 1));
+      el.dataset.fmDone = '1';
+    });
+
+    // Framer-motion: stats write-on effect
+    document.querySelectorAll('.stats .stat').forEach(function (el, i) {
+      if (el.dataset.fmDone) return;
+      el.classList.add('fm-write', 'fm-d' + ((i % 4) + 1));
+      el.dataset.fmDone = '1';
     });
   }
 
   // ─── Check which elements are in viewport + reveal them ─────────────────
   function checkFades() {
-    var fades = document.querySelectorAll('.se-fade:not(.se-fade-in)');
-    fades.forEach(function (el) {
+    // Trigger se-fade (Percipio-style fade-up)
+    document.querySelectorAll('.se-fade:not(.se-fade-in)').forEach(function (el) {
       var r = el.getBoundingClientRect();
       if (r.top < window.innerHeight * 0.88 && r.bottom > 0) {
         el.classList.add('se-fade-in');
+      }
+    });
+    // Trigger framer-motion animations
+    document.querySelectorAll('.fm-spin:not(.fm-in), .fm-down:not(.fm-in), .fm-left:not(.fm-in), .fm-right:not(.fm-in), .fm-write:not(.fm-in)').forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight * 0.88 && r.bottom > 0) {
+        el.classList.add('fm-in');
       }
     });
   }
