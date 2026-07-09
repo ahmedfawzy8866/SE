@@ -1328,8 +1328,11 @@
         el.classList.add('se-fade-in');
       }
     });
-    // Trigger framer-motion animations
-    document.querySelectorAll('.fm-spin:not(.fm-in), .fm-down:not(.fm-in), .fm-left:not(.fm-in), .fm-right:not(.fm-in), .fm-write:not(.fm-in)').forEach(function (el) {
+    // Trigger framer-motion animations (must include EVERY fm-* class that
+    // starts at opacity:0 — fm-blur, fm-clip, fm-flip, fm-scale were previously
+    // missing, which kept the 3D tour, map, insights cards, CTA and AI preview
+    // images permanently invisible. See lines ~1295-1320 for class assignment.)
+    document.querySelectorAll('.fm-spin:not(.fm-in), .fm-down:not(.fm-in), .fm-left:not(.fm-in), .fm-right:not(.fm-in), .fm-write:not(.fm-in), .fm-scale:not(.fm-in), .fm-flip:not(.fm-in), .fm-blur:not(.fm-in), .fm-clip:not(.fm-in)').forEach(function (el) {
       var r = el.getBoundingClientRect();
       if (r.top < window.innerHeight * 0.88 && r.bottom > 0) {
         el.classList.add('fm-in');
@@ -1383,6 +1386,30 @@
     });
     obs.observe(document.body, { childList: true, subtree: true });
     setTimeout(function () { obs.disconnect(); }, 5000);
+
+    // ── FAILSAFE: any fm-* element still at opacity:0 after 4s gets fm-in.
+    // This prevents the entire 3D tour / map / CTA / insights sections from
+    // staying invisible forever if the scroll check somehow misses them
+    // (e.g. user lands on a deep link, viewport miscalculation, layout shift).
+    setTimeout(function () {
+      document.querySelectorAll(
+        '.fm-spin:not(.fm-in), .fm-down:not(.fm-in), .fm-left:not(.fm-in), ' +
+        '.fm-right:not(.fm-in), .fm-write:not(.fm-in), .fm-scale:not(.fm-in), ' +
+        '.fm-flip:not(.fm-in), .fm-blur:not(.fm-in), .fm-clip:not(.fm-in)'
+      ).forEach(function (el) {
+        var r = el.getBoundingClientRect();
+        if (r.top < window.innerHeight && r.bottom > 0) {
+          el.classList.add('fm-in');
+        }
+      });
+    }, 4000);
+    // Ultimate backstop: after 8s, force-reveal EVERYTHING still hidden so
+    // no section is permanently invisible regardless of viewport state.
+    setTimeout(function () {
+      document.querySelectorAll(
+        '[class*="fm-"]:not(.fm-in), .se-fade:not(.se-fade-in)'
+      ).forEach(function (el) { el.classList.add('fm-in', 'se-fade-in'); });
+    }, 8000);
   }
 })();
 </script>
