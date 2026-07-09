@@ -51,13 +51,14 @@
 .hero .map-cta .i{width:17px;height:17px;}
 @media(max-width:680px){.hero .map-cta{bottom:96px;font-size:13px;padding:11px 18px;}}
 
-/* ── VERTICAL PAGE LASER — thin green line at left edge, drops top→bottom ── */
-.page-laser{position:fixed;top:0;left:0;width:3px;height:100vh;z-index:9997;pointer-events:none;overflow:hidden;}
-.page-laser-beam{position:absolute;top:-200px;left:0;width:3px;height:200px;background:linear-gradient(180deg,transparent,#34d399 20%,#34d399 80%,transparent);border-radius:3px;animation:pageLaserDrop 3s cubic-bezier(.16,1,.3,1) infinite;box-shadow:0 0 12px rgba(52,211,153,.8),0 0 24px rgba(52,211,153,.4);}
-[data-theme="dark"] .page-laser-beam{background:linear-gradient(180deg,transparent,#34d399 20%,#34d399 80%,transparent);box-shadow:0 0 14px rgba(52,211,153,1),0 0 28px rgba(52,211,153,.5);}
-@keyframes pageLaserDrop{0%{transform:translateY(0);opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{transform:translateY(100vh);opacity:0;}}
-@media(max-width:768px){.page-laser{display:none;}}
-@media(prefers-reduced-motion:reduce){.page-laser-beam{animation:none;opacity:.5;}}
+/* ── HORIZONTAL LASER BEAM — gold beam descends top→bottom across hero ──
+     Based on the video: a HORIZONTAL yellow/gold beam that starts at the top
+     of the hero and descends to the bottom, sweeping left-to-right as it goes. */
+.page-laser{position:fixed;top:0;left:0;right:0;height:100vh;z-index:9997;pointer-events:none;overflow:hidden;}
+.page-laser-beam{position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,#e9c176 15%,#c8961a 50%,#e9c176 85%,transparent);border-radius:4px;box-shadow:0 0 16px rgba(233,193,118,.9),0 0 32px rgba(200,150,26,.5),0 0 48px rgba(200,150,26,.2);animation:laserSweepDown 3.5s cubic-bezier(.16,1,.3,1) infinite;}
+@keyframes laserSweepDown{0%{top:0;opacity:0;}8%{opacity:1;}92%{opacity:1;}100%{top:100vh;opacity:0;}}
+@media(max-width:768px){.page-laser-beam{height:3px;box-shadow:0 0 12px rgba(233,193,118,.8),0 0 24px rgba(200,150,26,.4);}}
+@media(prefers-reduced-motion:reduce){.page-laser-beam{animation:none;opacity:.5;top:50%;}}
 
 /* ── CALM BELL BAR — Request Now + 25% OFF ── */
 .bell-bar{background:linear-gradient(90deg,var(--navy),#0a1622);padding:10px 24px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
