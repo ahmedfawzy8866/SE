@@ -15,8 +15,13 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<!-- Firebase compat SDK (only loads if SIERRA_FIREBASE_ENABLED = true) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" defer></script>
+<script src="firebase-config.js"></script>
 <script src="data.js"></script>
 <script src="shared.js"></script>
+<script src="firebase.js" defer></script>
 <style>
 /* ── hero slider ── */
 .hero{position:relative;min-height:640px;display:flex;flex-direction:column;justify-content:center;padding:70px 0 140px;overflow:hidden;background:#0a1622;}
@@ -1080,9 +1085,10 @@
     });
   });
 
-  /* ═══ INQUIRY FORM SUBMIT — export to CSV (Excel-compatible) ═══
-     Same pattern as career.html. When backend (Firestore) is wired,
-     replace the CSV download with a fetch() POST to /api/inquiries. */
+  /* ═══ INQUIRY FORM SUBMIT — Firestore (primary) + CSV (fallback) ═══
+     Tries to write to Firestore via window.SIERRA_DB.addInquiry().
+     If Firestore is not connected (SIERRA_FIREBASE_ENABLED=false), falls
+     back to CSV download + localStorage — same as career.html. */
   var inqForm = document.getElementById('inq-form');
   if (inqForm) {
     inqForm.addEventListener('submit', function (e) {
@@ -1097,40 +1103,58 @@
         type: document.getElementById('inq-type').value,
         budget: document.getElementById('inq-budget').value.trim()
       };
-      // Append to CSV (download in browser — admin will use Firestore version)
-      try {
-        var csvRow = [data.timestamp, data.mode, data.name, data.phone, data.email, data.zone, data.type, data.budget]
-          .map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
-        var csvHeader = 'Timestamp,Mode,Name,Phone,Email,Zone,Type,Budget\n';
-        // Try to append to localStorage CSV log
-        var log = JSON.parse(localStorage.getItem('sierra_inquiries') || '[]');
-        log.push(data);
-        localStorage.setItem('sierra_inquiries', JSON.stringify(log));
-        // Also trigger CSV download
-        var blob = new Blob([csvHeader + csvRow], { type: 'text/csv;charset=utf-8;' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'sierra-inquiry-' + Date.now() + '.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } catch (err) {
-        // localStorage might be full or disabled — silently continue
+
+      // Show loading state on button
+      var submitBtn = inqForm.querySelector('button[type="submit"]');
+      var originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i data-lucide="loader-2" class="i" style="animation:vtv-spin 1s linear infinite;"></i> <span>Sending…</span>'; if (window.lucide) lucide.createIcons(); }
+
+      function showSuccess() {
+        var successEl = document.getElementById('inq-success');
+        if (successEl) {
+          successEl.style.display = 'block';
+          successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(function () { successEl.style.display = 'none'; }, 6000);
+        }
+        inqForm.reset();
+        document.querySelectorAll('#inq-seg button').forEach(function (x, i) { x.classList.toggle('on', i === 0); });
+        inqMode = 'buy';
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalBtnHtml; if (window.lucide) lucide.createIcons(); }
       }
-      // Show success message + reset form
-      var successEl = document.getElementById('inq-success');
-      if (successEl) {
-        successEl.style.display = 'block';
-        successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(function () { successEl.style.display = 'none'; }, 6000);
+
+      function csvFallback() {
+        try {
+          var csvRow = [data.timestamp, data.mode, data.name, data.phone, data.email, data.zone, data.type, data.budget]
+            .map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+          var csvHeader = 'Timestamp,Mode,Name,Phone,Email,Zone,Type,Budget\n';
+          var log = JSON.parse(localStorage.getItem('sierra_inquiries') || '[]');
+          log.push(data);
+          localStorage.setItem('sierra_inquiries', JSON.stringify(log));
+          var blob = new Blob([csvHeader + csvRow], { type: 'text/csv;charset=utf-8;' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = 'sierra-inquiry-' + Date.now() + '.csv';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } catch (err) { /* localStorage full or disabled */ }
       }
-      inqForm.reset();
-      // Re-apply 'on' class to first segment button after reset
-      document.querySelectorAll('#inq-seg button').forEach(function (x, i) { x.classList.toggle('on', i === 0); });
-      inqMode = 'buy';
-      if (window.lucide) lucide.createIcons();
+
+      // Try Firestore first, fall back to CSV
+      if (window.SIERRA_DB && window.SIERRA_DB.isReady()) {
+        window.SIERRA_DB.addInquiry(data).then(function (result) {
+          if (result.fallback) csvFallback();
+          showSuccess();
+        }).catch(function () {
+          csvFallback();
+          showSuccess();
+        });
+      } else {
+        csvFallback();
+        showSuccess();
+      }
     });
   }
 

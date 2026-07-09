@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Seed Firestore · Sierra Estates Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.min.js"></script>
+<!-- Firebase compat SDK (works with ES5-style code) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="data.js"></script>
+<script src="firebase.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Plus Jakarta Sans',sans-serif;background:#0a1622;color:#fff;min-height:100vh;padding:40px 20px;}
+  .container{max-width:760px;margin:0 auto;}
+  .header{text-align:center;margin-bottom:40px;}
+  .header h1{font-size:32px;font-weight:800;margin-bottom:8px;}
+  .header p{color:rgba(255,255,255,.6);font-size:14px;}
+  .card{background:#fff;color:#0d2136;border-radius:16px;padding:32px;margin-bottom:20px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .card h2{font-size:22px;font-weight:800;margin-bottom:14px;}
+  .card p{font-size:14px;line-height:1.6;color:#5f7183;margin-bottom:14px;}
+  .card ol, .card ul{padding-left:20px;margin-bottom:14px;color:#5f7183;font-size:14px;line-height:1.8;}
+  .card code{background:#f6f8fa;padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#00aeff;}
+  .status{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:10px;margin-bottom:16px;font-weight:600;font-size:14px;}
+  .status.ok{background:rgba(52,211,153,.1);color:#16a34a;border:1px solid rgba(52,211,153,.3);}
+  .status.warn{background:rgba(234,179,8,.1);color:#ca8a04;border:1px solid rgba(234,179,8,.3);}
+  .status.err{background:rgba(230,57,70,.1);color:#dc2626;border:1px solid rgba(230,57,70,.3);}
+  .status .dot{width:10px;height:10px;border-radius:50%;flex:none;}
+  .status.ok .dot{background:#16a34a;box-shadow:0 0 8px #16a34a;}
+  .status.warn .dot{background:#ca8a04;}
+  .status.err .dot{background:#dc2626;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 26px;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;transition:.2s;}
+  .btn-pri{background:linear-gradient(135deg,#00aeff,#0098e0);color:#fff;}
+  .btn-pri:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,174,255,.4);}
+  .btn-pri:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+  .btn-ghost{background:transparent;color:#5f7183;border:1.5px solid #dce0e0;}
+  .btn-ghost:hover{border-color:#0d2136;color:#0d2136;}
+  .log{background:#0d2136;color:#bfeaff;padding:16px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;max-height:300px;overflow-y:auto;margin-top:14px;border:1px solid rgba(0,174,255,.2);}
+  .log:empty::before{content:'Logs will appear here…';color:rgba(191,234,255,.4);}
+  .progress{height:6px;background:#f6f8fa;border-radius:3px;overflow:hidden;margin:14px 0;}
+  .progress-bar{height:100%;background:linear-gradient(90deg,#00aeff,#34d399);width:0;transition:width .4s;}
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:14px 0;}
+  .stat{text-align:center;padding:14px;background:#f6f8fa;border-radius:10px;}
+  .stat .v{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;color:#00aeff;}
+  .stat .l{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9aa4ad;margin-top:4px;font-weight:700;}
+  .danger{border-top:2px solid #fee2e2;padding-top:20px;margin-top:24px;}
+  .danger h3{color:#dc2626;font-size:18px;margin-bottom:8px;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🌱 Seed Firestore</h1>
+    <p>One-time tool to populate Firestore from data.js</p>
+  </div>
+
+  <div class="card">
+    <h2>Step 1: Connection Status</h2>
+    <div class="status" id="status">
+      <span class="dot"></span>
+      <span id="status-text">Checking…</span>
+    </div>
+    <div id="config-info" style="display:none;font-size:13px;color:#5f7183;background:#f6f8fa;padding:12px;border-radius:8px;margin-top:10px;font-family:'JetBrains Mono',monospace;"></div>
+  </div>
+
+  <div class="card" id="seed-card" style="display:none;">
+    <h2>Step 2: Seed Data</h2>
+    <p>This will write all compounds and listings from <code>data.js</code> into your Firestore database. Safe to run multiple times (uses compound name as document ID — overwrites).</p>
+    <div class="grid">
+      <div class="stat"><div class="v" id="stat-compounds">—</div><div class="l">Compounds</div></div>
+      <div class="stat"><div class="v" id="stat-listings">—</div><div class="l">Listings</div></div>
+      <div class="stat"><div class="v" id="stat-featured">—</div><div class="l">Featured</div></div>
+    </div>
+    <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+    <button class="btn btn-pri" id="seed-btn" type="button">
+      <i data-lucide="database"></i>
+      <span>Seed Firestore Now</span>
+    </button>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="card" id="setup-card">
+    <h2>Setup Instructions</h2>
+    <p>Before running the seed, you need to:</p>
+    <ol>
+      <li>Create a Firebase project at <a href="https://console.firebase.google.com" target="_blank" style="color:#00aeff;">console.firebase.google.com</a></li>
+      <li>Enable <strong>Firestore Database</strong> (production mode)</li>
+      <li>Get your web app config (Project settings → Your apps → web <code>&lt;/&gt;</code>)</li>
+      <li>Edit <code>firebase-config.js</code> and paste your config values</li>
+      <li>Set <code>window.SIERRA_FIREBASE_ENABLED = true</code> in that file</li>
+      <li>Deploy <code>firestore.rules</code> (via Firebase CLI or console)</li>
+      <li>Refresh this page — the status above should turn green</li>
+    </ol>
+    <p style="margin-top:14px;"><strong>⚠️ Important:</strong> After seeding, also create a <code>users</code> document for yourself with <code>role: "admin"</code> — otherwise no one can write to the database (rules require admin for writes).</p>
+    <p>Run this in the browser console after seeding:</p>
+    <div style="background:#0d2136;color:#bfeaff;padding:12px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;margin-top:8px;">
+firebase.firestore().collection('users').doc('YOUR_AUTH_UID').set({<br>
+&nbsp;&nbsp;email: 'your@email.com',<br>
+&nbsp;&nbsp;role: 'admin',<br>
+&nbsp;&nbsp;name: 'Ahmed'<br>
+});
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>After Seeding</h2>
+    <ul>
+      <li>The SE portal will automatically use Firestore (via <code>firebase.js</code>)</li>
+      <li>If Firestore is unavailable, it falls back to <code>data.js</code> (always works)</li>
+      <li>Inquiry form will write to <code>inquiries</code> collection (with localStorage fallback)</li>
+      <li>To enable Firestore on the live site, add the Firebase scripts to <code>index.html</code> (see README)</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var statusEl = document.getElementById('status');
+  var statusText = document.getElementById('status-text');
+  var configInfo = document.getElementById('config-info');
+  var seedCard = document.getElementById('seed-card');
+  var seedBtn = document.getElementById('seed-btn');
+  var logEl = document.getElementById('log');
+  var progressBar = document.getElementById('progress-bar');
+
+  function setStatus(kind, text) {
+    statusEl.className = 'status ' + kind;
+    statusText.textContent = text;
+  }
+
+  function log(msg) {
+    var line = document.createElement('div');
+    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  // Check connection
+  function check() {
+    if (!window.SIERRA_FIREBASE_ENABLED) {
+      setStatus('warn', 'Firebase not enabled (SIERRA_FIREBASE_ENABLED = false). Edit firebase-config.js first.');
+      return;
+    }
+    if (!window.SIERRA_DB) {
+      setStatus('err', 'firebase.js failed to load. Check script tags.');
+      return;
+    }
+    if (!window.SIERRA_DB.isReady()) {
+      setStatus('err', 'Firestore not connected. Check your config values in firebase-config.js.');
+      return;
+    }
+    var cfg = window.SIERRA_FIREBASE_CONFIG;
+    setStatus('ok', 'Connected to Firestore project: ' + cfg.projectId);
+    configInfo.style.display = 'block';
+    configInfo.textContent = 'apiKey: ' + cfg.apiKey.substring(0, 12) + '…\nprojectId: ' + cfg.projectId + '\nauthDomain: ' + cfg.authDomain;
+    seedCard.style.display = 'block';
+
+    // Show counts
+    var D = window.HZDATA;
+    document.getElementById('stat-compounds').textContent = (D.compounds || []).length;
+    document.getElementById('stat-listings').textContent = (D.listings || []).length;
+    document.getElementById('stat-featured').textContent = (D.featured || []).length;
+    log('Ready to seed. Click the button above.');
+  }
+
+  // Seed
+  seedBtn.addEventListener('click', function () {
+    seedBtn.disabled = true;
+    log('Starting seed…');
+    progressBar.style.width = '20%';
+
+    window.SIERRA_DB.seedFromDataJS().then(function (result) {
+      progressBar.style.width = '100%';
+      log('✅ Seeded ' + result.compounds + ' compounds + ' + result.listings + ' listings');
+      log('Done! You can now close this page.');
+      setStatus('ok', 'Seed complete! ' + result.compounds + ' compounds + ' + result.listings + ' listings written.');
+      seedBtn.innerHTML = '<i data-lucide="check"></i> <span>Done</span>';
+      if (window.lucide) lucide.createIcons();
+    }).catch(function (err) {
+      progressBar.style.width = '0%';
+      log('❌ Error: ' + err.message);
+      setStatus('err', 'Seed failed: ' + err.message);
+      seedBtn.disabled = false;
+    });
+  });
+
+  // Run check on load
+  setTimeout(check, 500);
+  if (window.lucide) lucide.createIcons();
+})();
+</script>
+</body>
+</html>
