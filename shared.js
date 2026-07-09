@@ -166,8 +166,8 @@
     }
   };
 
-  var lang = localStorage.getItem('hzp-lang') || 'ar';
-  var theme = localStorage.getItem('hzp-theme') || 'dark';
+  var lang = localStorage.getItem('hzp-lang') || 'en';
+  var theme = localStorage.getItem('hzp-theme') || 'light';
 
   function t(k) { return (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k; }
 
@@ -188,11 +188,6 @@
         '<a href="index.html#contact"' + act('contact') + ' data-i18n="navContact">' + t('navContact') + '</a>' +
       '</div>' +
       '<div class="nav-right">' +
-        '<a href="index.html#contact" class="req-now-btn" id="req-now">' +
-          '<span class="req-badge">25% OFF</span>' +
-          '<span class="req-text">' + (lang === 'ar' ? 'اطلب الآن' : 'Request Now') + '</span>' +
-          '<i data-lucide="arrow-right" class="i" style="width:14px;height:14px;"></i>' +
-        '</a>' +
         '<button class="tb-toggle" id="theme-toggle" type="button"><i data-lucide="' + (theme === 'dark' ? 'sun' : 'moon') + '" class="i"></i></button>' +
         '<button class="tb-toggle" id="lang-toggle" type="button"><i data-lucide="languages" class="i"></i><span>' + t('langBtn') + '</span></button>' +
       '</div>' +

@@ -51,16 +51,31 @@
 .hero .map-cta .i{width:17px;height:17px;}
 @media(max-width:680px){.hero .map-cta{bottom:96px;font-size:13px;padding:11px 18px;}}
 
-/* ── HORIZONTAL GREEN LASER — full-width beam sweeping left→right at hero bottom ── */
-.scroll-cue{position:absolute;bottom:0;left:0;right:0;z-index:10 !important;display:flex;flex-direction:column;align-items:center;gap:0;pointer-events:none;padding-bottom:20px;}
-.scroll-cue-line{position:relative;width:100%;max-width:1200px;height:3px;background:rgba(255,255,255,.08);border-radius:3px;overflow:visible;}
-.scroll-cue-line::before{content:"";position:absolute;inset:0;border-radius:3px;background:rgba(52,211,153,.05);}
-.scroll-cue-line::after{content:"";position:absolute;top:-3px;left:0;width:120px;height:9px;background:linear-gradient(90deg,transparent,#34d399 20%,#34d399 80%,transparent);border-radius:5px;animation:scrollLaser 2.2s cubic-bezier(.16,1,.3,1) infinite;box-shadow:0 0 16px rgba(52,211,153,.9),0 0 32px rgba(52,211,153,.5),0 0 48px rgba(52,211,153,.2);}
-[data-theme="dark"] .scroll-cue-line::after{background:linear-gradient(90deg,transparent,#34d399 20%,#34d399 80%,transparent);box-shadow:0 0 18px rgba(52,211,153,1),0 0 36px rgba(52,211,153,.6),0 0 54px rgba(52,211,153,.3);}
-.scroll-cue-label{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.28em;color:rgba(52,211,153,.7);text-transform:uppercase;margin-top:10px;}
-@keyframes scrollLaser{0%{transform:translateX(-120px);opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{transform:translateX(100vw);opacity:0;}}
-@media(max-width:680px){.scroll-cue-line::after{width:80px;height:7px;}@keyframes scrollLaser{0%{transform:translateX(-80px);opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{transform:translateX(100vw);opacity:0;}}}
-@media(prefers-reduced-motion:reduce){.scroll-cue-line::after{animation:none;opacity:.7;}}
+/* ── VERTICAL PAGE LASER — thin green line at left edge, drops top→bottom ── */
+.page-laser{position:fixed;top:0;left:0;width:3px;height:100vh;z-index:9997;pointer-events:none;overflow:hidden;}
+.page-laser-beam{position:absolute;top:-200px;left:0;width:3px;height:200px;background:linear-gradient(180deg,transparent,#34d399 20%,#34d399 80%,transparent);border-radius:3px;animation:pageLaserDrop 3s cubic-bezier(.16,1,.3,1) infinite;box-shadow:0 0 12px rgba(52,211,153,.8),0 0 24px rgba(52,211,153,.4);}
+[data-theme="dark"] .page-laser-beam{background:linear-gradient(180deg,transparent,#34d399 20%,#34d399 80%,transparent);box-shadow:0 0 14px rgba(52,211,153,1),0 0 28px rgba(52,211,153,.5);}
+@keyframes pageLaserDrop{0%{transform:translateY(0);opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{transform:translateY(100vh);opacity:0;}}
+@media(max-width:768px){.page-laser{display:none;}}
+@media(prefers-reduced-motion:reduce){.page-laser-beam{animation:none;opacity:.5;}}
+
+/* ── CALM BELL BAR — Request Now + 25% OFF ── */
+.bell-bar{background:linear-gradient(90deg,var(--navy),#0a1622);padding:10px 24px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
+.bell-content{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;}
+.bell-text{color:rgba(255,255,255,.85);font-family:var(--font);font-size:13px;font-weight:600;direction:rtl;text-align:center;}
+.bell-text b{color:#34d399;font-weight:800;}
+.bell-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:6px;background:#e63946;color:#fff;font-family:var(--mono);font-weight:800;font-size:10px;letter-spacing:.04em;animation:bellFlash 3s ease-in-out infinite;}
+@keyframes bellFlash{0%,100%{background:#e63946;box-shadow:0 0 4px rgba(230,57,70,.3);}50%{background:#f59e0b;box-shadow:0 0 8px rgba(245,158,11,.5);}}
+.bell-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:999px;background:linear-gradient(135deg,#e9c176,#c8961a);color:#09090f;font-family:var(--font);font-weight:800;font-size:12px;text-decoration:none;transition:.25s var(--silk);direction:rtl;}
+.bell-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(200,150,26,.4);}
+@media(prefers-reduced-motion:reduce){.bell-badge{animation:none;}}
+@media(max-width:680px){.bell-text{font-size:11px;}.bell-bar{padding:8px 12px;}}
+
+/* ── Sticky map — freezes below header when scrolled to ── */
+.map-sticky-wrap{position:relative;transition:all .3s var(--silk);}
+.map-sticky-wrap.sticky{position:sticky;top:64px;z-index:50;}
+.map-sticky-wrap.sticky #home-map{height:280px;border-radius:0 0 14px 14px;border-top:none;}
+@media(max-width:768px){.map-sticky-wrap.sticky{top:56px;}.map-sticky-wrap.sticky #home-map{height:200px;}}
 
 /* ── search card ── */
 .searchbar{position:relative;z-index:5;margin-top:-76px;}
@@ -395,12 +410,25 @@
     <span data-i18n="exploreMapBtn"></span>
   </a>
   <div class="dots wrap" id="hero-dots" style="left:auto;"></div>
-  <!-- Scroll-down indicator (animated laser line) -->
-  <div class="scroll-cue" aria-hidden="true">
-    <span class="scroll-cue-line"></span>
-    <span class="scroll-cue-label">SCROLL</span>
-  </div>
 </header>
+
+<!-- ═══ CALM BELL BAR — Request Now with 25% OFF ════════════════════════════
+     "استكشف أفضل الفرص المتاحة في التجمع الخامس — AI Driven — قدم طلبك الآن
+      خصم 25% على رسوم الخدمة" — calm, slow flashing -->
+<div class="bell-bar" id="bell-bar">
+  <div class="bell-content">
+    <span class="bell-text">استكشف أفضل الفرص المتاحة في التجمع الخامس <b>AI Driven</b> — قدم طلبك الآن</span>
+    <span class="bell-badge">خصم 25%</span>
+    <a href="#contact" class="bell-btn">اطلب الآن <i data-lucide="arrow-right" style="width:13px;height:13px;"></i></a>
+  </div>
+</div>
+
+<!-- ═══ VERTICAL LASER LINE — full page height, drops top→bottom ════════════
+     A thin green vertical line positioned at the left edge of the page
+     that continuously drops from top to bottom. -->
+<div class="page-laser" aria-hidden="true">
+  <div class="page-laser-beam"></div>
+</div>
 
 <!-- SEARCH CARD -->
 <div class="wrap searchbar">
@@ -582,17 +610,19 @@
      Interactive Leaflet map with marker clustering. When zoomed out,
      nearby compounds group into styled clusters. When zoomed in, individual
      compound markers space out and are clearly visible. -->
-<section class="block" id="map-section" data-screen-label="Live map">
+<section class="block" id="map-section" data-screen-label="Smart Map">
   <div class="wrap">
     <div class="sec-head rv">
       <div>
-        <div class="eyebrow" data-i18n="eyeCpd"></div>
-        <h2 data-i18n="mapTit">Live Compound Map</h2>
-        <p data-i18n="mapSub">Explore all New Cairo compounds on the map — click any badge for details.</p>
+        <div class="eyebrow" style="color:#34d399;">SMART MAP · LIVE</div>
+        <h2>اكتشف أفضل الفرص</h2>
+        <p>Explore all New Cairo compounds on the interactive map — click any marker for details.</p>
       </div>
       <a href="compounds.html" class="sec-link"><span data-i18n="allCpds"></span> <i data-lucide="arrow-right" class="i" style="width:16px;height:16px"></i></a>
     </div>
-    <div id="home-map" style="height:520px;border-radius:var(--r-card);border:1px solid var(--line);z-index:1;background:var(--bg);margin-bottom:8px;"></div>
+    <div class="map-sticky-wrap" id="map-sticky-wrap">
+      <div id="home-map" style="height:480px;border-radius:var(--r-card);border:1px solid var(--line);z-index:1;background:var(--bg);margin-bottom:8px;"></div>
+    </div>
     <div style="text-align:center;margin-top:12px;">
       <a href="compounds.html" class="btn btn-navy" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;">
         <i data-lucide="map" class="i" style="width:16px;height:16px;"></i>
@@ -1037,6 +1067,27 @@
   setTimeout(function () { map.invalidateSize(); }, 200);
   setTimeout(function () { map.invalidateSize(); }, 800);
   window.addEventListener('resize', function () { map.invalidateSize(); });
+
+  // ─── Sticky map: freeze when scrolled past, unfreeze when leaving section ───
+  var mapWrap = document.getElementById('map-sticky-wrap');
+  var mapSection = document.getElementById('map-section');
+  if (mapWrap && mapSection) {
+    var stickyActive = false;
+    window.addEventListener('scroll', function () {
+      var secRect = mapSection.getBoundingClientRect();
+      var wrapRect = mapWrap.getBoundingClientRect();
+      // Activate sticky when the map wrapper top goes above the header
+      if (wrapRect.top < 64 && secRect.bottom > 300 && !stickyActive) {
+        mapWrap.classList.add('sticky');
+        stickyActive = true;
+        setTimeout(function () { map.invalidateSize(); }, 300);
+      } else if ((wrapRect.top >= 64 || secRect.bottom <= 300) && stickyActive) {
+        mapWrap.classList.remove('sticky');
+        stickyActive = false;
+        setTimeout(function () { map.invalidateSize(); }, 300);
+      }
+    }, { passive: true });
+  }
 })();
 </script>
 
