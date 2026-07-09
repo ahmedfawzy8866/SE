@@ -3,19 +3,19 @@ window.HZDATA = {
   slides: [
     { pre: 'FIRST & ONLY WEBSITE IN EGYPT DESIGNED FOR NEW CAIRO', preAr: 'الموقع الأول والوحيد في مصر المصمم للقاهرة الجديدة',
       main: 'The First Exclusive Destination for New Cairo Properties. Rent & Resale.', mainAr: 'الوجهة الحصرية الأولى لعقارات القاهرة الجديدة. إيجار وبيع.',
-      img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1920&q=85' },
+      img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=1920&q=85' },
     { pre: 'BEST-IN-CLASS DESIGN', preAr: 'تصميم من الطراز الأول',
       main: 'Redefining Luxury Living with AI-Driven Excellence', mainAr: 'نعيد تعريف الفخامة بتميّز الذكاء الاصطناعي',
-      img: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=1920&q=85' },
+      img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&q=85' },
     { pre: 'AI-DRIVEN EXCELLENCE', preAr: 'تميّز بالذكاء الاصطناعي',
       main: 'Smart Matches for Smart Investors', mainAr: 'توافق ذكي لمستثمرين أذكياء',
-      img: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1920&q=85' },
+      img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920&q=85' },
     { pre: 'EXCLUSIVE NETWORK', preAr: 'شبكة حصرية',
       main: 'Unrivaled Access to Premium Compounds', mainAr: 'وصول لا يُضاهى لأرقى الكمبوندات',
-      img: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1920&q=85' },
+      img: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1920&q=85' },
     { pre: 'CURATED PORTFOLIO', preAr: 'محفظة منتقاة',
       main: 'Your Journey to Exceptional Homes Begins Here', mainAr: 'رحلتك نحو منزل استثنائي تبدأ هنا',
-      img: 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=1920&q=85' }
+      img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1920&q=85' }
   ],
   listings: [
     { id: 1, code: 'HP-VL-01', cmp: 'Hyde Park', zone: '5th Settlement', type: 'Villa', beds: 5, bath: 5, area: 480, egpM: 28.5, usd: 5200, ai: 9.8, tag: 'Premium', mode: 'sale', agent: 'Layla Mansour', ago: '2d ago', img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=85' },
