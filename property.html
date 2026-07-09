@@ -106,7 +106,7 @@
       <aside>
         <div class="agent-card rv d1">
           <div class="a-top">
-            <img id="a-img" src="" alt="Listing advisor"/>
+            <img id="a-img" src="" alt="Listing advisor" loading="lazy"/>
             <div>
               <div class="a-role" data-i18n="advisor"></div>
               <h4 id="a-name"></h4>
@@ -137,6 +137,7 @@
 
 <script>
 (function () {
+  'use strict';
   var D = window.HZDATA;
   var params = new URLSearchParams(location.search);
   var p;

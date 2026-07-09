@@ -742,6 +742,7 @@
 </style>
 <script>
 (function () {
+  'use strict';
   var poster = document.getElementById('vtv-poster');
   var iframe = document.getElementById('vtv-iframe');
   var loading = document.getElementById('vtv-loading');
@@ -894,7 +895,7 @@
         <div class="pf-item"><span class="num">02</span><div><h4 data-i18n="pc2t"></h4><p data-i18n="pc2s"></p></div></div>
         <div class="pf-item"><span class="num">03</span><div><h4 data-i18n="pc3t"></h4><p data-i18n="pc3s"></p></div></div>
       </div>
-      <form class="inq" onsubmit="return false;">
+      <form class="inq" id="inq-form">
         <h3 data-i18n="inqTit"></h3>
         <p data-i18n="inqSub"></p>
         <div class="seg" id="inq-seg">
@@ -903,18 +904,22 @@
           <button type="button" data-i18n="inqSell"></button>
         </div>
         <div class="frow">
-          <div><label data-i18n="inqName"></label><input type="text"/></div>
-          <div><label data-i18n="inqPhone"></label><input type="tel" dir="ltr"/></div>
+          <div><label data-i18n="inqName"></label><input type="text" id="inq-name" required/></div>
+          <div><label data-i18n="inqPhone"></label><input type="tel" id="inq-phone" dir="ltr" required placeholder="+2 01XXXXXXXXX"/></div>
         </div>
         <div class="frow">
-          <div><label data-i18n="inqEmail"></label><input type="email" dir="ltr"/></div>
+          <div><label data-i18n="inqEmail"></label><input type="email" id="inq-email" dir="ltr" placeholder="you@example.com"/></div>
           <div><label data-i18n="inqZone"></label><select id="inq-zone"></select></div>
         </div>
         <div class="frow">
           <div><label data-i18n="inqType2"></label><select id="inq-type"></select></div>
-          <div><label data-i18n="inqBudget"></label><input type="text" placeholder="10,000,000" dir="ltr"/></div>
+          <div><label data-i18n="inqBudget"></label><input type="text" id="inq-budget" placeholder="10,000,000" dir="ltr"/></div>
         </div>
         <button class="btn btn-pri" type="submit"><i data-lucide="send" class="i"></i> <span data-i18n="inqSend"></span></button>
+        <div id="inq-success" style="display:none;margin-top:14px;padding:14px 18px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.35);border-radius:10px;color:#16a34a;font-weight:600;font-size:13.5px;display:none;">
+          <i data-lucide="check-circle" style="width:16px;height:16px;vertical-align:middle;margin-inline-end:6px;"></i>
+          <span>Thank you! Your inquiry has been received. Our team will contact you within 24 hours.</span>
+        </div>
       </form>
     </div>
   </div>
@@ -1004,6 +1009,7 @@
 
 <script>
 (function () {
+  'use strict';
   var D = window.HZDATA;
   var isAr = (localStorage.getItem('hzp-lang') || 'en') === 'ar';
 
@@ -1065,12 +1071,68 @@
   /* inquiry selects + segmented */
   document.getElementById('inq-zone').innerHTML = ['z1', 'z2', 'z3', 'z4'].map(function (k) { return '<option>' + HZ.t(k) + '</option>'; }).join('');
   document.getElementById('inq-type').innerHTML = ['lVilla', 'lApt', 'lTwin', 'lPent'].map(function (k) { return '<option>' + HZ.t(k) + '</option>'; }).join('');
+  var inqMode = 'buy';
   document.querySelectorAll('#inq-seg button').forEach(function (b) {
     b.addEventListener('click', function () {
       document.querySelectorAll('#inq-seg button').forEach(function (x) { x.classList.remove('on'); });
       b.classList.add('on');
+      inqMode = b.dataset.i18n === 'inqBuy' ? 'buy' : b.dataset.i18n === 'inqRent' ? 'rent' : 'sell';
     });
   });
+
+  /* ═══ INQUIRY FORM SUBMIT — export to CSV (Excel-compatible) ═══
+     Same pattern as career.html. When backend (Firestore) is wired,
+     replace the CSV download with a fetch() POST to /api/inquiries. */
+  var inqForm = document.getElementById('inq-form');
+  if (inqForm) {
+    inqForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var data = {
+        timestamp: new Date().toISOString(),
+        mode: inqMode,
+        name: document.getElementById('inq-name').value.trim(),
+        phone: document.getElementById('inq-phone').value.trim(),
+        email: document.getElementById('inq-email').value.trim(),
+        zone: document.getElementById('inq-zone').value,
+        type: document.getElementById('inq-type').value,
+        budget: document.getElementById('inq-budget').value.trim()
+      };
+      // Append to CSV (download in browser — admin will use Firestore version)
+      try {
+        var csvRow = [data.timestamp, data.mode, data.name, data.phone, data.email, data.zone, data.type, data.budget]
+          .map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+        var csvHeader = 'Timestamp,Mode,Name,Phone,Email,Zone,Type,Budget\n';
+        // Try to append to localStorage CSV log
+        var log = JSON.parse(localStorage.getItem('sierra_inquiries') || '[]');
+        log.push(data);
+        localStorage.setItem('sierra_inquiries', JSON.stringify(log));
+        // Also trigger CSV download
+        var blob = new Blob([csvHeader + csvRow], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'sierra-inquiry-' + Date.now() + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        // localStorage might be full or disabled — silently continue
+      }
+      // Show success message + reset form
+      var successEl = document.getElementById('inq-success');
+      if (successEl) {
+        successEl.style.display = 'block';
+        successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(function () { successEl.style.display = 'none'; }, 6000);
+      }
+      inqForm.reset();
+      // Re-apply 'on' class to first segment button after reset
+      document.querySelectorAll('#inq-seg button').forEach(function (x, i) { x.classList.toggle('on', i === 0); });
+      inqMode = 'buy';
+      if (window.lucide) lucide.createIcons();
+    });
+  }
 
   HZ.mount('home');
 
@@ -1263,6 +1325,7 @@
 <script>
 (function () {
   'use strict';
+  'use strict';
   var D = window.HZDATA;
   if (!D || !window.L) return;
 
@@ -1441,6 +1504,7 @@
      Just elegant content reveals as you scroll. Works on all devices. -->
 <script>
 (function () {
+  'use strict';
   'use strict';
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1630,14 +1694,14 @@
 })();
 </script>
 <!-- ═══ TWEAKS PANEL — accent color + corner style + font color customization ═══ -->
-<button class="tweaks-trigger" id="tweaks-trigger" type="button" title="Customize">
+<button class="tweaks-trigger" id="tweaks-trigger" type="button" title="Customize" aria-label="Open customization panel">
   <i data-lucide="palette" class="i"></i>
 </button>
 <div class="tweaks-overlay" id="tweaks-overlay">
   <div class="tweaks-panel">
     <div class="tweaks-head">
       <h3>Tweaks</h3>
-      <button class="tweaks-close" id="tweaks-close" type="button">×</button>
+      <button class="tweaks-close" id="tweaks-close" type="button" aria-label="Close customization panel">×</button>
     </div>
     <div class="tweaks-section">
       <div class="tweaks-label">Accent Color</div>
@@ -1670,6 +1734,7 @@
 </div>
 <script>
 (function () {
+  'use strict';
   var trigger = document.getElementById('tweaks-trigger');
   var overlay = document.getElementById('tweaks-overlay');
   var closeBtn = document.getElementById('tweaks-close');

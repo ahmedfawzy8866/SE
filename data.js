@@ -115,6 +115,7 @@ window.HZDATA = {
 
 /* deterministic per-compound unit inventory (excel-sheet view) */
 (function (D) {
+  'use strict';
   var cache = {};
   var TYPES = ['Apartment', 'Apartment', 'Apartment', 'Duplex', 'Twin House', 'Townhouse', 'Penthouse', 'Villa', 'Villa'];
   var AGENTS = ['Layla Mansour', 'Karim Fahmy', 'Nour Saleh', 'Omar Magdy', 'Yara Hakim', 'Rana Adel'];

@@ -1,5 +1,6 @@
 /* Sierra Estates × Houzez portal — shared chrome, i18n, theme, motion */
 (function () {
+  'use strict';
   var D = window.HZDATA;
 
   /* ── i18n ── */
@@ -82,7 +83,8 @@
       thCode: 'Code', thType: 'Type', thBeds: 'Beds', thBath: 'Baths', thArea: 'Area', thFloor: 'Floor', thPrice: 'Price', thAI: 'AI', thStatus: 'Status',
       stAvail: 'Available', stReserved: 'Reserved', closeWord: 'Close', unitsWord: 'units',
       shCompound: 'Compound', shBeds: 'Bedrooms', shAnyBeds: 'Any', shShowing: 'Showing', shOf: 'of', shNoUnits: 'No units match these filters.',
-      nearHint: 'Or tap anywhere on the map — we\u2019ll find the compounds nearest to that spot.', nearTit: 'Nearest compounds', nearSub: 'Closest to the point you tapped', kmAway: 'km away', viewUnitsBtn: 'View units', clearPin: 'Clear'
+      nearHint: 'Or tap anywhere on the map — we\u2019ll find the compounds nearest to that spot.', nearTit: 'Nearest compounds', nearSub: 'Closest to the point you tapped', kmAway: 'km away', viewUnitsBtn: 'View units', clearPin: 'Clear',
+      afType: 'Type', afPrice: 'Price (EGP M)', afBeds: 'Bedrooms', afDelivery: 'Delivery', afMode: 'Mode'
     },
     ar: {
       dir: 'rtl',
@@ -162,7 +164,8 @@
       thCode: 'الكود', thType: 'النوع', thBeds: 'غرف', thBath: 'حمامات', thArea: 'المساحة', thFloor: 'الدور', thPrice: 'السعر', thAI: 'ذكاء', thStatus: 'الحالة',
       stAvail: 'متاحة', stReserved: 'محجوزة', closeWord: 'إغلاق', unitsWord: 'وحدة',
       shCompound: 'الكمبوند', shBeds: 'غرف النوم', shAnyBeds: 'الكل', shShowing: 'عرض', shOf: 'من', shNoUnits: 'لا توجد وحدات مطابقة.',
-      nearHint: 'أو اضغط في أي مكان على الخريطة — وسنجد أقرب الكمبوندات لتلك النقطة.', nearTit: 'أقرب الكمبوندات', nearSub: 'الأقرب إلى النقطة التي حددتها', kmAway: 'كم', viewUnitsBtn: 'عرض الوحدات', clearPin: 'مسح'
+      nearHint: 'أو اضغط في أي مكان على الخريطة — وسنجد أقرب الكمبوندات لتلك النقطة.', nearTit: 'أقرب الكمبوندات', nearSub: 'الأقرب إلى النقطة التي حددتها', kmAway: 'كم', viewUnitsBtn: 'عرض الوحدات', clearPin: 'مسح',
+      afType: 'النوع', afPrice: 'السعر (مليون ج.م)', afBeds: 'غرف النوم', afDelivery: 'التسليم', afMode: 'النوع'
     }
   };
 
