@@ -51,14 +51,41 @@
 .hero .map-cta .i{width:17px;height:17px;}
 @media(max-width:680px){.hero .map-cta{bottom:96px;font-size:13px;padding:11px 18px;}}
 
-/* ── HORIZONTAL LASER BEAM — gold beam in HERO ONLY, slow, bright, non-covering ──
-     Constrained to the hero section only (not full page) so it never covers
-     the map or 3D tour. Slower (6s), brighter glow, pointer-events:none. */
+/* ── LASER BEAM — appears fast, descends slowly (like video: ~3s sweep) ──
+     Inside hero only. z-index 6 (above scrim, below search card). */
 .page-laser{position:absolute;top:0;left:0;right:0;height:100%;z-index:6;pointer-events:none;overflow:hidden;border-radius:inherit;}
-.page-laser-beam{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent 5%,rgba(233,193,118,.4) 15%,#e9c176 35%,#fff 50%,#e9c176 65%,rgba(233,193,118,.4) 85%,transparent 95%);border-radius:3px;box-shadow:0 0 20px rgba(233,193,118,1),0 0 40px rgba(200,150,26,.7),0 0 60px rgba(200,150,26,.3),0 0 80px rgba(200,150,26,.15);animation:laserSweepDown 6s cubic-bezier(.22,1,.36,1) infinite;}
-@keyframes laserSweepDown{0%{top:-10px;opacity:0;}5%{opacity:1;}95%{opacity:1;}100%{top:100%;opacity:0;}}
+.page-laser-beam{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent 5%,rgba(233,193,118,.4) 15%,#e9c176 35%,#fff 50%,#e9c176 65%,rgba(233,193,118,.4) 85%,transparent 95%);border-radius:3px;box-shadow:0 0 20px rgba(233,193,118,1),0 0 40px rgba(200,150,26,.7),0 0 60px rgba(200,150,26,.3),0 0 80px rgba(200,150,26,.15);animation:laserSweepDown 3s linear infinite;}
+@keyframes laserSweepDown{0%{top:0;opacity:1;}100%{top:100%;opacity:1;}}
 @media(max-width:768px){.page-laser-beam{height:2px;box-shadow:0 0 14px rgba(233,193,118,.9),0 0 28px rgba(200,150,26,.5),0 0 42px rgba(200,150,26,.2);}}
 @media(prefers-reduced-motion:reduce){.page-laser-beam{animation:none;opacity:.4;top:50%;}}
+
+/* ── TWEAKS PANEL — accent color + corner style customization ── */
+.tweaks-trigger{position:fixed;bottom:20px;right:20px;z-index:9998;width:44px;height:44px;border-radius:50%;background:var(--surface);border:1.5px solid var(--line-2);box-shadow:var(--shadow-m);display:grid;place-items:center;cursor:pointer;transition:.25s var(--silk);}
+.tweaks-trigger:hover{transform:scale(1.08);border-color:var(--accent,#00aeff);}
+.tweaks-trigger .i{width:20px;height:20px;color:var(--accent,#00aeff);}
+.tweaks-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.3);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;}
+.tweaks-overlay.on{display:flex;}
+.tweaks-panel{background:var(--surface);border-radius:18px;padding:28px;width:340px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:tweaksIn .3s var(--silk) both;}
+@keyframes tweaksIn{from{opacity:0;transform:scale(.92) translateY(10px);}to{opacity:1;transform:none;}}
+.tweaks-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.tweaks-head h3{font-size:20px;font-weight:800;color:var(--ink);margin:0;}
+.tweaks-close{width:32px;height:32px;border-radius:50%;border:none;background:var(--bg);color:var(--muted);cursor:pointer;font-size:18px;display:grid;place-items:center;transition:.2s;}
+.tweaks-close:hover{background:var(--line);color:var(--ink);}
+.tweaks-section{margin-bottom:24px;}
+.tweaks-label{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.tweaks-swatches{display:flex;gap:12px;}
+.tweaks-swatch{width:44px;height:44px;border-radius:12px;cursor:pointer;border:3px solid transparent;transition:.2s var(--silk);position:relative;}
+.tweaks-swatch.on{border-color:var(--ink);transform:scale(1.08);}
+.tweaks-swatch:hover{transform:scale(1.08);}
+.tweaks-corners{display:flex;gap:8px;}
+.tweaks-corner-btn{flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--line-2);background:var(--surface-2);color:var(--text);font-family:var(--font);font-weight:600;font-size:13px;cursor:pointer;transition:.2s;}
+.tweaks-corner-btn.on{background:var(--accent,#00aeff);color:#fff;border-color:var(--accent,#00aeff);}
+[data-theme="dark"] .tweaks-corner-btn.on{color:#09090f;}
+.tweaks-font-row{display:flex;gap:8px;flex-wrap:wrap;}
+.tweaks-font-btn{flex:1;min-width:60px;padding:8px;border-radius:8px;border:1.5px solid var(--line-2);background:var(--surface-2);color:var(--text);font-size:12px;cursor:pointer;transition:.2s;text-align:center;}
+.tweaks-font-btn.on{background:var(--accent,#00aeff);color:#fff;border-color:var(--accent,#00aeff);}
+[data-theme="dark"] .tweaks-font-btn.on{color:#09090f;}
+@media(max-width:680px){.tweaks-panel{padding:20px;width:300px;}.tweaks-swatch{width:38px;height:38px;}}
 
 /* ── CALM BELL BAR — Request Now + 25% OFF ── */
 .bell-bar{background:linear-gradient(90deg,var(--navy),#0a1622);padding:10px 24px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
@@ -1356,6 +1383,121 @@
     });
     obs.observe(document.body, { childList: true, subtree: true });
     setTimeout(function () { obs.disconnect(); }, 5000);
+  }
+})();
+</script>
+<!-- ═══ TWEAKS PANEL — accent color + corner style + font color customization ═══ -->
+<button class="tweaks-trigger" id="tweaks-trigger" type="button" title="Customize">
+  <i data-lucide="palette" class="i"></i>
+</button>
+<div class="tweaks-overlay" id="tweaks-overlay">
+  <div class="tweaks-panel">
+    <div class="tweaks-head">
+      <h3>Tweaks</h3>
+      <button class="tweaks-close" id="tweaks-close" type="button">×</button>
+    </div>
+    <div class="tweaks-section">
+      <div class="tweaks-label">Accent Color</div>
+      <div class="tweaks-swatches" id="tweaks-swatches">
+        <div class="tweaks-swatch on" data-color="#00aeff" style="background:#00aeff;" title="Cyan"></div>
+        <div class="tweaks-swatch" data-color="#c8961a" style="background:#c8961a;" title="Gold"></div>
+        <div class="tweaks-swatch" data-color="#34d399" style="background:#34d399;" title="Green"></div>
+        <div class="tweaks-swatch" data-color="#e63946" style="background:#e63946;" title="Red"></div>
+        <div class="tweaks-swatch" data-color="#a78bfa" style="background:#a78bfa;" title="Purple"></div>
+      </div>
+    </div>
+    <div class="tweaks-section">
+      <div class="tweaks-label">Font Color</div>
+      <div class="tweaks-font-row" id="tweaks-fonts">
+        <button class="tweaks-font-btn on" data-font="#0d2136" type="button">Dark</button>
+        <button class="tweaks-font-btn" data-font="#002b4b" type="button">Navy</button>
+        <button class="tweaks-font-btn" data-font="#4a5568" type="button">Slate</button>
+        <button class="tweaks-font-btn" data-font="#1a1a2e" type="button">Midnight</button>
+      </div>
+    </div>
+    <div class="tweaks-section">
+      <div class="tweaks-label">Corners</div>
+      <div class="tweaks-corners" id="tweaks-corners">
+        <button class="tweaks-corner-btn" data-radius="0" type="button">Sharp</button>
+        <button class="tweaks-corner-btn on" data-radius="10" type="button">Balanced</button>
+        <button class="tweaks-corner-btn" data-radius="20" type="button">Soft</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var trigger = document.getElementById('tweaks-trigger');
+  var overlay = document.getElementById('tweaks-overlay');
+  var closeBtn = document.getElementById('tweaks-close');
+  if (!trigger || !overlay) return;
+
+  // Load saved settings
+  var savedAccent = localStorage.getItem('se-accent') || '#00aeff';
+  var savedFont = localStorage.getItem('se-font-color') || '#0d2136';
+  var savedRadius = localStorage.getItem('se-radius') || '10';
+  applyAccent(savedAccent);
+  applyFont(savedFont);
+  applyRadius(savedRadius);
+  // Mark active swatches
+  document.querySelectorAll('.tweaks-swatch').forEach(function (s) {
+    s.classList.toggle('on', s.getAttribute('data-color') === savedAccent);
+  });
+  document.querySelectorAll('.tweaks-font-btn').forEach(function (b) {
+    b.classList.toggle('on', b.getAttribute('data-font') === savedFont);
+  });
+  document.querySelectorAll('.tweaks-corner-btn').forEach(function (b) {
+    b.classList.toggle('on', b.getAttribute('data-radius') === savedRadius);
+  });
+
+  trigger.addEventListener('click', function () { overlay.classList.add('on'); });
+  closeBtn.addEventListener('click', function () { overlay.classList.remove('on'); });
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.classList.remove('on'); });
+
+  // Accent color
+  document.querySelectorAll('.tweaks-swatch').forEach(function (sw) {
+    sw.addEventListener('click', function () {
+      var color = this.getAttribute('data-color');
+      document.querySelectorAll('.tweaks-swatch').forEach(function (s) { s.classList.remove('on'); });
+      this.classList.add('on');
+      applyAccent(color);
+      localStorage.setItem('se-accent', color);
+    });
+  });
+
+  // Font color
+  document.querySelectorAll('.tweaks-font-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var color = this.getAttribute('data-font');
+      document.querySelectorAll('.tweaks-font-btn').forEach(function (b) { b.classList.remove('on'); });
+      this.classList.add('on');
+      applyFont(color);
+      localStorage.setItem('se-font-color', color);
+    });
+  });
+
+  // Corner radius
+  document.querySelectorAll('.tweaks-corner-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var r = this.getAttribute('data-radius');
+      document.querySelectorAll('.tweaks-corner-btn').forEach(function (b) { b.classList.remove('on'); });
+      this.classList.add('on');
+      applyRadius(r);
+      localStorage.setItem('se-radius', r);
+    });
+  });
+
+  function applyAccent(color) {
+    document.documentElement.style.setProperty('--accent', color);
+    document.documentElement.style.setProperty('--pri', color);
+  }
+  function applyFont(color) {
+    document.documentElement.style.setProperty('--ink', color);
+    document.documentElement.style.setProperty('--text', color);
+  }
+  function applyRadius(r) {
+    document.documentElement.style.setProperty('--r-card', r + 'px');
+    document.documentElement.style.setProperty('--r-btn', Math.max(0, r - 2) + 'px');
   }
 })();
 </script>
