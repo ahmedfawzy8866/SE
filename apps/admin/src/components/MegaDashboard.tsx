@@ -3,6 +3,7 @@ import OverviewPage from './OverviewPage';
 import LeadsPage from './LeadsPage';
 import ListingsHubPage from './ListingsHubPage';
 import BotsControlPage from './BotsControlPage';
+import NexusExchangePage from './NexusExchangePage';
 import WorkflowsPage from './WorkflowsPage';
 import SearchInsightsPage from './SearchInsightsPage';
 import FollowupsPage from './FollowupsPage';
@@ -40,6 +41,15 @@ export default function MegaDashboard({ T, isAr, searchQuery }: any) {
           <p className="text-sm text-[#F4F0E8]/60 font-light">Schedule and track agent and bot follow-ups.</p>
         </div>
         <FollowupsPage T={T} isAr={isAr} />
+      </section>
+
+      {/* Nexus Exchange */}
+      <section id="nexus" className="scroll-mt-24 border-t border-[#C9A24D]/20 pt-12">
+        <div className="mb-8">
+          <h2 className="text-3xl font-playfair text-[#F4F0E8] tracking-tight mb-2">Exchange Hub</h2>
+          <p className="text-sm text-[#F4F0E8]/60 font-light">Live data contract between Admin, Agents & Workflows.</p>
+        </div>
+        <NexusExchangePage T={T} isAr={isAr} />
       </section>
 
       {/* Bot Control */}

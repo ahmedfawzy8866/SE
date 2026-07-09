@@ -253,4 +253,6 @@ function App() {
 
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+/* Mount after the API bridge settles (≤2.5s) so live listings hydrate before first paint. */
+var __mountSierra = function () {ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));};
+(window.SIERRA_DATA_READY || Promise.resolve()).then(__mountSierra, __mountSierra);

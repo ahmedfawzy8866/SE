@@ -629,7 +629,7 @@ export default function App() {
           <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 custom-scrollbar bg-slate-50 dark:bg-slate-950">
             <AnimatePresence mode="wait">
               <motion.div
-                key={['overview', 'leads', 'listings', 'bots', 'workflows', 'searchInsights', 'followups'].includes(tab) ? 'mega-dashboard' : tab}
+                key={['overview', 'leads', 'listings', 'nexus', 'bots', 'workflows', 'searchInsights', 'followups'].includes(tab) ? 'mega-dashboard' : tab}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}

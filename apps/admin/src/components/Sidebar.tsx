@@ -44,6 +44,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'searchInsights', label: 'Search Insights',   labelAr: 'تحليلات البحث',         icon: BarChart3,       section: 'core' },
   { id: 'pageEditor',     label: 'Page Editor',       labelAr: 'محرر الصفحات',          icon: FileText,        section: 'core' },
   // ── Automation & agents ────────────────────────────────────────────
+  { id: 'nexus',          label: 'Exchange Hub',      labelAr: 'مركز التبادل',          icon: Zap,             section: 'automation' },
   { id: 'bots',           label: 'Bots Control',      labelAr: 'التحكم بالبوتات',       icon: Bot,             section: 'automation' },
   { id: 'agents',         label: 'AI Agents',         labelAr: 'وكلاء الذكاء',          icon: Bot,             section: 'automation', badge: '6', badgeTone: 'success' },
   { id: 'workflows',      label: 'Workflows',         labelAr: 'سير العمل',             icon: Workflow,        section: 'automation', badge: '8', badgeTone: 'info' },
@@ -92,7 +93,7 @@ export default function Sidebar({
     setTab(id);
     
     // If it's a mega-dashboard section, scroll to it smoothly
-    if (['overview', 'leads', 'listings', 'bots', 'workflows', 'searchInsights', 'followups'].includes(id)) {
+    if (['overview', 'leads', 'listings', 'nexus', 'bots', 'workflows', 'searchInsights', 'followups'].includes(id)) {
       setTimeout(() => {
         document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
       }, 100);

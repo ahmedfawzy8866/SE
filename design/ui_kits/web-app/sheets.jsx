@@ -1035,10 +1035,16 @@ function ReqModal(props) {
   function set(k, v) {setForm(function (f) {var n = Object.assign({}, f);n[k] = v;return n;});}
   function submit() {
     if (!form.name.trim() || !form.phone.trim()) return;
+    var payload = { name: form.name.trim(), email: '', phone: form.phone.trim(), message: form.comment.trim(), locale: lang, source: 'client-portal' };
     try {
       var leads = JSON.parse(localStorage.getItem('sierra_leads') || '[]');
-      leads.push({ name: form.name.trim(), phone: form.phone.trim(), comment: form.comment.trim(), source: 'Website Lead', ts: new Date().toISOString() });
+      leads.push(Object.assign({ ts: new Date().toISOString() }, payload));
       localStorage.setItem('sierra_leads', JSON.stringify(leads));
+    } catch (e) {}
+    try { /* backend funnel — POST /api/leads per docs/API_CONTRACT.md; fire-and-forget, offline-safe */
+      var API = (window.SIERRA_API_BASE || '').replace(/\/$/, '');
+      fetch(API + '/api/leads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(function () {});
+      if (window.__seTrack) window.__seTrack('lead_submitted', { source: 'client-portal', lang: lang });
     } catch (e) {}
     setDone(true);
   }
