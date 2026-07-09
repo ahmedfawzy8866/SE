@@ -372,6 +372,9 @@
 /* ─── Home page map markers (premium dark navy style) ─── */
 #home-map{border:1px solid var(--line) !important;border-radius:14px !important;overflow:hidden;}
 [data-theme="dark"] #home-map{border-color:#1a1a26 !important;}
+/* Active state for home map beds segment buttons */
+#home-map-beds button.on{background:var(--pri);color:#fff;}
+[data-theme="dark"] #home-map-beds button.on{background:#e9c176;color:#0d0d0f;}
 .cpd-marker{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:14px;background:rgba(0,43,75,.9);border:2px solid #00aeff;color:#bfeaff;font-family:var(--font);font-weight:700;font-size:11px;padding:0 10px;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;transition:.2s var(--silk);white-space:nowrap;backdrop-filter:blur(4px);}
 .cpd-marker:hover{transform:scale(1.12);box-shadow:0 6px 20px rgba(0,174,255,.5);z-index:999;border-color:#34d399;color:#fff;}
 .cpd-marker.hot{background:linear-gradient(135deg,#00aeff,#0098e0);color:#fff;border-color:#00aeff;}
@@ -776,6 +779,32 @@
       </div>
       <a href="compounds.html" class="sec-link"><span data-i18n="allCpds"></span> <i data-lucide="arrow-right" class="i" style="width:16px;height:16px"></i></a>
     </div>
+
+    <!-- ═══ Quick filter bar (compound + bedrooms only) ═══
+         Per user request: the OUTSIDE map (home page) only filters by
+         compound + bedroom count. The inside compounds.html page keeps
+         the full advanced filter set (type, price, delivery, mode). -->
+    <div class="home-map-filter" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:18px;padding:14px 18px;background:var(--surface);border:1.5px solid var(--line-2);border-radius:14px;box-shadow:var(--shadow-s);">
+      <div style="display:flex;align-items:center;gap:9px;flex:1;min-width:240px;">
+        <i data-lucide="search" class="i" style="width:17px;height:17px;color:var(--muted);flex:none;"></i>
+        <input id="home-map-compound" type="text" list="home-map-compound-list" placeholder="Filter by compound (e.g. Mivida, Hyde Park)…" style="flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:14px;color:var(--ink);min-width:0;" />
+        <datalist id="home-map-compound-list"></datalist>
+        <button id="home-map-clear" type="button" style="border:none;background:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:0;display:none;" aria-label="Clear filter">×</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <i data-lucide="bed-double" class="i" style="width:16px;height:16px;color:var(--muted);flex:none;"></i>
+        <div id="home-map-beds" style="display:flex;gap:4px;padding:3px;background:var(--bg);border-radius:999px;">
+          <button class="on" data-b="0" type="button" style="border:none;cursor:pointer;padding:7px 13px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">Any</button>
+          <button data-b="1" type="button" style="border:none;cursor:pointer;padding:7px 13px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">1+</button>
+          <button data-b="2" type="button" style="border:none;cursor:pointer;padding:7px 13px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">2+</button>
+          <button data-b="3" type="button" style="border:none;cursor:pointer;padding:7px 13px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">3+</button>
+          <button data-b="4" type="button" style="border:none;cursor:pointer;padding:7px 13px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">4+</button>
+          <button data-b="5" type="button" style="border:none;cursor:pointer;padding:7px 13px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">5+</button>
+        </div>
+      </div>
+      <div id="home-map-count" style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em;white-space:nowrap;">— compounds</div>
+    </div>
+
     <div class="map-sticky-wrap" id="map-sticky-wrap">
       <div id="home-map" style="height:480px;border-radius:var(--r-card);border:1px solid var(--line);z-index:1;background:var(--bg);margin-bottom:8px;"></div>
     </div>
@@ -1285,6 +1314,7 @@
     marker.on('click', function () {
       location.href = 'compounds.html?cpd=' + encodeURIComponent(c.n);
     });
+    marker._compound = c; // keep a back-reference so we can filter later
     clusterGroup.addLayer(marker);
   });
 
@@ -1292,6 +1322,91 @@
 
   // Fit bounds to show all compounds
   try { map.fitBounds(clusterGroup.getBounds(), { padding: [40, 40], maxZoom: 13 }); } catch (e) {}
+
+  // ═══ HOME MAP FILTER (compound + bedrooms only) ═══
+  // Per user request: outside map only filters by compound name + beds.
+  // The full advanced filter set (type/price/delivery/mode) lives on
+  // compounds.html — this keeps the home map fast and focused.
+  var allMarkers = clusterGroup.getLayers();
+  var compoundInput = document.getElementById('home-map-compound');
+  var compoundList = document.getElementById('home-map-compound-list');
+  var clearBtn = document.getElementById('home-map-clear');
+  var bedsWrap = document.getElementById('home-map-beds');
+  var countEl = document.getElementById('home-map-count');
+
+  // Populate datalist with all compound names
+  if (compoundList) {
+    compoundList.innerHTML = D.compounds.map(function (c) {
+      return '<option value="' + c.n + '">';
+    }).join('');
+  }
+
+  var filterState = { compound: '', beds: 0 };
+
+  function applyFilter() {
+    var q = filterState.compound.trim().toLowerCase();
+    var minBeds = filterState.beds;
+    var visible = [];
+
+    allMarkers.forEach(function (m) {
+      var c = m._compound;
+      if (!c) return;
+      var matchName = !q || c.n.toLowerCase().indexOf(q) >= 0;
+      var matchBeds = true;
+      if (minBeds > 0 && typeof D.unitsFor === 'function') {
+        // Check if this compound has at least one unit with >= minBeds
+        var units = D.unitsFor(c.n);
+        matchBeds = units.some(function (u) { return u.beds >= minBeds; });
+      }
+      var visible_now = matchName && matchBeds;
+      if (clusterGroup.hasLayer(m) && !visible_now) {
+        clusterGroup.removeLayer(m);
+      } else if (!clusterGroup.hasLayer(m) && visible_now) {
+        clusterGroup.addLayer(m);
+      }
+      if (visible_now) visible.push(m);
+    });
+
+    countEl.textContent = visible.length + ' compound' + (visible.length === 1 ? '' : 's');
+
+    // Refit bounds to visible markers
+    if (visible.length > 0) {
+      try {
+        var group = L.featureGroup(visible);
+        map.fitBounds(group.getBounds(), { padding: [40, 40], maxZoom: 13 });
+      } catch (e) {}
+    }
+    setTimeout(function () { map.invalidateSize(); }, 100);
+  }
+
+  if (compoundInput) {
+    compoundInput.addEventListener('input', function (e) {
+      filterState.compound = e.target.value;
+      clearBtn.style.display = e.target.value ? 'block' : 'none';
+      applyFilter();
+    });
+  }
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function () {
+      compoundInput.value = '';
+      filterState.compound = '';
+      clearBtn.style.display = 'none';
+      applyFilter();
+    });
+  }
+  if (bedsWrap) {
+    bedsWrap.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        bedsWrap.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        filterState.beds = +b.dataset.b;
+        applyFilter();
+      });
+    });
+  }
+
+  // Initial count
+  countEl.textContent = allMarkers.length + ' compounds';
 
   // Fix tile rendering after layout settles
   setTimeout(function () { map.invalidateSize(); }, 200);

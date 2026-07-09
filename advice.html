@@ -1,124 +1,353 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ask Sierra — Sierra Estates</title>
-  <link rel="stylesheet" href="../assets/sierra.css?v=5" />
-  <style>
-    .chat-wrap { max-width: 720px; margin: 36px auto 0; }
-    .chat { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-md); }
-    .chat-head { display: flex; align-items: center; gap: 13px; padding: 18px 22px; background: linear-gradient(135deg, var(--navy), #16365a); color: #fff; }
-    .chat-ava { width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, var(--gold-lt), var(--gold)); display: grid; place-items: center; color: var(--navy-deep); font-family: var(--font-display); font-weight: 700; font-size: 20px; }
-    .chat-head h3 { margin: 0; font-size: 16px; font-weight: 600; }
-    .chat-head .stat { font-size: 11px; color: rgba(239,248,247,0.6); display: flex; align-items: center; gap: 6px; }
-    .chat-head .dot { width: 7px; height: 7px; border-radius: 50%; background: #2ecc71; }
-    .lang-toggle { margin-left: auto; display: flex; gap: 3px; background: rgba(255,255,255,0.1); border-radius: 999px; padding: 3px; }
-    .lang-toggle button { border: none; background: transparent; color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 999px; cursor: pointer; }
-    .lang-toggle button.on { background: var(--gold); color: var(--navy-deep); }
-    .chat-body { padding: 22px; height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: var(--ivory); }
-    .bubble { max-width: 78%; padding: 13px 17px; border-radius: 16px; font-size: 14px; line-height: 1.55; animation: sbFadeUp 0.4s var(--ease) both; }
-    .bubble.bot { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: 5px; color: var(--navy); }
-    .bubble.user { align-self: flex-end; background: linear-gradient(135deg, var(--navy), #16365a); color: #fff; border-bottom-right-radius: 5px; }
-    .bubble.ar { direction: rtl; font-family: var(--font-ar); }
-    .chat-foot { padding: 16px 18px; border-top: 1px solid var(--line); display: flex; gap: 10px; background: var(--surface); }
-    .chat-foot input { flex: 1; border: 1px solid var(--line); border-radius: 999px; padding: 12px 18px; font-family: var(--font-ui); font-size: 14px; outline: none; color: var(--navy); }
-    .chat-foot input:focus { border-color: var(--gold); }
-    .chat-send { width: 46px; height: 46px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--gold-lt), var(--gold)); color: var(--navy-deep); cursor: pointer; display: grid; place-items: center; }
-    .suggests { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; justify-content: center; }
-    .suggests button { padding: 9px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-family: var(--font-ui); font-size: 12px; color: var(--navy-soft); transition: all 220ms var(--ease); }
-    .suggests button:hover { border-color: var(--gold); color: var(--gold-deep); }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Dream Home Finder · 4-Question Match — Sierra Estates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.min.js"></script>
+<script src="data.js"></script>
+<script src="shared.js"></script>
+<style>
+.dream-hero{background:linear-gradient(135deg,#07121e 0%,#0d1f30 60%,#07121e 100%);padding:60px 0 50px;position:relative;overflow:hidden;}
+.dream-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(700px 360px at 78% 0%,rgba(0,174,255,.22),transparent 60%);}
+[data-theme="dark"] .dream-hero::before{background:radial-gradient(700px 360px at 78% 0%,rgba(200,150,26,.18),transparent 60%);}
+.dream-hero .wrap{position:relative;z-index:2;}
+.dream-hero h1{color:#fff;font-family:var(--display);font-size:46px;font-weight:700;letter-spacing:-.015em;line-height:1.05;}
+.dream-hero h1 em{font-style:italic;color:var(--pri);}
+[data-theme="dark"] .dream-hero h1 em{color:#e9c176;}
+.dream-hero p.sub{color:rgba(255,255,255,.82);margin-top:14px;max-width:620px;font-size:15.5px;line-height:1.55;}
+.dream-hero .hero-chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;}
+.dream-hero .hero-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(6px);padding:9px 14px;border-radius:999px;color:#fff;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;}
+.dream-hero .hero-chip i{width:13px;height:13px;color:#34d399;}
+
+/* ── Quiz card ── */
+.quiz-wrap{max-width:780px;margin:40px auto 0;}
+.quiz-card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:42px 44px;box-shadow:var(--shadow-m);position:relative;overflow:hidden;}
+.quiz-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--pri),#34d399);}
+
+/* Progress bar */
+.quiz-progress{display:flex;align-items:center;gap:14px;margin-bottom:32px;}
+.quiz-dots{display:flex;gap:6px;flex:1;}
+.quiz-dot{flex:1;height:6px;border-radius:3px;background:var(--bg);transition:.3s var(--silk);}
+.quiz-dot.on{background:var(--pri);}
+[data-theme="dark"] .quiz-dot.on{background:#e9c176;}
+.quiz-dot.done{background:#34d399;}
+.quiz-count{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+
+/* Question */
+.quiz-q{font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);margin-bottom:8px;letter-spacing:-.01em;line-height:1.2;}
+.quiz-hint{font-size:14px;color:var(--muted);margin-bottom:26px;}
+
+/* Options */
+.quiz-opts{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.quiz-opt{display:flex;align-items:center;gap:14px;padding:18px 22px;border:1.5px solid var(--line-2);border-radius:14px;background:var(--surface-2);cursor:pointer;transition:.25s var(--silk);text-align:start;font-family:var(--font);font-size:15px;font-weight:600;color:var(--ink);position:relative;overflow:hidden;}
+.quiz-opt:hover{border-color:var(--pri);transform:translateY(-2px);box-shadow:var(--shadow-s);}
+.quiz-opt.on{border-color:var(--pri);background:rgba(0,174,255,.06);}
+[data-theme="dark"] .quiz-opt.on{border-color:#e9c176;background:rgba(200,150,26,.08);}
+.quiz-opt .ic{width:42px;height:42px;border-radius:10px;background:var(--bg);display:grid;place-items:center;flex:none;color:var(--pri);}
+[data-theme="dark"] .quiz-opt .ic{color:#e9c176;}
+.quiz-opt .ic i{width:20px;height:20px;}
+.quiz-opt .txt{flex:1;}
+.quiz-opt .txt b{display:block;font-size:15.5px;}
+.quiz-opt .txt span{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:2px;}
+
+/* Nav buttons */
+.quiz-nav{display:flex;justify-content:space-between;align-items:center;margin-top:32px;padding-top:24px;border-top:1px solid var(--line);}
+.btn-back{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border:1.5px solid var(--line-2);border-radius:10px;background:var(--surface-2);color:var(--text);font-family:var(--font);font-weight:700;font-size:13.5px;cursor:pointer;transition:.2s;}
+.btn-back:hover{border-color:var(--ink);color:var(--ink);}
+.btn-back:disabled{opacity:.4;cursor:not-allowed;}
+.btn-next{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border:none;border-radius:10px;background:var(--pri);color:#fff;font-family:var(--font);font-weight:700;font-size:14px;cursor:pointer;transition:.2s var(--silk);}
+.btn-next:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,174,255,.35);}
+[data-theme="dark"] .btn-next{background:#e9c176;color:#0d0d0f;}
+.btn-next:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn-next i{width:16px;height:16px;}
+
+/* Result */
+.quiz-result{display:none;text-align:center;}
+.quiz-result.show{display:block;animation:resultIn .8s var(--silk) both;}
+@keyframes resultIn{from{opacity:0;transform:scale(.94) translateY(20px);}to{opacity:1;transform:none;}}
+.result-eyebrow{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#34d399;margin-bottom:14px;display:inline-flex;align-items:center;gap:8px;}
+.result-eyebrow::before{content:"";width:24px;height:1.5px;background:#34d399;display:inline-block;}
+.result-title{font-family:var(--display);font-size:42px;font-weight:700;color:var(--ink);line-height:1.1;margin-bottom:12px;letter-spacing:-.015em;}
+.result-title em{font-style:italic;color:var(--pri);}
+[data-theme="dark"] .result-title em{color:#e9c176;}
+.result-sub{font-size:15px;color:var(--text);max-width:520px;margin:0 auto 28px;line-height:1.55;}
+
+/* Match cards */
+.match-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:28px;}
+.match-card{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:20px;text-align:start;position:relative;overflow:hidden;text-decoration:none;transition:.25s var(--silk);}
+.match-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-s);border-color:var(--pri);}
+.match-card .mc-rank-num{position:absolute;top:14px;inset-inline-end:14px;font-family:var(--mono);font-size:11px;font-weight:800;color:var(--pri);background:var(--surface);padding:4px 9px;border-radius:8px;}
+[data-theme="dark"] .match-card .mc-rank-num{color:#e9c176;}
+.match-card .mc-name{font-family:var(--display);font-size:18px;font-weight:700;color:var(--ink);margin-bottom:6px;padding-inline-end:48px;}
+.match-card .mc-zone{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;}
+.match-card .mc-score-bar{height:6px;background:var(--surface);border-radius:3px;overflow:hidden;}
+.match-card .mc-score-fill{height:100%;background:linear-gradient(90deg,#34d399,var(--pri));border-radius:3px;transform-origin:left;animation:scoreGrow 1.2s var(--silk) both;}
+[data-theme="dark"] .match-card .mc-score-fill{background:linear-gradient(90deg,#e9c176,#c8961a);}
+@keyframes scoreGrow{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+.match-card .mc-score-num{font-family:var(--mono);font-size:13px;font-weight:800;color:var(--ink);margin-top:8px;display:flex;justify-content:space-between;}
+.match-card .mc-score-num span:last-child{color:#34d399;}
+
+.result-cta{display:inline-flex;align-items:center;gap:8px;padding:14px 26px;border:none;border-radius:12px;background:var(--navy);color:#fff;font-family:var(--font);font-weight:700;font-size:15px;text-decoration:none;cursor:pointer;transition:.25s var(--silk);}
+.result-cta:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,43,75,.3);}
+[data-theme="dark"] .result-cta{background:#e9c176;color:#0d0d0f;}
+.result-cta i{width:18px;height:18px;}
+.btn-restart{display:inline-flex;align-items:center;gap:6px;margin-inline-start:14px;padding:14px 22px;border:1.5px solid var(--line-2);border-radius:12px;background:var(--surface-2);color:var(--text);font-family:var(--font);font-weight:700;font-size:14px;cursor:pointer;transition:.2s;text-decoration:none;}
+.btn-restart:hover{border-color:var(--ink);color:var(--ink);}
+
+@media(max-width:680px){
+  .dream-hero h1{font-size:32px;}
+  .quiz-card{padding:28px 22px;}
+  .quiz-q{font-size:22px;}
+  .quiz-opts{grid-template-columns:1fr;}
+  .result-title{font-size:30px;}
+}
+</style>
 </head>
 <body>
-  <div class="sb-topbar">
-    <a class="sb-brand" href="../Sierra Estates Landing.html"><span class="sb-brand-mark">S</span><span><span class="sb-brand-name">SIERRA ESTATES</span><span class="sb-brand-sub" style="display:block;">NEW CAIRO · REALTY</span></span></a>
-    <a class="sb-back" href="../Sierra Estates Landing.html">← Back to home</a>
+<div id="site-chrome"></div>
+
+<section class="dream-hero">
+  <div class="wrap">
+    <div style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#8fe1ff;margin-bottom:14px;">
+      <span style="width:24px;height:1.5px;background:#8fe1ff;display:inline-block;"></span>
+      AI DREAM HOME FINDER · 4-QUESTION MATCH
+    </div>
+    <h1>Dream Home Finder <em>— your perfect compound, in 4 questions</em></h1>
+    <p class="sub">Tell us your lifestyle, budget, and family size. Sierra's AI matches you to the New Cairo compounds that actually fit — not just the ones with the biggest ads.</p>
+    <div class="hero-chips">
+      <span class="hero-chip"><i data-lucide="help-circle"></i> 4 quick questions</span>
+      <span class="hero-chip"><i data-lucide="clock"></i> 30 seconds</span>
+      <span class="hero-chip"><i data-lucide="target"></i> Personalized match</span>
+    </div>
   </div>
+</section>
 
-  <main class="ai-page">
-    <div class="sb-section">
-      <div class="ai-hero reveal">
-        <span class="sb-eyebrow">AI Support · Advisory</span>
-        <h1>Ask Sierra</h1>
-        <p>The best &amp; only AI broker in Egypt — bilingual, always on, and honest about yields and compounds.</p>
-      </div>
-
-      <div class="chat-wrap reveal">
-        <div class="chat">
-          <div class="chat-head">
-            <div class="chat-ava">S</div>
-            <div>
-              <h3>Sierra</h3>
-              <div class="stat"><span class="dot"></span> Online · replies in seconds</div>
-            </div>
-            <div class="lang-toggle" id="lang">
-              <button class="on" data-l="en">EN</button>
-              <button data-l="ar">ع</button>
-            </div>
+<section class="block" style="padding-top:40px;">
+  <div class="wrap">
+    <div class="quiz-wrap">
+      <div class="quiz-card" id="quiz-card">
+        <!-- Progress -->
+        <div class="quiz-progress" id="progress">
+          <div class="quiz-dots">
+            <div class="quiz-dot on"></div>
+            <div class="quiz-dot"></div>
+            <div class="quiz-dot"></div>
+            <div class="quiz-dot"></div>
           </div>
-          <div class="chat-body" id="body"></div>
-          <div class="chat-foot">
-            <input id="input" placeholder="Ask about a compound, budget, or yield…" />
-            <button class="chat-send" id="send"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
-          </div>
+          <div class="quiz-count" id="count">1 / 4</div>
         </div>
-        <div class="suggests" id="suggests"></div>
+
+        <!-- Question container -->
+        <div id="quiz-body"></div>
+
+        <!-- Nav -->
+        <div class="quiz-nav" id="quiz-nav">
+          <button class="btn-back" id="btn-back" type="button" disabled><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Back</button>
+          <button class="btn-next" id="btn-next" type="button" disabled>Next <i data-lucide="arrow-right"></i></button>
+        </div>
+
+        <!-- Result (hidden initially) -->
+        <div class="quiz-result" id="quiz-result"></div>
       </div>
     </div>
-  </main>
+  </div>
+</section>
 
-  <script src="../assets/sierra.js?v=5"></script>
-  <script>
-    let lang = 'en';
-    const body = document.getElementById('body'), input = document.getElementById('input');
-    const SUGGESTS = {
-      en: ['3-bed villa in Mivida under 15M', 'Best yield in New Cairo?', 'Rent vs resale in Madinaty'],
-      ar: ['فيلا ٣ غرف في ميفيدا', 'أعلى عائد في القاهرة الجديدة؟', 'إيجار أم تمليك في مدينتي']
-    };
-    function reply(q) {
-      const t = q.toLowerCase();
-      if (lang === 'ar') {
-        if (t.includes('ميفيدا')) return 'لقيتلك ٣ فيلات في ميفيدا بمستوى مطابقة ٩٦٪، تبدأ من ١٢.٥ مليون جنيه. أبعتلك التفاصيل؟ ✨';
-        if (t.includes('عائد')) return 'أعلى العوائد دلوقتي في إيستاون وهايد بارك — حوالي ٨.٣٪ صافي سنوي. تحب تحليل ROI كامل؟';
-        return 'تمام! قولي ميزانيتك والكمبوند المفضل، وهرشحلك أفضل الوحدات في ثوانٍ.';
-      }
-      if (t.includes('mivida')) return 'I found 3 villas in Mivida at a 96% match — from EGP 12.5M, 3–4 beds. Shall I send the full report? ✨';
-      if (t.includes('yield') || t.includes('roi')) return 'Top yields right now are in Eastown and Hyde Park — around 8.3% net annually. Want the full ROI breakdown?';
-      if (t.includes('madinaty')) return 'In Madinaty, resale outperforms on appreciation (~9%/yr) while rentals yield ~6%. For a 5-yr hold, resale wins. Your budget?';
-      return "Great question. Tell me your budget and preferred compound, and I'll match the best units in seconds.";
+<footer id="site-footer"></footer>
+
+<script>
+(function () {
+  'use strict';
+  HZ.mount('cpds');
+
+  var D = window.HZDATA;
+  var compounds = D.compounds || [];
+
+  var QUESTIONS = [
+    {
+      q: 'What matters most in your next home?',
+      hint: 'Pick the lifestyle that fits you best.',
+      opts: [
+        { ic: 'trees', b: 'Family & greenery', s: 'Parks, schools, quiet streets', tag: 'family' },
+        { ic: 'waves', b: 'Waterfront & luxury', s: 'Lakes, pools, premium finish', tag: 'luxury' },
+        { ic: 'zap', b: 'Vibrant & social', s: 'Cafés, retail, nightlife nearby', tag: 'social' },
+        { ic: 'wallet', b: 'Value & growth', s: 'High ROI, upcoming area', tag: 'value' }
+      ]
+    },
+    {
+      q: 'What is your budget range?',
+      hint: 'A rough range is fine — we will refine later.',
+      opts: [
+        { ic: 'banknote', b: 'Up to EGP 5M', s: 'Starter / first home', tag: 'budget_low' },
+        { ic: 'coins', b: 'EGP 5M – 12M', s: 'Mid-range family home', tag: 'budget_mid' },
+        { ic: 'gem', b: 'EGP 12M – 25M', s: 'Premium villa / townhouse', tag: 'budget_high' },
+        { ic: 'crown', b: 'EGP 25M+', s: 'Ultra-luxury signature', tag: 'budget_ultra' }
+      ]
+    },
+    {
+      q: 'How big is your household?',
+      hint: 'Drives the bedroom count we filter for.',
+      opts: [
+        { ic: 'user', b: '1–2 people', s: 'Studio / 1-bed / 2-bed', tag: 'size_s' },
+        { ic: 'users', b: '3–4 people', s: '3-bed apartment', tag: 'size_m' },
+        { ic: 'users-round', b: '5–6 people', s: '4-bed townhouse / villa', tag: 'size_l' },
+        { ic: 'home', b: '7+ people', s: '5+ bed villa', tag: 'size_xl' }
+      ]
+    },
+    {
+      q: 'When do you need to move?',
+      hint: 'Affects whether we recommend ready or off-plan.',
+      opts: [
+        { ic: 'rocket', b: 'Immediately', s: 'Ready to move in now', tag: 'now' },
+        { ic: 'calendar-clock', b: '3–6 months', s: 'Slightly flexible', tag: 'soon' },
+        { ic: 'calendar-days', b: '1–2 years', s: 'Off-plan / under construction', tag: 'plan' },
+        { ic: 'search', b: 'Just exploring', s: 'Open to anything', tag: 'explore' }
+      ]
     }
-    function add(text, who, isAr) {
-      const b = document.createElement('div');
-      b.className = `bubble ${who}` + (isAr ? ' ar' : '');
-      b.textContent = text; body.appendChild(b); body.scrollTop = body.scrollHeight;
-    }
-    function send(q) {
-      if (!q.trim()) return;
-      add(q, 'user', lang === 'ar'); input.value = '';
-      setTimeout(() => add(reply(q), 'bot', lang === 'ar'), 600);
-    }
-    function renderSuggests() {
-      const s = document.getElementById('suggests'); s.innerHTML = '';
-      SUGGESTS[lang].forEach(q => { const btn = document.createElement('button'); btn.textContent = q; btn.onclick = () => send(q); s.appendChild(btn); });
-    }
-    function greet() {
-      body.innerHTML = '';
-      add(lang === 'ar' ? 'أهلاً بيك في سييرا 👋 أنا مستشارك العقاري الذكي. محتاج إيجار ولا تمليك؟' : "Welcome to Sierra 👋 I'm your AI property advisor. Looking to rent or buy?", 'bot', lang === 'ar');
-    }
-    document.getElementById('send').onclick = () => send(input.value);
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') send(input.value); });
-    document.querySelectorAll('#lang button').forEach(b => b.onclick = () => {
-      document.querySelectorAll('#lang button').forEach(x => x.classList.remove('on'));
-      b.classList.add('on'); lang = b.dataset.l;
-      input.placeholder = lang === 'ar' ? 'اسأل عن كمبوند أو ميزانية أو عائد…' : 'Ask about a compound, budget, or yield…';
-      input.style.direction = lang === 'ar' ? 'rtl' : 'ltr';
-      greet(); renderSuggests();
+  ];
+
+  var step = 0;
+  var answers = [null, null, null, null];
+  var body = document.getElementById('quiz-body');
+  var countEl = document.getElementById('count');
+  var dots = document.querySelectorAll('.quiz-dot');
+  var btnBack = document.getElementById('btn-back');
+  var btnNext = document.getElementById('btn-next');
+  var navEl = document.getElementById('quiz-nav');
+  var progressEl = document.getElementById('progress');
+  var resultEl = document.getElementById('quiz-result');
+
+  function renderStep() {
+    if (step >= QUESTIONS.length) { showResult(); return; }
+    progressEl.style.display = 'flex';
+    navEl.style.display = 'flex';
+    resultEl.classList.remove('show');
+    resultEl.innerHTML = '';
+
+    countEl.textContent = (step + 1) + ' / ' + QUESTIONS.length;
+    dots.forEach(function (d, i) {
+      d.classList.toggle('done', i < step);
+      d.classList.toggle('on', i === step);
     });
-    greet(); renderSuggests();
 
-    window.mountSierraAIHub('../');
-    window.sbInitReveal();
-  </script>
+    var Q = QUESTIONS[step];
+    var html = '<div class="quiz-q">' + Q.q + '</div><div class="quiz-hint">' + Q.hint + '</div><div class="quiz-opts">';
+    Q.opts.forEach(function (o, i) {
+      var onCls = answers[step] === i ? ' on' : '';
+      html += '<button type="button" class="quiz-opt' + onCls + '" data-i="' + i + '">' +
+        '<span class="ic"><i data-lucide="' + o.ic + '"></i></span>' +
+        '<span class="txt"><b>' + o.b + '</b><span>' + o.s + '</span></span>' +
+      '</button>';
+    });
+    html += '</div>';
+    body.innerHTML = html;
+
+    body.querySelectorAll('.quiz-opt').forEach(function (b) {
+      b.addEventListener('click', function () {
+        body.querySelectorAll('.quiz-opt').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        answers[step] = +b.dataset.i;
+        btnNext.disabled = false;
+      });
+    });
+
+    btnBack.disabled = step === 0;
+    btnNext.disabled = answers[step] === null;
+    btnNext.innerHTML = step === QUESTIONS.length - 1 ? 'See my matches <i data-lucide="sparkles"></i>' : 'Next <i data-lucide="arrow-right"></i>';
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function scoreCompound(c) {
+    var s = 50;
+    var lifestyle = QUESTIONS[0].opts[answers[0]].tag;
+    var budget = QUESTIONS[1].opts[answers[1]].tag;
+    var size = QUESTIONS[2].opts[answers[2]].tag;
+    var timing = QUESTIONS[3].opts[answers[3]].tag;
+
+    var name = (c.n || '').toLowerCase();
+    var ai = c.ai || 8;
+
+    if (lifestyle === 'family' && /mivida|madinaty|mountain view|rehab/.test(name)) s += 18;
+    if (lifestyle === 'luxury' && /villette|hyde park|taj|eastown/.test(name)) s += 18;
+    if (lifestyle === 'social' && /hyde park|eastown|mivida/.test(name)) s += 14;
+    if (lifestyle === 'value' && /mountain view|mostakbal|shorouk/.test(name)) s += 16;
+
+    s += (ai - 8) * 4;
+    if (budget === 'budget_low' && /mountain view|shorouk|madinaty/.test(name)) s += 8;
+    if (budget === 'budget_high' && /villette|hyde park|taj/.test(name)) s += 10;
+    if (budget === 'budget_ultra' && /villette|taj/.test(name)) s += 12;
+
+    if (size === 'size_xl' && /mivida|villette|mountain view/.test(name)) s += 8;
+    if (size === 'size_s' && /eastown|hyde park/.test(name)) s += 6;
+
+    if (timing === 'now' && c.d && /ready|delivered/.test((c.d || '').toLowerCase())) s += 8;
+    if (timing === 'plan') s += 4;
+
+    return Math.max(60, Math.min(99, Math.round(s)));
+  }
+
+  function showResult() {
+    progressEl.style.display = 'none';
+    navEl.style.display = 'none';
+    body.innerHTML = '';
+
+    var scored = compounds.map(function (c) {
+      return { c: c, score: scoreCompound(c) };
+    }).sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
+
+    var top = scored[0];
+    var html = '<div class="quiz-result show" id="quiz-result">' +
+      '<div class="result-eyebrow">YOUR TOP MATCH</div>' +
+      '<div class="result-title">Your dream home is at <em>' + top.c.n + '</em></div>' +
+      '<div class="result-sub">Based on your answers, here are the 3 New Cairo compounds that best fit your lifestyle, budget, and family size. Tap any to explore available units.</div>' +
+      '<div class="match-cards">' +
+        scored.map(function (m, i) {
+          return '<a class="match-card" href="compounds.html?cpd=' + encodeURIComponent(m.c.n) + '">' +
+            '<div class="mc-rank-num">#' + (i + 1) + '</div>' +
+            '<div class="mc-name">' + m.c.n + '</div>' +
+            '<div class="mc-zone">' + (m.c.z || 'New Cairo') + '</div>' +
+            '<div class="mc-score-bar"><div class="mc-score-fill" style="width:' + m.score + '%;"></div></div>' +
+            '<div class="mc-score-num"><span>Match score</span><span>' + m.score + '%</span></div>' +
+          '</a>';
+        }).join('') +
+      '</div>' +
+      '<a class="result-cta" href="compounds.html?cpd=' + encodeURIComponent(top.c.n) + '"><i data-lucide="map-pin"></i> Explore ' + top.c.n + ' on the map</a>' +
+      '<a class="btn-restart" href="#" id="restart"><i data-lucide="rotate-ccw" style="width:14px;height:14px;"></i> Retake quiz</a>' +
+    '</div>';
+    resultEl.outerHTML = html;
+
+    var restart = document.getElementById('restart');
+    if (restart) restart.addEventListener('click', function (e) {
+      e.preventDefault();
+      step = 0; answers = [null, null, null, null];
+      // Re-create resultEl (it was replaced)
+      resultEl = document.createElement('div');
+      resultEl.className = 'quiz-result';
+      resultEl.id = 'quiz-result';
+      document.getElementById('quiz-card').appendChild(resultEl);
+      renderStep();
+    });
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  btnBack.addEventListener('click', function () {
+    if (step > 0) { step--; renderStep(); }
+  });
+  btnNext.addEventListener('click', function () {
+    if (answers[step] === null) return;
+    step++;
+    renderStep();
+  });
+
+  renderStep();
+})();
+</script>
 </body>
 </html>
