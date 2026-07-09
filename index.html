@@ -51,14 +51,14 @@
 .hero .map-cta .i{width:17px;height:17px;}
 @media(max-width:680px){.hero .map-cta{bottom:96px;font-size:13px;padding:11px 18px;}}
 
-/* ── HORIZONTAL LASER BEAM — gold beam descends top→bottom across hero ──
-     Based on the video: a HORIZONTAL yellow/gold beam that starts at the top
-     of the hero and descends to the bottom, sweeping left-to-right as it goes. */
-.page-laser{position:fixed;top:0;left:0;right:0;height:100vh;z-index:9997;pointer-events:none;overflow:hidden;}
-.page-laser-beam{position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,#e9c176 15%,#c8961a 50%,#e9c176 85%,transparent);border-radius:4px;box-shadow:0 0 16px rgba(233,193,118,.9),0 0 32px rgba(200,150,26,.5),0 0 48px rgba(200,150,26,.2);animation:laserSweepDown 3.5s cubic-bezier(.16,1,.3,1) infinite;}
-@keyframes laserSweepDown{0%{top:0;opacity:0;}8%{opacity:1;}92%{opacity:1;}100%{top:100vh;opacity:0;}}
-@media(max-width:768px){.page-laser-beam{height:3px;box-shadow:0 0 12px rgba(233,193,118,.8),0 0 24px rgba(200,150,26,.4);}}
-@media(prefers-reduced-motion:reduce){.page-laser-beam{animation:none;opacity:.5;top:50%;}}
+/* ── HORIZONTAL LASER BEAM — gold beam in HERO ONLY, slow, bright, non-covering ──
+     Constrained to the hero section only (not full page) so it never covers
+     the map or 3D tour. Slower (6s), brighter glow, pointer-events:none. */
+.page-laser{position:absolute;top:0;left:0;right:0;height:100%;z-index:6;pointer-events:none;overflow:hidden;border-radius:inherit;}
+.page-laser-beam{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent 5%,rgba(233,193,118,.4) 15%,#e9c176 35%,#fff 50%,#e9c176 65%,rgba(233,193,118,.4) 85%,transparent 95%);border-radius:3px;box-shadow:0 0 20px rgba(233,193,118,1),0 0 40px rgba(200,150,26,.7),0 0 60px rgba(200,150,26,.3),0 0 80px rgba(200,150,26,.15);animation:laserSweepDown 6s cubic-bezier(.22,1,.36,1) infinite;}
+@keyframes laserSweepDown{0%{top:-10px;opacity:0;}5%{opacity:1;}95%{opacity:1;}100%{top:100%;opacity:0;}}
+@media(max-width:768px){.page-laser-beam{height:2px;box-shadow:0 0 14px rgba(233,193,118,.9),0 0 28px rgba(200,150,26,.5),0 0 42px rgba(200,150,26,.2);}}
+@media(prefers-reduced-motion:reduce){.page-laser-beam{animation:none;opacity:.4;top:50%;}}
 
 /* ── CALM BELL BAR — Request Now + 25% OFF ── */
 .bell-bar{background:linear-gradient(90deg,var(--navy),#0a1622);padding:10px 24px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
@@ -411,6 +411,10 @@
     <span data-i18n="exploreMapBtn"></span>
   </a>
   <div class="dots wrap" id="hero-dots" style="left:auto;"></div>
+  <!-- ═══ LASER BEAM — inside hero only, never covers map or 3D ═══ -->
+  <div class="page-laser" aria-hidden="true">
+    <div class="page-laser-beam"></div>
+  </div>
 </header>
 
 <!-- ═══ CALM BELL BAR — Request Now with 25% OFF ════════════════════════════
@@ -422,13 +426,6 @@
     <span class="bell-badge">خصم 25%</span>
     <a href="#contact" class="bell-btn">اطلب الآن <i data-lucide="arrow-right" style="width:13px;height:13px;"></i></a>
   </div>
-</div>
-
-<!-- ═══ VERTICAL LASER LINE — full page height, drops top→bottom ════════════
-     A thin green vertical line positioned at the left edge of the page
-     that continuously drops from top to bottom. -->
-<div class="page-laser" aria-hidden="true">
-  <div class="page-laser-beam"></div>
 </div>
 
 <!-- SEARCH CARD -->
