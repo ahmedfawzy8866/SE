@@ -418,7 +418,7 @@
       خصم 25% على رسوم الخدمة" — calm, slow flashing -->
 <div class="bell-bar" id="bell-bar">
   <div class="bell-content">
-    <span class="bell-text">استكشف أفضل الفرص المتاحة في التجمع الخامس <b>AI Driven</b> — قدم طلبك الآن</span>
+    <span class="bell-text">The first real estate ecosystem in Egypt — استكشف أفضل الفرص المتاحة في التجمع الخامس <b>AI Driven</b> — قدم طلبك الآن</span>
     <span class="bell-badge">خصم 25%</span>
     <a href="#contact" class="bell-btn">اطلب الآن <i data-lucide="arrow-right" style="width:13px;height:13px;"></i></a>
   </div>
@@ -435,29 +435,59 @@
 <div class="wrap searchbar">
   <div class="search-card rv">
     <div class="search-tabs">
-      <button class="active" data-i18n="tabBuy" type="button"></button>
-      <button data-i18n="tabRent" type="button"></button>
-      <button data-i18n="tabNew" type="button"></button>
+      <button class="active" data-i18n="tabBuy" type="button" data-tab="buy"></button>
+      <button data-i18n="tabRent" type="button" data-tab="rent"></button>
+      <button data-i18n="tabNew" type="button" data-tab="new"></button>
     </div>
     <div class="search-fields">
+      <!-- Compound search with autocomplete -->
       <div class="field">
         <label data-i18n="fLoc"></label>
-        <div class="val"><i data-lucide="map-pin" class="i"></i> <span data-i18n="vLoc"></span> <i data-lucide="chevron-down" class="i chev"></i></div>
+        <div class="search-compound-wrap" style="position:relative;">
+          <input type="text" id="hero-compound-search" class="hero-search-input" placeholder="Search compound... (e.g. Mivida)" autocomplete="off" style="width:100%;border:none;background:none;font-family:var(--font);font-size:14px;color:var(--ink);outline:none;padding:8px 0;" />
+          <div id="hero-compound-results" class="compound-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:0 0 10px 10px;box-shadow:var(--shadow-m);z-index:100;max-height:280px;overflow-y:auto;"></div>
+        </div>
       </div>
+      <!-- Property Type dropdown -->
       <div class="field">
         <label data-i18n="fType"></label>
-        <div class="val"><span data-i18n="vType"></span> <i data-lucide="chevron-down" class="i chev"></i></div>
+        <select id="hero-type" class="hero-select" style="width:100%;border:1.5px solid var(--line-2);border-radius:8px;padding:9px 12px;font-family:var(--font);font-size:14px;color:var(--ink);background:var(--surface-2);outline:none;cursor:pointer;">
+          <option value="">Any Type</option>
+          <option value="Apartment">Apartment</option>
+          <option value="Villa">Villa</option>
+          <option value="Townhouse">Townhouse</option>
+          <option value="Twin House">Twin House</option>
+          <option value="Penthouse">Penthouse</option>
+          <option value="Duplex">Duplex</option>
+        </select>
       </div>
+      <!-- Bedrooms dropdown -->
       <div class="field">
         <label data-i18n="fBeds"></label>
-        <div class="val"><span data-i18n="vBeds"></span> <i data-lucide="chevron-down" class="i chev"></i></div>
+        <select id="hero-beds" class="hero-select" style="width:100%;border:1.5px solid var(--line-2);border-radius:8px;padding:9px 12px;font-family:var(--font);font-size:14px;color:var(--ink);background:var(--surface-2);outline:none;cursor:pointer;">
+          <option value="0">Any</option>
+          <option value="1">1+</option>
+          <option value="2">2+</option>
+          <option value="3">3+</option>
+          <option value="4">4+</option>
+          <option value="5">5+</option>
+        </select>
       </div>
+      <!-- Price dropdown -->
       <div class="field">
         <label data-i18n="fPrice"></label>
-        <div class="val"><span data-i18n="vPrice"></span> <i data-lucide="chevron-down" class="i chev"></i></div>
+        <select id="hero-price" class="hero-select" style="width:100%;border:1.5px solid var(--line-2);border-radius:8px;padding:9px 12px;font-family:var(--font);font-size:14px;color:var(--ink);background:var(--surface-2);outline:none;cursor:pointer;">
+          <option value="0">Any Price</option>
+          <option value="5">Up to 5M EGP</option>
+          <option value="10">Up to 10M EGP</option>
+          <option value="20">Up to 20M EGP</option>
+          <option value="30">Up to 30M EGP</option>
+          <option value="50">Up to 50M EGP</option>
+        </select>
       </div>
+      <!-- Search button -->
       <div class="field searchbtn">
-        <a href="properties.html" class="btn btn-pri"><i data-lucide="search" class="i"></i> <span data-i18n="search"></span></a>
+        <button type="button" class="btn btn-pri" id="hero-search-btn"><i data-lucide="search" class="i"></i> <span data-i18n="search"></span></button>
       </div>
     </div>
   </div>
@@ -889,6 +919,80 @@
   });
 
   HZ.mount('home');
+
+  /* ═══ HERO SEARCH — compound autocomplete + filter redirect ═══
+     User types compound name (e.g. "Mivida") → dropdown shows matching
+     compounds. Selecting one + clicking Search → redirects to
+     compounds.html?cpd=<name> with type/beds/price filters. */
+  var heroSearchInput = document.getElementById('hero-compound-search');
+  var heroResults = document.getElementById('hero-compound-results');
+  var heroSearchBtn = document.getElementById('hero-search-btn');
+
+  if (heroSearchInput && heroResults) {
+    heroSearchInput.addEventListener('input', function () {
+      var q = this.value.trim().toLowerCase();
+      if (!q) { heroResults.style.display = 'none'; return; }
+      var matches = D.compounds.filter(function (c) {
+        return c.n.toLowerCase().indexOf(q) >= 0 || (c.z && c.z.toLowerCase().indexOf(q) >= 0);
+      }).slice(0, 8);
+      if (matches.length === 0) {
+        heroResults.innerHTML = '<div style="padding:12px 16px;color:var(--muted);font-size:13px;">No compounds found</div>';
+        heroResults.style.display = 'block';
+        return;
+      }
+      heroResults.innerHTML = matches.map(function (c) {
+        return '<div class="compound-option" data-cpd="' + c.n + '" style="padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--line);font-size:13px;color:var(--ink);transition:.15s;">' +
+          '<b>' + c.n + '</b> <span style="color:var(--muted);font-size:11px;">— ' + c.z + ' · ' + D.unitsFor(c.n).length + ' units</span>' +
+          '</div>';
+      }).join('');
+      heroResults.style.display = 'block';
+      heroResults.querySelectorAll('.compound-option').forEach(function (opt) {
+        opt.addEventListener('mouseenter', function () { this.style.background = 'var(--bg)'; });
+        opt.addEventListener('mouseleave', function () { this.style.background = 'none'; });
+        opt.addEventListener('click', function () {
+          heroSearchInput.value = this.getAttribute('data-cpd');
+          heroResults.style.display = 'none';
+        });
+      });
+    });
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.search-compound-wrap')) {
+        heroResults.style.display = 'none';
+      }
+    });
+  }
+
+  // Search button → redirect to compounds.html with filters
+  if (heroSearchBtn) {
+    heroSearchBtn.addEventListener('click', function () {
+      var cpd = heroSearchInput ? heroSearchInput.value.trim() : '';
+      var type = document.getElementById('hero-type') ? document.getElementById('hero-type').value : '';
+      var beds = document.getElementById('hero-beds') ? document.getElementById('hero-beds').value : '0';
+      var price = document.getElementById('hero-price') ? document.getElementById('hero-price').value : '0';
+      var params = new URLSearchParams();
+      if (cpd) params.set('cpd', cpd);
+      if (type) params.set('type', type);
+      if (beds && beds !== '0') params.set('beds', beds);
+      if (price && price !== '0') params.set('maxPrice', price);
+      var qs = params.toString();
+      // If compound selected → go to compounds.html?cpd=<name>
+      // Otherwise → go to properties.html with filters
+      if (cpd) {
+        location.href = 'compounds.html' + (qs ? '?' + qs : '');
+      } else {
+        location.href = 'properties.html' + (qs ? '?' + qs : '');
+      }
+    });
+  }
+
+  // Tab switching
+  document.querySelectorAll('.search-tabs button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.search-tabs button').forEach(function (b) { b.classList.remove('active'); });
+      this.classList.add('active');
+    });
+  });
 
   /* ═══ INSIGHTS — top 3 AI-ranked listings ═══
      Renders the 3 highest AI-scored properties in the insights section.
