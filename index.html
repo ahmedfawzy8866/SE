@@ -7,7 +7,7 @@
 <title>Sierra Estates · New Cairo Properties</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800;900&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="shared.css"/>
 <script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -27,15 +27,17 @@
 .hero .scrim{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.2) 0%,rgba(0,0,0,.05) 30%,rgba(0,0,0,.15) 60%,rgba(0,0,0,.45) 100%);}
 [data-theme="dark"] .hero .scrim{background:linear-gradient(180deg,rgba(8,8,10,.55) 0%,rgba(8,8,10,.38) 40%,rgba(8,8,10,.82) 100%);}
 .hero .wrap{position:relative;z-index:2;}
-.hero .h-eyebrow{font-family:var(--mono);text-transform:uppercase;letter-spacing:.28em;font-size:12px;font-weight:600;color:#8fe1ff;margin-bottom:16px;display:flex;align-items:center;gap:10px;min-height:18px;}
+.hero .h-eyebrow{font-family:var(--mono);text-transform:uppercase;letter-spacing:.32em;font-size:11.5px;font-weight:700;color:#8fe1ff;margin-bottom:20px;display:flex;align-items:center;gap:12px;min-height:18px;text-shadow:0 1px 8px rgba(0,0,0,.4);}
 [dir="rtl"] .hero .h-eyebrow{letter-spacing:.06em;font-family:var(--font);}
 [data-theme="dark"] .hero .h-eyebrow{color:#e9c176;}
 .hero .h-eyebrow::before{content:"";width:26px;height:2px;background:var(--pri);display:inline-block;}
-.hero h1{color:#fff;font-size:36px;font-weight:800;letter-spacing:-.02em;max-width:640px;line-height:1.15;min-height:1.2em;text-shadow:0 2px 12px rgba(0,0,0,.5);}
-[dir="rtl"] .hero h1{letter-spacing:0;}
-.hero h1 .hl{color:var(--pri);}
+.hero h1{color:#fff;font-family:var(--display);font-size:54px;font-weight:700;letter-spacing:-.015em;max-width:760px;line-height:1.08;min-height:1.2em;text-shadow:0 2px 18px rgba(0,0,0,.55),0 0 40px rgba(0,0,0,.25);}
+[dir="rtl"] .hero h1{letter-spacing:0;font-family:'Cairo','Plus Jakarta Sans',sans-serif;font-weight:800;}
+.hero h1 .hl{color:var(--pri);font-style:italic;font-weight:700;}
 [data-theme="dark"] .hero h1 .hl{color:#e9c176;}
-.hero p.sub{color:rgba(255,255,255,.82);font-size:14px;margin-top:12px;max-width:480px;text-shadow:0 1px 8px rgba(0,0,0,.5);}
+.hero h1 .hl::after{content:"";display:inline-block;width:8px;height:8px;margin-inline-start:6px;border-radius:50%;background:var(--pri);vertical-align:middle;box-shadow:0 0 14px var(--pri);transform:translateY(-2px);}
+[data-theme="dark"] .hero h1 .hl::after{background:#e9c176;box-shadow:0 0 14px #e9c176;}
+.hero p.sub{color:rgba(255,255,255,.88);font-size:15.5px;margin-top:18px;max-width:520px;line-height:1.55;text-shadow:0 1px 8px rgba(0,0,0,.5);font-weight:500;}
 .hero .quick{display:flex;gap:18px;margin-top:18px;color:rgba(255,255,255,.8);font-size:12px;font-weight:600;flex-wrap:wrap;}
 .hero .quick span{display:inline-flex;align-items:center;gap:6px;}
 .hero .quick .i{color:var(--pri);}
@@ -50,6 +52,9 @@
 [data-theme="dark"] .hero .map-cta .mc-ic{background:#c8961a;color:#0d0d0f;}
 .hero .map-cta .i{width:14px;height:14px;}
 @media(max-width:680px){.hero .map-cta{bottom:96px;font-size:13px;padding:11px 18px;}}
+@media(max-width:980px){.hero h1{font-size:42px;}.hero p.sub{font-size:14.5px;}}
+@media(max-width:680px){.hero h1{font-size:32px;line-height:1.12;max-width:100%;}.hero p.sub{font-size:13.5px;}.hero .h-eyebrow{font-size:10.5px;letter-spacing:.22em;}.hero{min-height:560px;padding:60px 0 120px;}}
+@media(max-width:420px){.hero h1{font-size:26px;}}
 
 /* ── LASER BEAM — appears fast, descends slowly (like video: ~3s sweep) ──
      Inside hero only. z-index 6 (above scrim, below search card). */
@@ -581,60 +586,156 @@
   </div>
 </section>
 
-<!-- ═══ 3D VIRTUAL TOUR (FIRST — premium cover image + lazy-load iframe) ════
-     High-res cover image displays instantly. "Explore 3D" button activates
-     the 3D engine only when clicked — keeps page load fast. -->
+<!-- ═══ 3D VIRTUAL TOUR — ADVERTISING BANNER ════════════════════════════════
+     Cinematic banner-style hero for our flagship 3D walkthrough feature.
+     Premium luxury villa (with pool, dusk lighting) as cover. Click-to-
+     activate 3D engine keeps the page fast. Strong USP headline +
+     feature pills + floating stats card communicate the unique value. -->
 <section class="block well" id="tour" data-screen-label="Virtual tour">
   <div class="wrap">
-    <div class="sec-head rv" style="display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;">
+    <div class="sec-head rv" style="display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-bottom:24px;">
       <div>
         <div class="eyebrow" data-i18n="eyeTour"></div>
-        <h2 data-i18n="tourTit"></h2>
+        <h2 data-i18n="tourTit" style="font-family:var(--display);font-size:34px;font-weight:700;letter-spacing:-.01em;"></h2>
         <p data-i18n="tourSub"></p>
-        <div style="margin-top:14px;font-family:var(--mono);font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:7px;">
-          <i data-lucide="map-pin" class="i" style="width:13px;height:13px;"></i>
-          <span>108 Central Street #3R, Somerville, MA 02143</span>
-        </div>
       </div>
-      <a href="virtual-tour.html" style="color:var(--pri);font-weight:700;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;">
+      <a href="virtual-tour.html" style="color:var(--pri);font-weight:700;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;padding:10px 18px;border:1.5px solid var(--pri);border-radius:999px;transition:.25s var(--silk);">
         Open full page <i data-lucide="arrow-right" class="i" style="width:14px;height:14px;"></i>
       </a>
     </div>
-    <div id="vtv-frame" style="position:relative;width:100%;aspect-ratio:16/9;background:#0a1622;border-radius:12px;overflow:hidden;box-shadow:0 12px 34px rgba(13,33,54,.10);margin-top:24px;">
-      <button id="vtv-poster" type="button" aria-label="Explore 3D virtual tour" style="position:absolute;inset:0;width:100%;height:100%;border:0;padding:0;cursor:pointer;background-color:#0a1622;background-image:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=85');background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;">
-        <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,25,45,.15) 0%,rgba(0,25,45,.25) 50%,rgba(0,25,45,.8) 100%);z-index:1;"></span>
-        <span style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:18px;color:#fff;">
-          <span style="width:78px;height:78px;border-radius:50%;background:rgba(0,174,255,.9);display:grid;place-items:center;flex:none;box-shadow:0 10px 36px rgba(0,174,255,.5);transition:transform .3s ease;animation:vtvPulse 2.5s ease-in-out infinite;">
-            <i data-lucide="play" class="i" style="width:32px;height:32px;color:#fff;fill:#fff;"></i>
+
+    <!-- ── Banner frame: gold gradient border + glow ── -->
+    <div id="vtv-banner" style="position:relative;width:100%;aspect-ratio:21/9;min-height:420px;border-radius:18px;overflow:hidden;background:#0a1622;box-shadow:0 24px 70px rgba(13,33,54,.18),0 0 0 1px rgba(200,150,26,.18) inset;margin-top:8px;">
+      <!-- Gold gradient border glow -->
+      <div style="position:absolute;inset:0;border-radius:18px;padding:1.5px;background:linear-gradient(135deg,rgba(200,150,26,.65) 0%,rgba(233,193,118,.25) 25%,transparent 50%,rgba(0,174,255,.18) 75%,rgba(200,150,26,.5) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;z-index:4;"></div>
+
+      <!-- Click-to-activate poster button -->
+      <button id="vtv-poster" type="button" aria-label="Launch 3D virtual tour" style="position:absolute;inset:0;width:100%;height:100%;border:0;padding:0;cursor:pointer;background-color:#0a1622;background-image:url('https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=2000&q=90');background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;">
+        <!-- Cinematic gradient scrim (deeper on left for text legibility) -->
+        <span style="position:absolute;inset:0;background:linear-gradient(95deg,rgba(0,18,35,.88) 0%,rgba(0,18,35,.62) 38%,rgba(0,18,35,.18) 65%,rgba(0,18,35,.55) 100%);z-index:1;"></span>
+        <!-- Subtle bottom scrim for stats card -->
+        <span style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,15,30,.65) 0%,transparent 35%);z-index:1;"></span>
+
+        <!-- ── LEFT: USP headline + feature pills ── -->
+        <span style="position:absolute;top:0;left:0;bottom:0;width:54%;z-index:2;display:flex;flex-direction:column;justify-content:center;padding:48px 56px;text-align:left;gap:14px;">
+          <span style="display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#e9c176;">
+            <span style="width:24px;height:1.5px;background:#e9c176;display:inline-block;"></span>
+            SIERRA 3D · POWERED BY IMMERSIVE TECH
           </span>
-          <span style="display:block;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.22em;color:#8fe1ff;text-transform:uppercase;">Explore 3D</span>
+          <span style="font-family:var(--display);font-size:46px;font-weight:700;line-height:1.05;letter-spacing:-.015em;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.55);max-width:560px;">
+            Walk Through Your<br/>Next Home
+            <span style="display:inline-block;font-style:italic;color:#e9c176;font-weight:600;">— Before You Visit</span>
+          </span>
+          <span style="font-size:14.5px;line-height:1.55;color:rgba(255,255,255,.86);max-width:480px;font-weight:500;margin-top:4px;text-shadow:0 1px 8px rgba(0,0,0,.4);">
+            Every Sierra listing is captured in cinematic 4K HDR. Stroll room-by-room, peek into the garden at dusk, gauge the pool from above — all from your screen, all in seconds.
+          </span>
+          <!-- Feature pills -->
+          <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+            <span style="display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);padding:6px 11px;border-radius:999px;">
+              <i data-lucide="video" class="i" style="width:11px;height:11px;color:#34d399;"></i> 4K HDR
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);padding:6px 11px;border-radius:999px;">
+              <i data-lucide="door-open" class="i" style="width:11px;height:11px;color:#34d399;"></i> Room-by-room
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);padding:6px 11px;border-radius:999px;">
+              <i data-lucide="glasses" class="i" style="width:11px;height:11px;color:#34d399;"></i> VR-ready
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);padding:6px 11px;border-radius:999px;">
+              <i data-lucide="grid-2x2" class="i" style="width:11px;height:11px;color:#34d399;"></i> Floor plan
+            </span>
+          </span>
         </span>
-        <span style="position:absolute;bottom:24px;left:28px;z-index:2;display:flex;flex-direction:column;gap:4px;">
-          <span style="font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.16em;color:#8fe1ff;text-transform:uppercase;">3D Virtual Tour</span>
-          <span style="font-size:18px;font-weight:700;line-height:1.3;color:#fff;max-width:540px;">108 Central Street #3R — Somerville, MA</span>
+
+        <!-- ── RIGHT: Big play button + label ── -->
+        <span style="position:absolute;inset-inline-end:0;top:0;bottom:0;width:46%;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;pointer-events:none;">
+          <span style="width:104px;height:104px;border-radius:50%;background:rgba(255,255,255,.94);display:grid;place-items:center;flex:none;box-shadow:0 0 0 8px rgba(255,255,255,.18),0 0 0 18px rgba(255,255,255,.08),0 18px 50px rgba(0,0,0,.45);transition:transform .35s var(--silk);animation:vtvPulse 2.6s ease-in-out infinite;">
+            <i data-lucide="play" class="i" style="width:42px;height:42px;color:#0a1622;fill:#0a1622;margin-inline-start:5px;"></i>
+          </span>
+          <span style="display:block;font-family:var(--mono);font-size:12.5px;font-weight:800;letter-spacing:.32em;color:#fff;text-transform:uppercase;text-shadow:0 2px 12px rgba(0,0,0,.6);">▶ Launch 3D Tour</span>
         </span>
-        <span style="position:absolute;top:18px;right:22px;z-index:2;font-family:var(--mono);font-size:11px;font-weight:600;color:#bfeaff;background:rgba(0,43,75,.6);padding:5px 10px;border-radius:5px;">4 Bed · 1 Bath · 1300 sqft</span>
+
+        <!-- ── BOTTOM-LEFT: property info card ── -->
+        <span style="position:absolute;bottom:26px;inset-inline-start:56px;z-index:3;display:flex;flex-direction:column;gap:5px;">
+          <span style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.16em;color:#e9c176;text-transform:uppercase;">
+            <i data-lucide="map-pin" class="i" style="width:11px;height:11px;"></i> Featured · New Cairo
+          </span>
+          <span style="font-family:var(--display);font-size:22px;font-weight:700;line-height:1.2;color:#fff;max-width:480px;letter-spacing:-.005em;">Sierra Signature Villa — Mivida</span>
+          <span style="font-family:var(--mono);font-size:11.5px;color:rgba(255,255,255,.78);font-weight:600;">5 Bed · 6 Bath · 480 m² · Pool · Garden</span>
+        </span>
+
+        <!-- ── BOTTOM-RIGHT: floating stats card ── -->
+        <span style="position:absolute;bottom:24px;inset-inline-end:24px;z-index:3;background:rgba(0,18,35,.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(200,150,26,.32);border-radius:14px;padding:14px 18px;display:flex;gap:22px;align-items:center;">
+          <span style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+            <span style="font-family:var(--mono);font-size:22px;font-weight:800;color:#e9c176;line-height:1;">47</span>
+            <span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.72);">tours live</span>
+          </span>
+          <span style="width:1px;height:32px;background:rgba(255,255,255,.14);"></span>
+          <span style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+            <span style="font-family:var(--mono);font-size:22px;font-weight:800;color:#34d399;line-height:1;">12</span>
+            <span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.72);">ready to move</span>
+          </span>
+          <span style="width:1px;height:32px;background:rgba(255,255,255,.14);"></span>
+          <span style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+            <span style="font-family:var(--mono);font-size:22px;font-weight:800;color:#8fe1ff;line-height:1;">4K</span>
+            <span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.72);">HDR quality</span>
+          </span>
+        </span>
+
+        <!-- ── TOP-RIGHT: LIVE badge ── -->
+        <span style="position:absolute;top:22px;inset-inline-end:24px;z-index:3;display:inline-flex;align-items:center;gap:7px;background:rgba(0,18,35,.6);backdrop-filter:blur(8px);border:1px solid rgba(52,211,153,.35);border-radius:999px;padding:6px 12px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#34d399;">
+          <span style="width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399;animation:vtvBlink 1.6s ease-in-out infinite;"></span>
+          LIVE · SIERRA 3D
+        </span>
       </button>
+
       <iframe id="vtv-iframe" style="position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .4s ease;background:#0a1622;" title="3D Virtual Tour" allow="fullscreen; accelerometer; gyroscope; magnetometer; vr; xr-spatial-tracking" allowfullscreen referrerpolicy="no-referrer-when-downgrade" loading="lazy"></iframe>
       <div id="vtv-loading" style="position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:rgba(255,255,255,.85);font-size:14px;font-weight:600;background:linear-gradient(135deg,#0a1622 0%,#002b4b 100%);z-index:1;">
         <i data-lucide="loader-2" class="i" style="width:32px;height:32px;animation:vtv-spin 1s linear infinite;"></i>
-        <span>Loading 3D tour...</span>
+        <span>Loading immersive 3D tour…</span>
       </div>
-      <button id="vtv-fs" type="button" aria-label="Enter fullscreen" title="Fullscreen" style="position:absolute;top:12px;right:12px;z-index:3;background:rgba(0,43,75,.78);color:#fff;border:0;border-radius:8px;width:36px;height:36px;cursor:pointer;display:none;place-items:center;">
+      <button id="vtv-fs" type="button" aria-label="Enter fullscreen" title="Fullscreen" style="position:absolute;top:12px;inset-inline-end:12px;z-index:3;background:rgba(0,43,75,.78);color:#fff;border:0;border-radius:8px;width:36px;height:36px;cursor:pointer;display:none;place-items:center;">
         <i data-lucide="maximize-2" class="i" style="width:16px;height:16px;"></i>
       </button>
     </div>
-    <a href="https://listing3d.com/embed/r39d0bd4dde0a4fe693c7fe5fd230a896" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-size:12.5px;font-weight:600;color:var(--pri);text-decoration:none;">
-      <i data-lucide="external-link" class="i" style="width:12px;height:12px;"></i> Open tour in new tab
-    </a>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:14px;">
+      <a href="https://listing3d.com/embed/r39d0bd4dde0a4fe693c7fe5fd230a896" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--pri);text-decoration:none;">
+        <i data-lucide="external-link" class="i" style="width:12px;height:12px;"></i> Open tour in new tab
+      </a>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;">Cinematic capture · Matterport-grade fidelity</span>
+    </div>
   </div>
 </section>
 <style>
   @keyframes vtv-spin { to { transform: rotate(360deg); } }
-  @keyframes vtvPulse { 0%,100%{transform:scale(1);box-shadow:0 10px 36px rgba(0,174,255,.5);} 50%{transform:scale(1.08);box-shadow:0 14px 44px rgba(0,174,255,.7);} }
-  #vtv-poster:hover span:nth-child(2) span:first-child { transform: scale(1.1); }
-  #vtv-frame:fullscreen { border-radius:0; }
-  @media (prefers-reduced-motion: reduce) { #vtv-loading i { animation:none !important; } #vtv-poster .vtvPulse { animation:none !important; } }
+  @keyframes vtvPulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 8px rgba(255,255,255,.18),0 0 0 18px rgba(255,255,255,.08),0 18px 50px rgba(0,0,0,.45);} 50%{transform:scale(1.07);box-shadow:0 0 0 12px rgba(255,255,255,.22),0 0 0 24px rgba(255,255,255,.06),0 22px 56px rgba(0,0,0,.5);} }
+  @keyframes vtvBlink { 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  #vtv-poster:hover ~ * .vtvPulse,
+  #vtv-poster:hover span:nth-child(3) > span:first-child { transform: scale(1.06); }
+  #vtv-frame:fullscreen, #vtv-banner:fullscreen { border-radius:0; }
+  @media (prefers-reduced-motion: reduce) {
+    #vtv-loading i { animation:none !important; }
+    #vtv-poster .vtvPulse { animation:none !important; }
+  }
+  /* Responsive: stack headline above play button on tablets */
+  @media (max-width: 980px) {
+    #vtv-banner { aspect-ratio: 4/5; min-height: 540px; }
+    #vtv-poster > span:nth-child(3) { width:100%; padding:32px 28px 16px; gap:10px; }
+    #vtv-poster > span:nth-child(3) > span:nth-child(2) { font-size:32px; }
+    #vtv-poster > span:nth-child(4) { width:100%; padding:0 28px 80px; top:auto; bottom:0; height:auto; position:absolute; }
+    #vtv-poster > span:nth-child(5) { inset-inline-start:28px; bottom:140px; }
+    #vtv-poster > span:nth-child(6) { bottom:auto; top:90px; inset-inline-end:20px; padding:10px 14px; gap:14px; }
+  }
+  @media (max-width: 680px) {
+    #vtv-banner { aspect-ratio: 3/4; min-height: 480px; }
+    #vtv-poster > span:nth-child(3) > span:nth-child(2) { font-size:24px; }
+    #vtv-poster > span:nth-child(3) > span:nth-child(3) { font-size:13px; }
+    #vtv-poster > span:nth-child(4) span:first-child { width:78px !important; height:78px !important; }
+    #vtv-poster > span:nth-child(4) span:first-child i { width:30px !important; height:30px !important; }
+    #vtv-poster > span:nth-child(5) { bottom:124px; inset-inline-start:24px; }
+    #vtv-poster > span:nth-child(5) > span:nth-child(2) { font-size:16px; }
+    #vtv-poster > span:nth-child(6) { padding:8px 12px; gap:12px; }
+    #vtv-poster > span:nth-child(6) span:nth-child(odd) > span:first-child { font-size:18px; }
+  }
 </style>
 <script>
 (function () {
