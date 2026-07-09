@@ -7,7 +7,7 @@
     en: {
       dir: 'ltr',
       brandSub: 'Future of Real Estate',
-      navHome: 'Home', navProps: 'Properties', navCpds: 'Compounds & Map', navMap: 'Open Map', navCareer: 'Career', navAgents: 'Agents', navContact: 'Contact', navAI: 'AI Tools',
+      navHome: 'Home', navProps: 'Properties', navCpds: 'Compounds & Map', navBest: 'Best Listings', navCareer: 'Career', navAgents: 'Agents', navContact: 'Contact', navAI: 'AI Tools',
       addListing: 'Add Listing', signIn: 'Sign In', langBtn: 'العربية',
       themeLight: 'Light', themeDark: 'Dark',
       addr: 'Banafseg 2, Villa 402, New Cairo',
@@ -87,7 +87,7 @@
     ar: {
       dir: 'rtl',
       brandSub: 'مستقبل العقارات',
-      navHome: 'الرئيسية', navProps: 'العقارات', navCpds: 'الكمبوندات والخريطة', navMap: 'افتح الخريطة', navCareer: 'وظائف', navAgents: 'المستشارون', navContact: 'تواصل', navAI: 'أدوات الذكاء',
+      navHome: 'الرئيسية', navProps: 'العقارات', navCpds: 'الكمبوندات والخريطة', navBest: 'أفضل العقارات', navCareer: 'وظائف', navAgents: 'المستشارون', navContact: 'تواصل', navAI: 'أدوات الذكاء',
       addListing: 'أضف عقارك', signIn: 'دخول', langBtn: 'English',
       themeLight: 'فاتح', themeDark: 'غامق',
       addr: 'البنفسج 2، فيلا 402، القاهرة الجديدة',
@@ -184,6 +184,7 @@
       '<div class="menu">' +
         '<a href="index.html"' + act('home') + ' data-i18n="navHome">' + t('navHome') + '</a>' +
         '<a href="compounds.html"' + act('cpds') + ' data-i18n="navCpds">' + t('navCpds') + '</a>' +
+        '<a href="properties.html"' + act('best') + ' data-i18n="navBest">' + t('navBest') + '</a>' +
         '<a href="career.html"' + act('career') + ' data-i18n="navCareer">' + t('navCareer') + '</a>' +
         '<a href="index.html#contact"' + act('contact') + ' data-i18n="navContact">' + t('navContact') + '</a>' +
       '</div>' +

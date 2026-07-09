@@ -51,15 +51,15 @@
 .hero .map-cta .i{width:17px;height:17px;}
 @media(max-width:680px){.hero .map-cta{bottom:96px;font-size:13px;padding:11px 18px;}}
 
-/* ── scroll-down indicator (green laser line — bigger, more visible) ── */
-.scroll-cue{position:absolute;bottom:28px;right:36px;z-index:5;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;}
-.scroll-cue-line{position:relative;width:3px;height:72px;background:rgba(255,255,255,.15);border-radius:3px;overflow:visible;}
-.scroll-cue-line::before{content:"";position:absolute;inset:0;border-radius:3px;background:rgba(52,211,153,.08);}
-.scroll-cue-line::after{content:"";position:absolute;top:0;left:-1px;width:5px;height:28px;background:linear-gradient(180deg,transparent,#34d399 30%,#34d399 70%,transparent);border-radius:3px;animation:scrollLaser 1.6s cubic-bezier(.16,1,.3,1) infinite;box-shadow:0 0 12px rgba(52,211,153,.8),0 0 24px rgba(52,211,153,.4);}
-[data-theme="dark"] .scroll-cue-line::after{background:linear-gradient(180deg,transparent,#34d399 30%,#34d399 70%,transparent);box-shadow:0 0 14px rgba(52,211,153,.9),0 0 28px rgba(52,211,153,.5);}
-.scroll-cue-label{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.28em;color:rgba(52,211,153,.7);text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;}
-@keyframes scrollLaser{0%{transform:translateY(-28px);opacity:0;}15%{opacity:1;}85%{opacity:1;}100%{transform:translateY(72px);opacity:0;}}
-@media(max-width:680px){.scroll-cue{bottom:18px;right:20px;}.scroll-cue-line{height:56px;width:3px;}.scroll-cue-line::after{height:22px;width:5px;}@keyframes scrollLaser{0%{transform:translateY(-22px);opacity:0;}15%{opacity:1;}85%{opacity:1;}100%{transform:translateY(56px);opacity:0;}}}
+/* ── scroll-down indicator (HORIZONTAL green laser — beam travels left→right) ── */
+.scroll-cue{position:absolute;bottom:0;left:0;right:0;z-index:5;display:flex;flex-direction:column;align-items:center;gap:0;pointer-events:none;padding-bottom:16px;}
+.scroll-cue-line{position:relative;width:180px;height:2px;background:rgba(255,255,255,.12);border-radius:2px;overflow:visible;}
+.scroll-cue-line::before{content:"";position:absolute;inset:0;border-radius:2px;background:rgba(52,211,153,.06);}
+.scroll-cue-line::after{content:"";position:absolute;top:-2px;left:0;width:60px;height:6px;background:linear-gradient(90deg,transparent,#34d399 30%,#34d399 70%,transparent);border-radius:3px;animation:scrollLaser 2s cubic-bezier(.16,1,.3,1) infinite;box-shadow:0 0 12px rgba(52,211,153,.8),0 0 24px rgba(52,211,153,.4);}
+[data-theme="dark"] .scroll-cue-line::after{background:linear-gradient(90deg,transparent,#34d399 30%,#34d399 70%,transparent);box-shadow:0 0 14px rgba(52,211,153,.9),0 0 28px rgba(52,211,153,.5);}
+.scroll-cue-label{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.28em;color:rgba(52,211,153,.6);text-transform:uppercase;margin-top:8px;}
+@keyframes scrollLaser{0%{transform:translateX(-60px);opacity:0;}15%{opacity:1;}85%{opacity:1;}100%{transform:translateX(180px);opacity:0;}}
+@media(max-width:680px){.scroll-cue-line{width:120px;}.scroll-cue-line::after{width:40px;}@keyframes scrollLaser{0%{transform:translateX(-40px);opacity:0;}15%{opacity:1;}85%{opacity:1;}100%{transform:translateX(120px);opacity:0;}}}
 @media(prefers-reduced-motion:reduce){.scroll-cue-line::after{animation:none;opacity:.6;}}
 
 /* ── search card ── */
@@ -602,6 +602,47 @@
   </div>
 </section>
 
+<!-- ═══ INSIGHTS — AI-ranked best listings + market analytics ═════════════════
+     This section shows the top 3 AI-ranked properties + market insights.
+     When wired to the backend (Firestore), the admin page can update these
+     insights in real-time. The data structure is ready for Firestore. -->
+<section class="block" id="insights" data-screen-label="AI Insights">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div>
+        <div class="eyebrow" style="color:#34d399;">AI INSIGHTS · LIVE</div>
+        <h2>Best Listings Right Now</h2>
+        <p>AI-ranked by match score, ROI potential, and market demand — updates in real-time.</p>
+      </div>
+    </div>
+    <div id="insights-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-bottom:30px;"></div>
+    <div id="insights-market" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;padding:24px;background:var(--bg);border-radius:14px;border:1px solid var(--line);">
+      <div style="text-align:center;">
+        <div style="font-family:var(--mono);font-size:32px;font-weight:800;color:var(--pri);">+24%</div>
+        <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Top Growth (Mountain View)</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:var(--mono);font-size:32px;font-weight:800;color:#34d399;">9.8</div>
+        <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Highest AI Score (Hyde Park)</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:var(--mono);font-size:32px;font-weight:800;color:var(--pri);">EGP 35M</div>
+        <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Top Price (Taj City)</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:var(--mono);font-size:32px;font-weight:800;color:#34d399;">798</div>
+        <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Active Units</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:20px;">
+      <a href="properties.html" class="btn btn-navy" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;">
+        <i data-lucide="trending-up" class="i" style="width:16px;height:16px;"></i>
+        <span>View All Best Listings</span>
+      </a>
+    </div>
+  </div>
+</section>
+
 <!-- STATS -->
 <section class="stats" data-screen-label="Stats strip">
   <div class="wrap">
@@ -806,6 +847,34 @@
   });
 
   HZ.mount('home');
+
+  /* ═══ INSIGHTS — top 3 AI-ranked listings ═══
+     Renders the 3 highest AI-scored properties in the insights section.
+     When wired to Firestore, this data comes from the admin page.
+     The admin can update which properties appear here by changing
+     AI scores or tags in the Firestore 'houyez_listings' collection. */
+  var topListings = D.listings.slice().sort(function (a, b) { return b.ai - a.ai; }).slice(0, 3);
+  document.getElementById('insights-grid').innerHTML = topListings.map(function (p, i) {
+    var rank = i + 1;
+    return '<a href="property.html?id=' + p.id + '" style="display:block;text-decoration:none;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:.3s var(--silk);position:relative;">' +
+      '<div style="position:relative;height:200px;overflow:hidden;">' +
+        '<img src="' + p.img + '" alt="' + p.code + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>' +
+        '<div style="position:absolute;top:12px;left:12px;background:linear-gradient(135deg,#34d399,#22c55e);color:#fff;font-family:var(--mono);font-weight:800;font-size:12px;padding:5px 12px;border-radius:8px;box-shadow:0 4px 12px rgba(52,211,153,.4);">#' + rank + ' AI ' + p.ai.toFixed(1) + '</div>' +
+        (p.tag ? '<div style="position:absolute;top:12px;right:12px;background:rgba(0,43,75,.88);color:#fff;font-family:var(--mono);font-weight:700;font-size:10px;padding:4px 9px;border-radius:5px;text-transform:uppercase;">' + p.tag + '</div>' : '') +
+        '<div style="position:absolute;bottom:12px;right:12px;background:rgba(0,43,75,.88);color:#fff;font-family:var(--mono);font-weight:700;font-size:13px;padding:6px 12px;border-radius:6px;">' + (p.mode === 'sale' ? p.egpM + 'M EGP' : '$' + p.usd + '/mo') + '</div>' +
+      '</div>' +
+      '<div style="padding:18px;">' +
+        '<div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--pri);margin-bottom:6px;">' + p.code + ' · ' + p.type + '</div>' +
+        '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:4px;">' + p.cmp + '</div>' +
+        '<div style="font-size:13px;color:var(--muted);margin-bottom:12px;">' + p.zone + '</div>' +
+        '<div style="display:flex;gap:14px;font-size:13px;color:var(--text);font-weight:600;">' +
+          '<span>🛏 ' + p.beds + '</span>' +
+          '<span>🚿 ' + p.bath + '</span>' +
+          '<span>📐 ' + p.area + ' m²</span>' +
+        '</div>' +
+      '</div>' +
+    '</a>';
+  }).join('');
 
   /* ticker */
   var tickItems = HZ.lang() === 'ar'
