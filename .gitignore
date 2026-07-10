@@ -1,7 +1,42 @@
-# dependencies
+# ─── Security-sensitive files — NEVER commit these ──────────────────────────
+# SSL certificates
+*.crt
+*.ca-bundle
+*.p7b
+*.key
+*.pem
+ssl/
+certs/
+
+# Twilio / API recovery codes
+*recovery_code*
+*twilio_2fa*
+
+# Firebase service accounts
+service-account.json
+*-firebase-adminsdk-*.json
+google-credentials.json
+**/service-account.json
+**/firebase-adminsdk-*.json
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.preview
+
+# ─── Node.js ────────────────────────────────────────────────────────────────
+node_modules/
 /node_modules
+.claude/worktrees/
+firebase/firebase/
+firebase/firebase/Sierra-Estates-Final/
+.pnp
 /.pnp
 .pnp.*
+.pnp.js
 
 # next.js
 /.next/
@@ -11,10 +46,10 @@
 # production
 /dist
 
-# misc
+# ─── OS files ───────────────────────────────────────────────────────────────
 .DS_Store
-*.pem
 Thumbs.db
+*.log
 
 # debug
 npm-debug.log*
@@ -22,24 +57,15 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
-.env
-.env.local
-.env.*.local
-.env.development
-.env.production
-.env.preview
-
 # firebase
 /firebase-debug.log
 /firestore-debug.log
 /ui-debug.log
-**/service-account.json
-**/firebase-adminsdk-*.json
 .firebaserc
 
 # vercel
 .vercel
+**/.vercel
 
 # typescript
 *.tsbuildinfo
@@ -50,16 +76,18 @@ next-env.d.ts.bak
 /.coverage
 jest.config.ts.bak
 
-# IDEs
-/.idea
+# ─── Editor ─────────────────────────────────────────────────────────────────
+.vscode/
 /.vscode/*
 !/.vscode/settings.json
 !/.vscode/extensions.json
+.idea/
+/.idea
+*.swp
+*.swo
 
 # python (none expected, but defensive)
 __pycache__/
 *.pyc
 .venv/
 venv/
-
-**/.vercel
