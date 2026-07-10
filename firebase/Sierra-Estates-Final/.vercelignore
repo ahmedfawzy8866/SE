@@ -1,0 +1,17 @@
+.agent/
+back/
+_archive/
+frontend-vercel/
+packages/open-memory/
+vendor/
+**/node_modules/
+**/.next/
+**/dist/
+**/__tests__/
+**/*.test.*
+**/*.spec.*
+docs/
+scripts/
+functions/
+apps/
+lib/
