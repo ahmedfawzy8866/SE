@@ -1295,15 +1295,16 @@
     { k: 'price', t: 'ai4t', s: 'ai4s', href: 'pricing.html' },
     { k: 'dream', t: 'ai5t', s: 'ai5s', href: 'advice.html' },
     { k: 'imap', t: 'ai6t', s: 'ai6s', href: 'compounds.html' },
-    { k: 'tour', t: 'ai7t', s: 'ai7s', href: 'virtual-tour.html' }
+    { k: 'tour', t: 'ai7t', s: 'ai7s', tour: true }
   ];
   document.getElementById('ai-grid').innerHTML = aiTools.map(function (tool, i) {
-    return '<a class="ai-card rv d' + ((i % 4) + 1) + '" href="' + tool.href + '">' +
+    return '<' + (tool.tour ? 'button' : 'a') + ' class="ai-card rv d' + ((i % 4) + 1) + '"' +
+      (tool.tour ? ' type="button" id="ai-tour-card"' : ' href="' + tool.href + '"') + '>' +
       '<span class="ai-ic">' + AI_IC[tool.k] + '</span>' +
       '<h4>' + HZ.t(tool.t) + '</h4>' +
       '<p>' + HZ.t(tool.s) + '</p>' +
       (tool.live ? '<span class="live-tag">' + HZ.t('aiLive') + '</span>' : '') +
-      '</a>';
+      '</' + (tool.tour ? 'button' : 'a') + '>';
   }).join('');
 
   /* virtual tour modal */
