@@ -309,7 +309,9 @@ export default function HouyezPortal() {
             </div>
             <div className="field">
               <label>{t('Max price', 'أقصى سعر')}</label>
-              <select value={fPrice} onChange={(e) => setFPrice(e.target.value)} aria-label={t('Max price', 'أقصى سعر')}>
+              <select value={fPrice} onChange={(e) => setFPrice(e.target.value)}
+                aria-label={t('Max price', 'أقصى سعر')}
+                disabled={modeForTab !== 'sale'}>
                 <option value="any">{t('Any price', 'أي سعر')}</option>
                 {[5, 10, 20, 30, 50].map((m) => (
                   <option key={m} value={String(m)}>{t(`Up to ${m}M EGP`, `حتى ${m} مليون`)}</option>
