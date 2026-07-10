@@ -11,6 +11,8 @@ secrets/
 !package.json
 !tsconfig.json
 !firebase-blueprint.json
+# Don't ignore n8n workflow JSON files (they're source code, not secrets)
+!n8n-workflows/*.json
 
 # 📦 n8n data (workflows + credentials)
 n8n-data/
