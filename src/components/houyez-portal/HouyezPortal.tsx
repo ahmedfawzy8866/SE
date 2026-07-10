@@ -227,6 +227,7 @@ export default function HouyezPortal() {
             </button>
             <button className="icon-btn lang-btn" onClick={toggleLocale}
               aria-label={t('Switch to Arabic', 'التبديل إلى الإنجليزية')}>
+              {isAr ? 'EN' : 'ع'}
             </button>
             <button className="btn btn-pri nav-cta" onClick={() => scrollTo('se-contact')}>
               {t('Get in touch', 'تواصل معنا')}

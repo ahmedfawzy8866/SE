@@ -178,6 +178,7 @@
 .se-portal .field label { display: block; font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; font-size: 10px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
 .se-portal .field .val, .se-portal .field select { width: 100%; display: flex; align-items: center; gap: 8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 12px; font-size: 13.5px; font-weight: 600; color: var(--ink); font-family: inherit; }
 .se-portal .field select { cursor: pointer; height: 44px; }
+.se-portal .field select:disabled { opacity: .5; cursor: not-allowed; }
 .se-portal .field select:focus-visible, .se-portal .search-tabs button:focus-visible, .se-portal .icon-btn:focus-visible, .se-portal .btn:focus-visible { outline: 2px solid var(--pri); outline-offset: 2px; }
 .se-portal .field .val .i { width: 16px; height: 16px; color: var(--pri); }
 .se-portal .field.searchbtn .btn-pri { width: 100%; padding: 12px 20px; }
