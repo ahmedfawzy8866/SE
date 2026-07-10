@@ -18,9 +18,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  MapPin, Search, ChevronDown, BedDouble, Bath, Maximize, Sparkles, Compass,
+  MapPin, Search, BedDouble, Bath, Maximize, Sparkles, Compass,
   BadgeCheck, ArrowRight, Sun, Moon, Heart, TrendingUp, Calculator,
-  BrainCircuit, MessageCircle, AlertCircle,
+  MessageCircle, AlertCircle,
 } from 'lucide-react';
 import { useHouyezPortal } from '@/lib/houyez/useHouyezPortal';
 import {
@@ -60,12 +60,14 @@ export default function HouyezPortal() {
 
   const [theme, setTheme] = useState<Theme>('light');
   const [locale, setLocale] = useState<Locale>('en');
+  const [mounted, setMounted] = useState(false);
   const isAr = locale === 'ar';
   const portalRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  // ── persisted theme + locale ──────────────────────────────────────────────
+  // ── persisted theme + locale (also marks JS active so reveal can hide) ─────
   useEffect(() => {
+    setMounted(true);
     if (typeof window === 'undefined') return;
     const t = localStorage.getItem('se_theme');
     const l = localStorage.getItem('se_locale');
@@ -128,6 +130,8 @@ export default function HouyezPortal() {
   const [searchTab, setSearchTab] = useState<typeof HOUEZ_SEARCH_TABS[number]['id']>('buy');
   const [fType, setFType] = useState<string>('all');
   const [fBeds, setFBeds] = useState<string>('any');
+  const [fLoc, setFLoc] = useState<string>('all');
+  const [fPrice, setFPrice] = useState<string>('any');
 
   const modeForTab = searchTab === 'rent' ? 'rent' : 'sale';
   const matchType = useCallback((p: HouyezListing) => {
@@ -137,12 +141,22 @@ export default function HouyezPortal() {
     return p.type === fType;
   }, [fType]);
 
+  const zones = useMemo(
+    () => Array.from(new Set(listings.map((l) => (isAr ? l.zoneAr : l.zone)))).sort(),
+    [listings, isAr],
+  );
+
   const featured = useMemo(() => {
     return listings
-      .filter((p) => p.mode === modeForTab && matchType(p) && (fBeds === 'any' || p.beds >= Number(fBeds)))
+      .filter((p) =>
+        p.mode === modeForTab &&
+        matchType(p) &&
+        (fBeds === 'any' || p.beds >= Number(fBeds)) &&
+        (fLoc === 'all' || (isAr ? p.zoneAr : p.zone) === fLoc) &&
+        (fPrice === 'any' || p.mode !== 'sale' || p.egpM <= Number(fPrice)))
       .sort((a, b) => b.ai - a.ai)
       .slice(0, 9);
-  }, [listings, modeForTab, matchType, fBeds]);
+  }, [listings, modeForTab, matchType, fBeds, fLoc, fPrice, isAr]);
 
   // ── saved (hearts) ────────────────────────────────────────────────────────
   const [saved, setSaved] = useState<Set<string>>(new Set());
@@ -180,7 +194,7 @@ export default function HouyezPortal() {
   }, [isAr]);
 
   return (
-    <div className="se-portal" data-theme={theme} dir={isAr ? 'rtl' : 'ltr'} ref={portalRef}>
+    <div className={`se-portal${mounted ? ' js' : ''}`} data-theme={theme} dir={isAr ? 'rtl' : 'ltr'} ref={portalRef}>
       {usingSeed && (
         <div className="seed-note">
           <AlertCircle size={11} style={{ verticalAlign: -1, marginInlineEnd: 6 }} />
@@ -201,18 +215,22 @@ export default function HouyezPortal() {
           </div>
           <nav className="nav-links">
             {NAV_LINKS.map((l) => (
-              <a key={l.href} onClick={() => scrollTo(l.href.slice(1))}>{isAr ? l.ar : l.en}</a>
+              <button type="button" key={l.href} onClick={() => scrollTo(l.href.slice(1))}>
+                {isAr ? l.ar : l.en}
+              </button>
             ))}
           </nav>
           <div className="nav-act">
-            <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle theme">
+            <button className="icon-btn" onClick={toggleTheme}
+              aria-label={theme === 'dark' ? t('Switch to light theme', 'الوضع الفاتح') : t('Switch to dark theme', 'الوضع الداكن')}>
               {theme === 'dark' ? <Sun className="i" /> : <Moon className="i" />}
             </button>
-            <button className="icon-btn lang-btn" onClick={toggleLocale} aria-label="Toggle language">
+            <button className="icon-btn lang-btn" onClick={toggleLocale}
+              aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}>
               {isAr ? 'EN' : 'ع'}
             </button>
             <button className="btn btn-pri nav-cta" onClick={() => scrollTo('se-contact')}>
-              {t('Sign In', 'دخول')}
+              {t('Get in touch', 'تواصل معنا')}
             </button>
           </div>
         </div>
@@ -234,9 +252,9 @@ export default function HouyezPortal() {
           <h1>
             {(() => {
               const txt = isAr ? slide.mainAr : slide.main;
-              const parts = txt.split(/[,،.](?=\s|$)/);
-              if (parts.length < 2) return txt;
-              return (<>{parts[0]}.<br /><span className="hl">{parts.slice(1).join(' ').trim()}</span></>);
+              const ci = txt.search(/[,،]/);
+              if (ci < 0) return txt;
+              return (<>{txt.slice(0, ci + 1)} <span className="hl">{txt.slice(ci + 1).trim()}</span></>);
             })()}
           </h1>
           <p className="h-sub">
@@ -272,7 +290,10 @@ export default function HouyezPortal() {
           <div className="search-fields">
             <div className="field">
               <label>{t('Location', 'الموقع')}</label>
-              <div className="val"><MapPin className="i" /><span>{t('New Cairo', 'القاهرة الجديدة')}</span><ChevronDown className="i" style={{ marginInlineStart: 'auto' }} /></div>
+              <select value={fLoc} onChange={(e) => setFLoc(e.target.value)} aria-label={t('Location', 'الموقع')}>
+                <option value="all">{t('All areas', 'كل المناطق')}</option>
+                {zones.map((z) => (<option key={z} value={z}>{z}</option>))}
+              </select>
             </div>
             <div className="field">
               <label>{t('Type', 'النوع')}</label>
@@ -288,8 +309,13 @@ export default function HouyezPortal() {
               </select>
             </div>
             <div className="field">
-              <label>{t('Price', 'السعر')}</label>
-              <div className="val"><span>{t('Any price', 'أي سعر')}</span><ChevronDown className="i" style={{ marginInlineStart: 'auto' }} /></div>
+              <label>{t('Max price', 'أقصى سعر')}</label>
+              <select value={fPrice} onChange={(e) => setFPrice(e.target.value)} aria-label={t('Max price', 'أقصى سعر')}>
+                <option value="any">{t('Any price', 'أي سعر')}</option>
+                {[5, 10, 20, 30, 50].map((m) => (
+                  <option key={m} value={String(m)}>{t(`Up to ${m}M EGP`, `حتى ${m} مليون`)}</option>
+                ))}
+              </select>
             </div>
             <div className="field searchbtn">
               <button className="btn btn-pri" onClick={() => scrollTo('se-featured')}>
@@ -317,7 +343,7 @@ export default function HouyezPortal() {
               <p>{t('Ranked by AI match score across the whole New Cairo market.',
                     'مرتبة حسب درجة التوافق بالذكاء الاصطناعي عبر سوق القاهرة الجديدة.')}</p>
             </div>
-            <a className="sec-link" onClick={() => scrollTo('se-compounds')}>
+            <a className="sec-link" href="#se-compounds" onClick={(e) => { e.preventDefault(); scrollTo('se-compounds'); }}>
               {t('View all listings', 'عرض كل العقارات')} <ArrowRight size={15} />
             </a>
           </div>
@@ -364,14 +390,16 @@ export default function HouyezPortal() {
         <div className="wrap">
           <div className="sec-head rv">
             <div>
-              <div className="eyebrow">{t('Featured compounds', 'كمبوندات مميزة')}</div>
               <h2>{t('Explore premium communities', 'استكشف أرقى المجتمعات')}</h2>
+              <p>{t('New Cairo’s most sought-after compounds, ranked by growth and demand.',
+                    'أكثر كمبوندات القاهرة الجديدة طلباً، مرتبة حسب النمو والطلب.')}</p>
             </div>
           </div>
           <div className="grid-comp">
             {compounds.slice(0, 8).map((c, i) => (
-              <a key={c.id ?? c.name} className="comp rv" style={{ transitionDelay: `${(i % 4) * 60}ms` }}
-                 onClick={() => scrollTo('se-featured')}>
+              <a key={c.id ?? c.name} className="comp rv" href="#se-featured"
+                 style={{ transitionDelay: `${(i % 4) * 60}ms` }}
+                 onClick={(e) => { e.preventDefault(); scrollTo('se-featured'); }}>
                 <img src={c.img} alt={isAr ? c.nameAr : c.name} loading="lazy" />
                 <div className="co-scrim" />
                 <span className="co-count">{c.count} {t('listings', 'عقار')}</span>
@@ -388,23 +416,26 @@ export default function HouyezPortal() {
       {/* ── WHY SIERRA ── */}
       <section className="block" id="se-why">
         <div className="wrap">
-          <div className="sec-head rv" style={{ justifyContent: 'center', textAlign: 'center' }}>
-            <div>
-              <div className="eyebrow" style={{ justifyContent: 'center' }}>{t('Why Sierra Estates', 'لماذا سييرا إستيتس')}</div>
+          <div className="why rv">
+            <div className="why-intro">
               <h2>{t('The whole market, working for you', 'السوق بأكمله، يعمل لصالحك')}</h2>
+              <p>{t('Most brokers show you their own units. Sierra searches every listing in New Cairo, scores it, and surfaces only what fits — so you see the best of the market, not the best of one inventory.',
+                    'معظم الوسطاء يعرضون وحداتهم فقط. سييرا تبحث في كل عقار بالقاهرة الجديدة، تقيّمه، وتعرض ما يناسبك فقط — لترى أفضل السوق، لا أفضل مخزون واحد.')}</p>
             </div>
-          </div>
-          <div className="adv-grid">
-            {ADVANTAGES.map((a, i) => {
-              const Icon = a.icon;
-              return (
-                <div key={i} className="adv rv" style={{ transitionDelay: `${(i % 4) * 60}ms` }}>
-                  <div className="ic"><Icon className="i" /></div>
-                  <h4>{isAr ? a.ar[0] : a.en[0]}</h4>
-                  <p>{isAr ? a.ar[1] : a.en[1]}</p>
-                </div>
-              );
-            })}
+            <div className="adv-list">
+              {ADVANTAGES.map((a, i) => {
+                const Icon = a.icon;
+                return (
+                  <div key={i} className="adv-row">
+                    <div className="ic"><Icon className="i" /></div>
+                    <div>
+                      <h4>{isAr ? a.ar[0] : a.en[0]}</h4>
+                      <p>{isAr ? a.ar[1] : a.en[1]}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
           <div className="net rv">
             <div>
@@ -427,7 +458,6 @@ export default function HouyezPortal() {
           <div className="wrap">
             <div className="sec-head rv" style={{ alignItems: 'center' }}>
               <div>
-                <div className="eyebrow"><Compass size={14} /> {t('3D Virtual Tour', 'جولة ثلاثية الأبعاد')}</div>
                 <h2 style={{ fontSize: 30 }}>{isAr ? tours[0].titleAr : tours[0].title}</h2>
               </div>
               <a className="sec-link" href="/clients/tour" style={{ color: '#8fe1ff' }}>
@@ -452,8 +482,9 @@ export default function HouyezPortal() {
         <div className="wrap">
           <div className="sec-head rv">
             <div>
-              <div className="eyebrow"><BrainCircuit size={14} /> {t('Intelligence Engine', 'محرك الذكاء')}</div>
-              <h2>{t('AI tools that move the deal', 'أدوات ذكاء تُنجز الصفقة')}</h2>
+              <h2>{t('The Intelligence Engine', 'محرك الذكاء')}</h2>
+              <p>{t('Three live AI tools that price, match, and forecast every deal.',
+                    'ثلاث أدوات ذكاء حية تسعّر، تطابق، وتتنبأ بكل صفقة.')}</p>
             </div>
           </div>
           <div className="ai-grid">
@@ -502,14 +533,14 @@ export default function HouyezPortal() {
             </div>
             <div className="f-col">
               <h5>{t('Explore', 'استكشف')}</h5>
-              <a onClick={() => scrollTo('se-featured')}>{t('Properties', 'العقارات')}</a>
-              <a onClick={() => scrollTo('se-compounds')}>{t('Compounds', 'الكمبوندات')}</a>
-              <a onClick={() => scrollTo('se-tools')}>{t('AI Tools', 'أدوات الذكاء')}</a>
+              <a href="#se-featured" onClick={(e) => { e.preventDefault(); scrollTo('se-featured'); }}>{t('Properties', 'العقارات')}</a>
+              <a href="#se-compounds" onClick={(e) => { e.preventDefault(); scrollTo('se-compounds'); }}>{t('Compounds', 'الكمبوندات')}</a>
+              <a href="#se-tools" onClick={(e) => { e.preventDefault(); scrollTo('se-tools'); }}>{t('AI Tools', 'أدوات الذكاء')}</a>
             </div>
             <div className="f-col">
               <h5>{t('Company', 'الشركة')}</h5>
-              <a onClick={() => scrollTo('se-why')}>{t('Why Sierra', 'لماذا سييرا')}</a>
-              <a onClick={() => scrollTo('se-contact')}>{t('Contact', 'اتصل بنا')}</a>
+              <a href="#se-why" onClick={(e) => { e.preventDefault(); scrollTo('se-why'); }}>{t('Why Sierra', 'لماذا سييرا')}</a>
+              <a href="#se-contact" onClick={(e) => { e.preventDefault(); scrollTo('se-contact'); }}>{t('Contact', 'اتصل بنا')}</a>
               <a href="/clients/tour">{t('Virtual tours', 'جولات افتراضية')}</a>
             </div>
             <div className="f-col">
