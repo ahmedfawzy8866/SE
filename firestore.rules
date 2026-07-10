@@ -110,6 +110,33 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Units (Listings) Collection - Public read for client page, admin write
+    match /units/{unitId} {
+      // Public read for client listings display
+      allow read: if true;
+
+      // Admin: Full CRUD
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Properties Collection - Public read for client page, admin write
+    match /properties/{propertyId} {
+      // Public read for client listings display
+      allow read: if true;
+
+      // Admin: Full CRUD
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Compounds Collection - Public read for client map, admin write
+    match /compounds/{compoundId} {
+      // Public read for client map display
+      allow read: if true;
+
+      // Admin: Full CRUD
+      allow create, update, delete: if isAdmin();
+    }
+
     // Default deny all
     match /{document=**} {
       allow read, write: if false;
