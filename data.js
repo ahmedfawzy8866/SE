@@ -96,6 +96,69 @@ window.HZDATA = {
     { n: 'Layan Residence (MNHD)', c: [30.01, 31.655], g: '+14%', ai: 8.7, z: 'Mostakbal', priceM: 7.5, rent: 1500 },
     { n: 'Jayd (IWAN)', c: [30.045, 31.665], g: '+15%', ai: 8.8, z: 'Mostakbal', priceM: 8, rent: 1600 }
   ],
+  // ═══ Arabic name map for compounds (used when site language = Arabic) ═══
+  // Brand-name compounds keep transliteration; descriptive names translated.
+  compoundNamesAr: {
+    'Katameya Heights': 'كاتاميا هايتس',
+    'Katameya Dunes': 'كاتاميا ديونز',
+    'Swan Lake Residence': 'سوان ليك ريزيدنس',
+    'Mivida': 'ميفيدا',
+    'Cairo Festival City Residences': 'كايرو فيستيفال سيتي ريزيدنس',
+    'Hyde Park New Cairo': 'هايد بارك القاهرة الجديدة',
+    'Taj City': 'تاج سيتي',
+    'Eastown (SODIC)': 'إيستاون (سوديك)',
+    'Mountain View iCity': 'ماونتن فيو آي سيتي',
+    'Zed East (Ora)': 'زد إيست (أورا)',
+    'Palm Hills New Cairo': 'بالم هيلز القاهرة الجديدة',
+    'The Waterway': 'ذا ووتر واي',
+    'Lake View Residence': 'ليك فيو ريزيدنس',
+    'Fifth Square (Al Marasem)': 'فيفت سكوير (المراسم)',
+    'Villette (SODIC)': 'فيليت (سوديك)',
+    'Stone Residence (Rooya)': 'ستون ريزيدنس (روية)',
+    'The Square (Al Ahly Sabbour)': 'ذا سكوير (الأهلي صبور)',
+    'El Patio Oro (La Vista)': 'إل باتيو أورو (لا فيستا)',
+    'El Patio 7 (La Vista)': 'إل باتيو 7 (لا فيستا)',
+    'Katameya Gardens': 'كاتاميا جاردنز',
+    'Village Gardens Katameya': 'فيليدج جاردنز كاتاميا',
+    'Galleria Moon Valley': 'جاليريا مون فالي',
+    '90 Avenue (Tabarak)': '90 أفينيو (تبارك)',
+    'Azzar New Cairo': 'أزار القاهرة الجديدة',
+    'District 5 (Marakez)': 'ديستريكت 5 (ماراكيز)',
+    'The Brooks (PRE)': 'ذا بروكس (بري)',
+    'STEI8HT (LMD)': 'ستييت (إل إم دي)',
+    'The Crest (IL Cazar)': 'ذا كريست (إل كازار)',
+    'Azad & Azad Views': 'آزاد و آزاد فيوز',
+    'Sarai (MNHD)': 'ساراي (المهندسون)',
+    'Bloomfields (Tatweer Misr)': 'بلومفيلدز (تطوير مصر)',
+    'Taj Sultan': 'تاج سلطان',
+    'La Mirada (Inertia)': 'لا ميرادا (إنيرشا)',
+    'Aeon (Tabarak)': 'إيون (تبارك)',
+    'Mountain View Executive': 'ماونتن فيو التنفيذي',
+    'Hyde Park Phase 2': 'هايد بارك المرحلة 2',
+    'Madinaty District 1': 'مدينتي الحي 1',
+    'Madinaty District 3': 'مدينتي الحي 3',
+    'Madinaty District 7': 'مدينتي الحي 7',
+    'Madinaty District 8': 'مدينتي الحي 8',
+    'Madinaty Executive Villas': 'مدينتي فلل إكزيكيوتيف',
+    'Madinaty Lake Park': 'مدينتي ليك بارك',
+    'El Shorouk City': 'مدينة الشروق',
+    'El Shorouk Springs': 'الشروق سبرينغز',
+    'Al Burouj (Capital Group)': 'البروج (كابيتال جروب)',
+    'El Patio 5 East (La Vista)': 'إل باتيو 5 إيست (لا فيستا)',
+    'Dar Misr El Shorouk': 'دار مصر الشروق',
+    'Green Square (Sabbour)': 'جرين سكوير (صبور)',
+    'Mivida Parks': 'ميفيدا باركس',
+    'Fifth Square Boulevard': 'فيفت سكوير بوليفارد',
+    'Layan Residence (MNHD)': 'لايان ريزيدنس (المهندسون)',
+    'Jayd (IWAN)': 'جايد (إيوان)'
+  },
+  // Helper: get compound name in current language
+  compoundName: function (name, lang) {
+    if (lang === 'ar' && this.compoundNamesAr && this.compoundNamesAr[name]) {
+      return this.compoundNamesAr[name];
+    }
+    return name;
+  },
   // ═══ Featured compounds — these pulse/glow on the home page map ═══
   featured: ['Mivida', 'Hyde Park New Cairo', 'Mountain View iCity', 'Villette (SODIC)', 'Madinaty District 1', 'Taj City'],
   compoundImgs: {

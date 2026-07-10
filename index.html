@@ -380,7 +380,8 @@
 /* Active state for home map beds segment buttons */
 #home-map-beds button.on{background:var(--pri);color:#fff;}
 [data-theme="dark"] #home-map-beds button.on{background:#e9c176;color:#0d0d0f;}
-.cpd-marker{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:14px;background:rgba(0,43,75,.9);border:2px solid #00aeff;color:#bfeaff;font-family:var(--font);font-weight:700;font-size:11px;padding:0 10px;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;transition:.2s var(--silk);white-space:nowrap;backdrop-filter:blur(4px);}
+.cpd-marker{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:28px;border-radius:14px;background:rgba(0,43,75,.92);border:2px solid #00aeff;color:#bfeaff;font-family:var(--font);font-weight:700;font-size:12px;padding:0 11px;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;transition:.2s var(--silk);white-space:nowrap;backdrop-filter:blur(4px);}
+[dir="rtl"] .cpd-marker{font-family:'Cairo','Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:800;padding:0 12px;}
 .cpd-marker:hover{transform:scale(1.12);box-shadow:0 6px 20px rgba(0,174,255,.5);z-index:999;border-color:#34d399;color:#fff;}
 .cpd-marker.hot{background:linear-gradient(135deg,#00aeff,#0098e0);color:#fff;border-color:#00aeff;}
 .cpd-marker.pulse{background:rgba(0,174,255,.85);color:#fff;border-color:#34d399;}
@@ -793,7 +794,7 @@
     <div class="home-map-filter" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:18px;padding:14px 18px;background:var(--surface);border:1.5px solid var(--line-2);border-radius:14px;box-shadow:var(--shadow-s);">
       <div style="display:flex;align-items:center;gap:9px;flex:1;min-width:240px;">
         <i data-lucide="search" class="i" style="width:17px;height:17px;color:var(--muted);flex:none;"></i>
-        <input id="home-map-compound" type="text" list="home-map-compound-list" placeholder="Filter by compound (e.g. Mivida, Hyde Park)…" style="flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:14px;color:var(--ink);min-width:0;" />
+        <input id="home-map-compound" type="text" list="home-map-compound-list" data-i18n-ph="hmfPlaceholder" placeholder="Filter by compound (e.g. Mivida, Hyde Park)…" style="flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:14px;color:var(--ink);min-width:0;" />
         <datalist id="home-map-compound-list"></datalist>
         <button id="home-map-clear" type="button" style="border:none;background:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:0;display:none;" aria-label="Clear filter">×</button>
       </div>
@@ -1370,9 +1371,12 @@
   function markerIcon(c, isFeatured) {
     var hot = c.ai >= 9.2;
     var cls = 'cpd-marker' + (hot ? ' hot' : '') + (isFeatured ? ' pulse' : '');
+    // Use Arabic name if site language is Arabic and translation exists
+    var curLang = (window.HZ && HZ.lang) ? HZ.lang() : 'en';
+    var displayName = (D.compoundName) ? D.compoundName(c.n, curLang) : c.n;
     return L.divIcon({
       className: '',
-      html: '<span class="' + cls + '" title="' + c.n + '">' + c.n + '</span>',
+      html: '<span class="' + cls + '" title="' + displayName + '">' + displayName + '</span>',
       iconSize: null
     });
   }
@@ -1454,7 +1458,7 @@
       if (visible_now) visible.push(m);
     });
 
-    countEl.textContent = visible.length + ' compound' + (visible.length === 1 ? '' : 's');
+    countEl.textContent = visible.length + ' ' + ((window.HZ && HZ.lang && HZ.lang() === 'ar') ? (D.compoundName ? 'كمبوند' : 'كمبوند') : (visible.length === 1 ? 'compound' : 'compounds'));
 
     // Refit bounds to visible markers
     if (visible.length > 0) {
@@ -1493,12 +1497,37 @@
   }
 
   // Initial count
-  countEl.textContent = allMarkers.length + ' compounds';
+  countEl.textContent = allMarkers.length + ' ' + ((window.HZ && HZ.lang && HZ.lang() === 'ar') ? 'كمبوند' : 'compounds');
 
   // Fix tile rendering after layout settles
   setTimeout(function () { map.invalidateSize(); }, 200);
   setTimeout(function () { map.invalidateSize(); }, 800);
   window.addEventListener('resize', function () { map.invalidateSize(); });
+
+  // ─── Re-render markers when language changes ───
+  // When user switches EN↔AR, compound names on markers need to update.
+  // We listen for the custom 'hzp:lang' event dispatched by shared.js.
+  document.addEventListener('hzp:lang', function (e) {
+    var newLang = e.detail;
+    // Refresh each marker's icon with the new language name
+    allMarkers.forEach(function (m) {
+      var c = m._compound;
+      if (!c) return;
+      var isFeat = featured.indexOf(c.n) >= 0;
+      m.setIcon(markerIcon(c, isFeat));
+    });
+    // Update count text
+    var visibleCount = clusterGroup.getLayers().length;
+    countEl.textContent = visibleCount + ' ' + (newLang === 'ar' ? 'كمبوند' : (visibleCount === 1 ? 'compound' : 'compounds'));
+    // Update datalist options with Arabic names
+    if (compoundList) {
+      compoundList.innerHTML = D.compounds.map(function (c) {
+        var name = D.compoundName ? D.compoundName(c.n, newLang) : c.n;
+        return '<option value="' + name + '">';
+      }).join('');
+    }
+    // Update filter input placeholder (data-i18n-ph handles this, but reload-safe)
+  });
 
   // ─── Sticky map: freeze when scrolled past, unfreeze when leaving section ───
   var mapWrap = document.getElementById('map-sticky-wrap');
