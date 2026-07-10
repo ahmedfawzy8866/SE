@@ -47,6 +47,7 @@ service cloud.firestore {
     match /listings/{id}    { allow read: if isPublished() || isStaff();  allow write: if isStaff(); }
     match /units/{id}       { allow read: if isPublished() || isStaff();  allow write: if isStaff(); }
     match /properties/{id}  { allow read: if isPublished() || isStaff();  allow write: if isStaff(); }
+    match /compounds/{id}   { allow read: if isPublished() || isStaff();  allow write: if isStaff(); }
     match /projects/{id}    { allow read: if true;  allow write: if isStaff(); }
     match /developers/{id}  { allow read: if true;  allow write: if isStaff(); }
     match /mediaAssets/{id} { allow read: if true;  allow write: if isStaff(); }
