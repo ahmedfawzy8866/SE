@@ -1541,6 +1541,10 @@
     });
   }
 
+  function escapeHtml(unsafe) {
+    return (unsafe || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
   // ── Render selected compound chips ──
   function renderChips() {
     if (!filterState.compounds.length) {
@@ -1550,9 +1554,10 @@
     }
     compoundChips.style.minHeight = '32px';
     compoundChips.innerHTML = filterState.compounds.map(function (name) {
-      return '<span class="hmf-chip" data-cpd="' + name + '" style="display:inline-flex;align-items:center;gap:6px;background:var(--pri);color:#fff;font-family:var(--font);font-size:12px;font-weight:700;padding:5px 10px 5px 12px;border-radius:999px;gap:6px;">' +
-        '<span>' + name + '</span>' +
-        '<button type="button" data-remove="' + name + '" style="border:none;background:rgba(255,255,255,.25);color:#fff;width:16px;height:16px;border-radius:50%;cursor:pointer;font-size:14px;line-height:1;display:grid;place-items:center;padding:0;" aria-label="Remove ' + name + '">×</button>' +
+      var safeName = escapeHtml(name);
+      return '<span class="hmf-chip" data-cpd="' + safeName + '" style="display:inline-flex;align-items:center;gap:6px;background:var(--pri);color:#fff;font-family:var(--font);font-size:12px;font-weight:700;padding:5px 10px 5px 12px;border-radius:999px;gap:6px;">' +
+        '<span>' + safeName + '</span>' +
+        '<button type="button" data-remove="' + safeName + '" style="border:none;background:rgba(255,255,255,.25);color:#fff;width:16px;height:16px;border-radius:50%;cursor:pointer;font-size:14px;line-height:1;display:grid;place-items:center;padding:0;" aria-label="Remove ' + safeName + '">×</button>' +
       '</span>';
     }).join('');
     // Bind remove buttons
