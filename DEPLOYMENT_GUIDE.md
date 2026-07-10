@@ -11,7 +11,7 @@ This guide covers deploying all 4 components of Sierra Estates:
 | Client Portal | Vercel | Free |
 | Admin SPA | Vercel (or self-host) | Free |
 | Database | Supabase | Free (500MB) |
-| n8n + WhatsApp Bot | VPS | $10/month |
+| n8n + WhatsApp Bot | **AWS EC2** | $8-15/month |
 
 ---
 
@@ -122,44 +122,57 @@ npx serve dist
 
 ---
 
-## Phase 4: VPS (n8n + WhatsApp Bot) — 20 minutes
+## Phase 4: AWS EC2 (n8n + WhatsApp Bot) — 15 minutes
 
-### Buy VPS
-Recommended providers:
-- **Hetzner** (best value): https://hetzner.cloud — CX22 (€4.5/mo, 4GB RAM)
-- **DigitalOcean**: https://digitalocean.com — $10/mo, 2GB RAM
-- **Contabo**: https://contabo.com — $6/mo, 8GB RAM
-
-Choose **Ubuntu 22.04** in a region close to Egypt (eu-central or me-central).
-
-### Run Setup Script
+### Launch EC2 (one command from your laptop)
 ```bash
-# SSH to your VPS
-ssh root@YOUR-VPS-IP
+# Prerequisites: AWS CLI installed + configured
+pip install awscli
+aws configure  # enter access key + secret + region (eu-central-1)
 
-# Run the automated setup script
-curl -fsSL https://raw.githubusercontent.com/ahmedfawzy8866/SE/dispatch/scripts/setup-vps.sh | bash
+# Launch EC2 with everything auto-configured
+bash scripts/launch-aws-ec2.sh
 ```
 
 The script will:
-1. ✅ Install Docker + Docker Compose
-2. ✅ Clone the SE repo (dispatch branch)
-3. ✅ Configure environment variables (prompts for keys)
-4. ✅ Start n8n + WhatsApp scraper containers
-5. ✅ Print access URLs + WhatsApp QR code
+1. ✅ Find latest Ubuntu 22.04 AMI
+2. ✅ Create security group (ports 22, 5678, 3000, 80, 443)
+3. ✅ Launch EC2 instance with cloud-init script
+4. ✅ Auto-install Docker + create 2GB swap + clone repo + start containers
+5. ✅ Print SSH command + n8n URL + auto-generated password
+
+**Instance types:**
+- `t3.micro` (1GB RAM + 2GB swap) — $8/mo, free tier eligible (12 months)
+- `t3.small` (2GB RAM) — $15/mo, **recommended**
+- `t3.medium` (4GB RAM) — $30/mo, for high traffic
+
+### Manual launch (AWS Console alternative)
+1. AWS Console → EC2 → Launch Instance
+2. AMI: **Ubuntu 22.04 LTS**
+3. Instance type: **t3.small**
+4. Storage: 30GB gp3
+5. Security group: Allow ports 22, 5678, 3000, 80, 443
+6. User data: Paste contents of `infra/aws/ec2-user-data.sh`
+7. Launch with your SSH key
+
+### Get n8n password (auto-generated)
+```bash
+ssh -i ~/.ssh/your-key.pem ubuntu@YOUR-EC2-IP 'cat /var/log/user-data.log | grep Password'
+```
 
 ### Link WhatsApp
 ```bash
 # View the QR code
-docker compose -f /opt/sierra-estates/infra/docker-compose.yml logs whatsapp-scraper | grep -A 25 "Scan this QR"
+ssh -i ~/.ssh/your-key.pem ubuntu@YOUR-EC2-IP \
+  'docker compose -f /opt/sierra-estates/infra/docker-compose.yml logs whatsapp-scraper | grep -A 25 "Scan"'
 ```
 1. Open WhatsApp on your phone
 2. Settings → Linked Devices → Link a device
 3. Scan the QR code in terminal
 
 ### Import n8n Workflows
-1. Open `http://YOUR-VPS-IP:5678` in browser
-2. Login (admin / password you set)
+1. Open `http://YOUR-EC2-IP:5678` in browser
+2. Login (admin / password from user-data log)
 3. Workflows → Add → Import from File
 4. Import all 3 files from `/opt/sierra-estates/infra/n8n-workflows/`:
    - `01-property-finder-leads.json`
@@ -177,17 +190,27 @@ docker compose -f /opt/sierra-estates/infra/docker-compose.yml logs whatsapp-scr
 4. Open workflow 03 → "Gemini AI Score" node → select credential
 
 ### Configure Firebase in n8n
-1. Place service account JSON on VPS:
+1. Upload service account JSON to EC2:
 ```bash
-# Upload from your computer
-scp ~/Downloads/service-account.json root@YOUR-VPS-IP:/opt/sierra-estates/infra/secrets/firebase-service-account.json
+scp -i ~/.ssh/your-key.pem ~/Downloads/service-account.json \
+  ubuntu@YOUR-EC2-IP:/opt/sierra-estates/infra/secrets/firebase-service-account.json
 ```
 2. n8n → Settings → Credentials → Add → "Firebase Realtime Database"
    - Upload the service account JSON
    - Name: `Sierra Firebase`
 3. Each workflow node that uses Firebase → select this credential
 
-✅ **n8n + WhatsApp bot live!**
+### Set up S3 backups (recommended)
+```bash
+# Create S3 bucket (from your laptop)
+aws s3 mb s3://sierra-estates-backups --region eu-central-1
+
+# Add daily backup cron job on EC2
+ssh -i ~/.ssh/your-key.pem ubuntu@YOUR-EC2-IP \
+  '(crontab -l 2>/dev/null; echo "0 3 * * * /opt/sierra-estates/scripts/backup-to-s3.sh sierra-estates-backups") | crontab -'
+```
+
+✅ **n8n + WhatsApp bot live on AWS!**
 
 ---
 
@@ -215,11 +238,11 @@ After all 4 phases, verify:
 |---------|------|
 | Vercel (client + admin) | $0 (free tier) |
 | Supabase (database) | $0 (free tier, 500MB) |
-| VPS (n8n + WhatsApp) | $5-10/month |
+| **AWS EC2 t3.small** (n8n + WhatsApp) | **$15/month** |
+| AWS S3 (backups) | $0.50/month (5GB) |
 | Gemini API | $0 (free tier, 1500 req/day) |
 | Firebase | $0 (free tier) |
-| GitHub Pages (legacy portal) | $0 |
-| **Total** | **$5-10/month** |
+| **Total** | **~$15.50/month** |
 
 ---
 
@@ -236,14 +259,20 @@ After all 4 phases, verify:
 - Verify your user has `role: 'admin'` in `users` table
 
 ### n8n workflows not executing
-- Check n8n logs: `docker compose logs n8n`
+- Check n8n logs: `ssh -i key.pem ubuntu@IP 'docker compose -f /opt/sierra-estates/infra/docker-compose.yml logs n8n'`
 - Verify credentials are configured (Firebase + Gemini)
 - Check webhook URLs are correct
 
 ### WhatsApp bot not responding
-- Check bot logs: `docker compose logs whatsapp-scraper`
+- Check bot logs: `ssh -i key.pem ubuntu@IP 'docker compose -f /opt/sierra-estates/infra/docker-compose.yml logs whatsapp-scraper'`
 - Verify QR code was scanned (session saved in `whatsapp-auth/`)
-- Test webhook: `curl -X POST http://VPS-IP:5678/webhook/whatsapp-incoming -H "Content-Type: application/json" -d '{"phone":"+201001234567","text":"test","jid":"test@s.whatsapp.net"}'`
+- Test webhook: `curl -X POST http://EC2-IP:5678/webhook/whatsapp-incoming -H "Content-Type: application/json" -d '{"phone":"+201001234567","text":"test","jid":"test@s.whatsapp.net"}'`
+
+### AWS-specific
+- Instance unreachable: Check security group allows your IP on port 22
+- Can't find password: `ssh -i key.pem ubuntu@IP 'cat /var/log/user-data.log'`
+- n8n slow: Check swap is active: `ssh -i key.pem ubuntu@IP 'free -h'`
+- Want to stop costs: `aws ec2 stop-instances --instance-ids i-xxxxx`
 
 ### Gemini API errors
 - Verify API key is valid (test with curl in GEMINI_SETUP.md)
