@@ -99,6 +99,14 @@ function validate_api_key(provided: string, expected: string): boolean {
  * Map a raw API key to a stable tenant id. Currently a SHA-256 prefix —
  * one tenant per key. Replace with a config lookup if/when the project
  * needs many keys to share a tenant.
+ *
+ * NOTE (CodeQL js/insufficient-password-hash): SHA-256 is intentional and
+ * correct here. This is NOT password storage — authentication happens in
+ * `validate_api_key` via `crypto.timingSafeEqual` on the raw key, and this
+ * function only runs on an already-validated, high-entropy API key to derive
+ * a *deterministic* namespace identifier. A salted/slow KDF (bcrypt/scrypt/
+ * argon2) would break the required stability (same key must always yield the
+ * same tenant id) and add latency to every authenticated request.
  */
 function derive_tenant_id(api_key: string): string {
     return crypto

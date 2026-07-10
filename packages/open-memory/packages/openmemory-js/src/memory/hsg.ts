@@ -395,7 +395,10 @@ export function extract_essence(
             )
         )
             sc += 5;
-        if (/\$\d+|\d+\s*(miles|dollars|years|months|km)/.test(s)) sc += 4;
+        // Bounded quantifiers ({1,15}/{0,3}) avoid polynomial backtracking on
+        // long digit runs (CodeQL js/polynomial-redos) while matching any real
+        // monetary/measurement token.
+        if (/\$\d{1,15}|\d{1,15}\s{0,3}(miles|dollars|years|months|km)/.test(s)) sc += 4;
         if (/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+/.test(s)) sc += 3;
         if (
             /\b(bought|purchased|serviced|visited|went|got|received|paid|earned|learned|discovered|found|saw|met|completed|finished|fixed|implemented|created|updated|added|removed|resolved)\b/i.test(
