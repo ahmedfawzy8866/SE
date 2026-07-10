@@ -829,15 +829,26 @@
 
       <!-- Filter panel (collapsible) -->
       <div class="hmf-panel" id="hmf-panel" style="display:none;margin-top:8px;padding:18px 20px;background:var(--surface);border:1.5px solid var(--line-2);border-radius:14px;box-shadow:var(--shadow-s);animation:hmfSlideDown .3s var(--silk) both;">
-        <!-- Compound search row -->
-        <div style="display:flex;align-items:center;gap:9px;margin-bottom:16px;padding:10px 14px;background:var(--surface-2);border:1.5px solid var(--line-2);border-radius:10px;transition:.2s;">
-          <i data-lucide="search" class="i" style="width:17px;height:17px;color:var(--muted);flex:none;"></i>
-          <input id="home-map-compound" type="text" list="home-map-compound-list" data-i18n-ph="hmfPlaceholder" placeholder="Filter by compound (e.g. Mivida, Hyde Park)…" style="flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:14px;color:var(--ink);min-width:0;" />
-          <datalist id="home-map-compound-list"></datalist>
-          <button id="home-map-clear" type="button" style="border:none;background:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:0;display:none;" aria-label="Clear filter">×</button>
+        <!-- Compound multi-select row -->
+        <div style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">
+            <i data-lucide="building-2" class="i" style="width:14px;height:14px;"></i>
+            <span data-i18n="hmfCompounds">Compounds</span>
+            <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:none;color:var(--muted);opacity:.7;" data-i18n="hmfMultiHint">— click to select multiple</span>
+          </div>
+          <!-- Selected chips area -->
+          <div id="hmf-compound-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;min-height:0;"></div>
+          <!-- Search + dropdown -->
+          <div style="display:flex;align-items:center;gap:9px;padding:10px 14px;background:var(--surface-2);border:1.5px solid var(--line-2);border-radius:10px;transition:.2s;position:relative;">
+            <i data-lucide="search" class="i" style="width:17px;height:17px;color:var(--muted);flex:none;"></i>
+            <input id="home-map-compound" type="text" data-i18n-ph="hmfPlaceholder" placeholder="Search compounds (e.g. Mivida, Hyde Park)…" style="flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:14px;color:var(--ink);min-width:0;" autocomplete="off" />
+            <i data-lucide="chevron-down" class="i" style="width:16px;height:16px;color:var(--muted);flex:none;transition:transform .2s;" id="hmf-compound-chevron"></i>
+            <!-- Dropdown list (absolute positioned) -->
+            <div id="hmf-compound-dropdown" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;max-height:280px;overflow-y:auto;background:var(--surface);border:1.5px solid var(--line-2);border-radius:10px;box-shadow:var(--shadow-m);z-index:200;padding:6px;"></div>
+          </div>
         </div>
 
-        <!-- Beds selector row -->
+        <!-- Beds selector row (single select, no '+') -->
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <span style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">
             <i data-lucide="bed-double" class="i" style="width:14px;height:14px;"></i>
@@ -845,11 +856,11 @@
           </span>
           <div id="home-map-beds" style="display:flex;gap:4px;padding:3px;background:var(--bg);border-radius:999px;">
             <button class="on" data-b="0" type="button" style="border:none;cursor:pointer;padding:7px 14px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;" data-i18n="hmfAny">Any</button>
-            <button data-b="1" type="button" style="border:none;cursor:pointer;padding:7px 14px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">1+</button>
-            <button data-b="2" type="button" style="border:none;cursor:pointer;padding:7px 14px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">2+</button>
-            <button data-b="3" type="button" style="border:none;cursor:pointer;padding:7px 14px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">3+</button>
-            <button data-b="4" type="button" style="border:none;cursor:pointer;padding:7px 14px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">4+</button>
-            <button data-b="5" type="button" style="border:none;cursor:pointer;padding:7px 14px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">5+</button>
+            <button data-b="1" type="button" style="border:none;cursor:pointer;padding:7px 14px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">1</button>
+            <button data-b="2" type="button" style="border:none;cursor:pointer;padding:7px 14px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">2</button>
+            <button data-b="3" type="button" style="border:none;cursor:pointer;padding:7px 14px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">3</button>
+            <button data-b="4" type="button" style="border:none;cursor:pointer;padding:7px 14px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">4</button>
+            <button data-b="5" type="button" style="border:none;cursor:pointer;padding:7px 14px;border-radius:999px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);background:transparent;transition:.2s;">5</button>
           </div>
           <button id="hmf-reset" type="button" style="margin-inline-start:auto;border:1.5px solid var(--line-2);background:var(--surface-2);color:var(--text);font-family:var(--font);font-size:12px;font-weight:700;padding:7px 14px;border-radius:999px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:5px;">
             <i data-lucide="rotate-ccw" class="i" style="width:12px;height:12px;"></i>
@@ -1470,42 +1481,112 @@
   // Fit bounds to show all compounds
   try { map.fitBounds(clusterGroup.getBounds(), { padding: [40, 40], maxZoom: 13 }); } catch (e) {}
 
-  // ═══ HOME MAP FILTER (compound + bedrooms only) ═══
-  // Per user request: outside map only filters by compound name + beds.
-  // The full advanced filter set (type/price/delivery/mode) lives on
-  // compounds.html — this keeps the home map fast and focused.
+  // ═══ HOME MAP FILTER (compound multi-select + single beds) ═══
+  // Per user request:
+  //  - Compounds: multi-select (click multiple compounds to filter)
+  //  - Bedrooms: single select, exact number (1, 2, 3, 4, 5 — no '+')
   var allMarkers = clusterGroup.getLayers();
   var compoundInput = document.getElementById('home-map-compound');
-  var compoundList = document.getElementById('home-map-compound-list');
-  var clearBtn = document.getElementById('home-map-clear');
+  var compoundDropdown = document.getElementById('hmf-compound-dropdown');
+  var compoundChevron = document.getElementById('hmf-compound-chevron');
+  var compoundChips = document.getElementById('hmf-compound-chips');
   var bedsWrap = document.getElementById('home-map-beds');
   var countEl = document.getElementById('home-map-count');
 
-  // Populate datalist with all compound names
-  if (compoundList) {
-    compoundList.innerHTML = D.compounds.map(function (c) {
-      return '<option value="' + c.n + '">';
+  // filterState.compounds = array of selected compound names (empty = all)
+  // filterState.beds = exact bedroom count (0 = any)
+  var filterState = { compounds: [], beds: 0 };
+
+  // ── Build compound dropdown list ──
+  function renderCompoundDropdown(query) {
+    var q = (query || '').trim().toLowerCase();
+    var items = D.compounds.filter(function (c) {
+      if (!q) return true;
+      return c.n.toLowerCase().indexOf(q) >= 0;
+    });
+    if (!items.length) {
+      compoundDropdown.innerHTML = '<div style="padding:12px;color:var(--muted);font-size:13px;text-align:center;">No compounds found</div>';
+      return;
+    }
+    compoundDropdown.innerHTML = items.map(function (c) {
+      var isSelected = filterState.compounds.indexOf(c.n) >= 0;
+      var unitCount = (typeof D.unitsFor === 'function') ? D.unitsFor(c.n).length : 0;
+      return '<div class="hmf-cpd-item' + (isSelected ? ' selected' : '') + '" data-cpd="' + c.n + '" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:.15s;' + (isSelected ? 'background:rgba(0,174,255,.08);' : '') + '">' +
+        '<span style="width:18px;height:18px;border-radius:5px;border:2px solid ' + (isSelected ? 'var(--pri)' : 'var(--line-2)') + ';background:' + (isSelected ? 'var(--pri)' : 'transparent') + ';display:grid;place-items:center;flex:none;">' + (isSelected ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '') + '</span>' +
+        '<span style="flex:1;font-size:13.5px;font-weight:600;color:var(--ink);">' + c.n + '</span>' +
+        '<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--muted);background:var(--bg);padding:2px 8px;border-radius:999px;">' + unitCount + '</span>' +
+      '</div>';
     }).join('');
+
+    // Bind click on each item
+    compoundDropdown.querySelectorAll('.hmf-cpd-item').forEach(function (item) {
+      item.addEventListener('click', function () {
+        var name = this.getAttribute('data-cpd');
+        var idx = filterState.compounds.indexOf(name);
+        if (idx >= 0) {
+          filterState.compounds.splice(idx, 1); // deselect
+        } else {
+          filterState.compounds.push(name); // select
+        }
+        renderCompoundDropdown(compoundInput.value);
+        renderChips();
+        applyFilter();
+        updateActiveBadge();
+      });
+      item.addEventListener('mouseenter', function () {
+        if (!this.classList.contains('selected')) this.style.background = 'var(--bg)';
+      });
+      item.addEventListener('mouseleave', function () {
+        if (!this.classList.contains('selected')) this.style.background = 'transparent';
+      });
+    });
   }
 
-  var filterState = { compound: '', beds: 0 };
+  // ── Render selected compound chips ──
+  function renderChips() {
+    if (!filterState.compounds.length) {
+      compoundChips.innerHTML = '';
+      compoundChips.style.minHeight = '0';
+      return;
+    }
+    compoundChips.style.minHeight = '32px';
+    compoundChips.innerHTML = filterState.compounds.map(function (name) {
+      return '<span class="hmf-chip" data-cpd="' + name + '" style="display:inline-flex;align-items:center;gap:6px;background:var(--pri);color:#fff;font-family:var(--font);font-size:12px;font-weight:700;padding:5px 10px 5px 12px;border-radius:999px;gap:6px;">' +
+        '<span>' + name + '</span>' +
+        '<button type="button" data-remove="' + name + '" style="border:none;background:rgba(255,255,255,.25);color:#fff;width:16px;height:16px;border-radius:50%;cursor:pointer;font-size:14px;line-height:1;display:grid;place-items:center;padding:0;" aria-label="Remove ' + name + '">×</button>' +
+      '</span>';
+    }).join('');
+    // Bind remove buttons
+    compoundChips.querySelectorAll('[data-remove]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var name = this.getAttribute('data-remove');
+        var idx = filterState.compounds.indexOf(name);
+        if (idx >= 0) filterState.compounds.splice(idx, 1);
+        renderCompoundDropdown(compoundInput.value);
+        renderChips();
+        applyFilter();
+        updateActiveBadge();
+      });
+    });
+  }
 
   function applyFilter() {
-    var q = filterState.compound.trim().toLowerCase();
-    var minBeds = filterState.beds;
+    var selectedCompounds = filterState.compounds;
+    var exactBeds = filterState.beds;
     var visible = [];
 
     allMarkers.forEach(function (m) {
       var c = m._compound;
       if (!c) return;
-      var matchName = !q || c.n.toLowerCase().indexOf(q) >= 0;
+      // Compound filter: if compounds selected, marker must be in the list
+      var matchCompound = !selectedCompounds.length || selectedCompounds.indexOf(c.n) >= 0;
+      // Beds filter: if beds > 0, compound must have at least one unit with EXACTLY that bedroom count
       var matchBeds = true;
-      if (minBeds > 0 && typeof D.unitsFor === 'function') {
-        // Check if this compound has at least one unit with >= minBeds
+      if (exactBeds > 0 && typeof D.unitsFor === 'function') {
         var units = D.unitsFor(c.n);
-        matchBeds = units.some(function (u) { return u.beds >= minBeds; });
+        matchBeds = units.some(function (u) { return u.beds === exactBeds; });
       }
-      var visible_now = matchName && matchBeds;
+      var visible_now = matchCompound && matchBeds;
       if (clusterGroup.hasLayer(m) && !visible_now) {
         clusterGroup.removeLayer(m);
       } else if (!clusterGroup.hasLayer(m) && visible_now) {
@@ -1514,7 +1595,7 @@
       if (visible_now) visible.push(m);
     });
 
-    countEl.textContent = visible.length + ' ' + ((window.HZ && HZ.lang && HZ.lang() === 'ar') ? (D.compoundName ? 'كمبوند' : 'كمبوند') : (visible.length === 1 ? 'compound' : 'compounds'));
+    countEl.textContent = visible.length + ' ' + ((window.HZ && HZ.lang && HZ.lang() === 'ar') ? 'كمبوند' : (visible.length === 1 ? 'compound' : 'compounds'));
 
     // Refit bounds to visible markers
     if (visible.length > 0) {
@@ -1526,23 +1607,44 @@
     setTimeout(function () { map.invalidateSize(); }, 100);
   }
 
+  // ── Compound input: search + open dropdown ──
   if (compoundInput) {
+    compoundInput.addEventListener('focus', function () {
+      compoundDropdown.style.display = 'block';
+      compoundChevron.style.transform = 'rotate(180deg)';
+      renderCompoundDropdown(compoundInput.value);
+    });
     compoundInput.addEventListener('input', function (e) {
-      filterState.compound = e.target.value;
-      clearBtn.style.display = e.target.value ? 'block' : 'none';
-      applyFilter();
-      updateActiveBadge();
+      compoundDropdown.style.display = 'block';
+      compoundChevron.style.transform = 'rotate(180deg)';
+      renderCompoundDropdown(e.target.value);
     });
   }
-  if (clearBtn) {
-    clearBtn.addEventListener('click', function () {
-      compoundInput.value = '';
-      filterState.compound = '';
-      clearBtn.style.display = 'none';
-      applyFilter();
-      updateActiveBadge();
+  // Close dropdown when clicking outside
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#hmf-compound-dropdown') && !e.target.closest('#home-map-compound') && !e.target.closest('#hmf-compound-chevron')) {
+      compoundDropdown.style.display = 'none';
+      compoundChevron.style.transform = 'rotate(0)';
+    }
+  });
+  // Chevron click toggles dropdown
+  if (compoundChevron) {
+    compoundChevron.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var isOpen = compoundDropdown.style.display === 'block';
+      if (isOpen) {
+        compoundDropdown.style.display = 'none';
+        compoundChevron.style.transform = 'rotate(0)';
+      } else {
+        compoundDropdown.style.display = 'block';
+        compoundChevron.style.transform = 'rotate(180deg)';
+        renderCompoundDropdown(compoundInput.value);
+        compoundInput.focus();
+      }
     });
   }
+
+  // ── Beds selector (single select, exact match) ──
   if (bedsWrap) {
     bedsWrap.querySelectorAll('button').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -1563,7 +1665,7 @@
 
   function updateActiveBadge() {
     var count = 0;
-    if (filterState.compound.trim()) count++;
+    if (filterState.compounds.length) count++;
     if (filterState.beds > 0) count++;
     if (count > 0) {
       activeBadge.style.display = 'inline-flex';
@@ -1589,9 +1691,11 @@
   if (hmfReset) {
     hmfReset.addEventListener('click', function () {
       compoundInput.value = '';
-      filterState.compound = '';
+      filterState.compounds = [];
       filterState.beds = 0;
-      clearBtn.style.display = 'none';
+      compoundDropdown.style.display = 'none';
+      compoundChevron.style.transform = 'rotate(0)';
+      renderChips();
       bedsWrap.querySelectorAll('button').forEach(function (x, i) { x.classList.toggle('on', i === 0); });
       applyFilter();
       updateActiveBadge();

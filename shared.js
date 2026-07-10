@@ -88,7 +88,8 @@
       hmfPlaceholder: 'Filter by compound (e.g. Mivida, Hyde Park)…',
       hmfCountSingular: 'compound', hmfCountPlural: 'compounds',
       hmfAny: 'Any', hmfBeds: 'Bedrooms',
-      hmfTitle: 'Smart Filter', hmfReset: 'Reset'
+      hmfTitle: 'Smart Filter', hmfReset: 'Reset',
+      hmfCompounds: 'Compounds', hmfMultiHint: '— click to select multiple'
     },
     ar: {
       dir: 'rtl',
@@ -173,7 +174,8 @@
       hmfPlaceholder: 'ابحث باسم الكمبوند (مثال: ميفيدا، هايد بارك)…',
       hmfCountSingular: 'كمبوند', hmfCountPlural: 'كمبوند',
       hmfAny: 'الكل', hmfBeds: 'غرف النوم',
-      hmfTitle: 'فلتر ذكي', hmfReset: 'إعادة ضبط'
+      hmfTitle: 'فلتر ذكي', hmfReset: 'إعادة ضبط',
+      hmfCompounds: 'الكمبوندات', hmfMultiHint: '— اضغط لاختيار أكثر من كمبوند'
     }
   };
 
