@@ -36,6 +36,7 @@
     "@react-three/fiber": "^9.6.1",
     "@sierra-estates/agents": "workspace:*",
     "@sierra-estates/db": "workspace:*",
+    "@sierra-estates/exchange": "workspace:*",
     "@sierra-estates/memory-engine": "workspace:*",
     "@sierra-estates/ui": "workspace:*",
     "@types/leaflet": "^1.9.21",
