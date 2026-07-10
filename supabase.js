@@ -32,8 +32,8 @@
     if (!window.SIERRA_SUPABASE_ENABLED) return false;
     if (!window.supabase || !window.SIERRA_SUPABASE_CONFIG) return false;
     var cfg = window.SIERRA_SUPABASE_CONFIG;
-    if (cfg.url.indexOf('YOUR-PROJECT-ID') === 0) return false;
-    if (cfg.anonKey.indexOf('PASTE-YOUR') === 0) return false;
+    if (!cfg.url || cfg.url.indexOf('YOUR-PROJECT-ID') !== -1) return false;
+    if (!cfg.anonKey || cfg.anonKey.indexOf('PASTE-YOUR') === 0) return false;
     try {
       sb = window.supabase.createClient(cfg.url, cfg.anonKey);
       connected = true;
