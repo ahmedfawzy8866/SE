@@ -216,9 +216,7 @@
 /* ── testimonials ── */
 .testi-band{background:var(--pri-soft);}
 [data-theme="dark"] .testi-band{background:#15130c;}
-.grid-testi{display:grid;grid-template-columns:1.3fr 1fr;grid-template-rows:repeat(2,1fr);gap:22px;}
-.grid-testi .tcard:first-child{grid-row:1 / 3;}
-.grid-testi .tcard:first-child p{font-size:17px;line-height:1.7;}
+.grid-testi{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
 .tcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:28px;display:flex;flex-direction:column;gap:16px;transition:.25s var(--silk);}
 .tcard:hover{transform:translateY(-4px);box-shadow:var(--shadow-m);}
 .tcard .stars{display:flex;gap:3px;color:#f5a623;}
@@ -337,9 +335,7 @@
   .search-fields{grid-template-columns:1fr 1fr;}
   .field.searchbtn{grid-column:1/-1;}
   .grid-comp,.grid-feat{grid-template-columns:repeat(2,1fr);}
-  .grid-testi{grid-template-columns:1fr;grid-template-rows:none;}
-  .grid-testi .tcard:first-child{grid-row:auto;}
-  .grid-testi .tcard:first-child p{font-size:14.5px;}
+  .grid-testi{grid-template-columns:1fr;}
   .perfect{grid-template-columns:1fr;}
 }
 @media(max-width:680px){
@@ -486,7 +482,7 @@
       خصم 25% على رسوم الخدمة" — calm, slow flashing -->
 <div class="bell-bar" id="bell-bar">
   <div class="bell-content">
-    <span class="bell-text">The first real estate ecosystem in Egypt · استكشف أفضل الفرص المتاحة في التجمع الخامس <b>AI Driven</b> · قدم طلبك الآن</span>
+    <span class="bell-text">The first real estate ecosystem in Egypt — استكشف أفضل الفرص المتاحة في التجمع الخامس <b>AI Driven</b> — قدم طلبك الآن</span>
     <span class="bell-badge">خصم 25%</span>
     <a href="#contact" class="bell-btn">اطلب الآن <i data-lucide="arrow-right" style="width:13px;height:13px;"></i></a>
   </div>
@@ -577,12 +573,14 @@
   <div class="wrap">
     <div class="sec-head rv" style="flex-direction:column;align-items:center;text-align:center;">
       <div>
+        <div class="eyebrow" style="justify-content:center;" data-i18n="eyeWhy"></div>
         <h2>Why Sierra<sup>1</sup> Estates<sup>&trade;</sup></h2>
         <p data-i18n="whySub" style="margin-inline:auto;"></p>
       </div>
     </div>
     <div class="net-banner rv">
       <div class="nb-left">
+        <div class="eyebrow" data-i18n="netEye"></div>
         <h3 data-i18n="netTit"></h3>
         <p data-i18n="netBody"></p>
       </div>
@@ -625,6 +623,7 @@
   <div class="wrap">
     <div class="sec-head rv" style="display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-bottom:24px;">
       <div>
+        <div class="eyebrow" data-i18n="eyeTour"></div>
         <h2 data-i18n="tourTit" style="font-family:var(--display);font-size:34px;font-weight:700;letter-spacing:-.01em;"></h2>
         <p data-i18n="tourSub"></p>
       </div>
@@ -653,10 +652,10 @@
           </span>
           <span style="font-family:var(--display);font-size:46px;font-weight:700;line-height:1.05;letter-spacing:-.015em;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.55);max-width:560px;">
             Walk Through Your<br/>Next Home
-            <span style="display:inline-block;font-style:italic;color:#e9c176;font-weight:600;">Before You Visit</span>
+            <span style="display:inline-block;font-style:italic;color:#e9c176;font-weight:600;">— Before You Visit</span>
           </span>
           <span style="font-size:14.5px;line-height:1.55;color:rgba(255,255,255,.86);max-width:480px;font-weight:500;margin-top:4px;text-shadow:0 1px 8px rgba(0,0,0,.4);">
-            Every Sierra listing is captured in cinematic 4K HDR. Stroll room-by-room, peek into the garden at dusk, gauge the pool from above, all from your screen, all in seconds.
+            Every Sierra listing is captured in cinematic 4K HDR. Stroll room-by-room, peek into the garden at dusk, gauge the pool from above — all from your screen, all in seconds.
           </span>
           <!-- Feature pills -->
           <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
@@ -688,7 +687,7 @@
           <span style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.16em;color:#e9c176;text-transform:uppercase;">
             <i data-lucide="map-pin" class="i" style="width:11px;height:11px;"></i> Featured · New Cairo
           </span>
-          <span style="font-family:var(--display);font-size:22px;font-weight:700;line-height:1.2;color:#fff;max-width:480px;letter-spacing:-.005em;">Sierra Signature Villa · Mivida</span>
+          <span style="font-family:var(--display);font-size:22px;font-weight:700;line-height:1.2;color:#fff;max-width:480px;letter-spacing:-.005em;">Sierra Signature Villa — Mivida</span>
           <span style="font-family:var(--mono);font-size:11.5px;color:rgba(255,255,255,.78);font-weight:600;">5 Bed · 6 Bath · 480 m² · Pool · Garden</span>
         </span>
 
@@ -800,8 +799,9 @@
   <div class="wrap">
     <div class="sec-head rv">
       <div>
+        <div class="eyebrow" style="color:#34d399;">SMART MAP · LIVE</div>
         <h2>اكتشف أفضل الفرص</h2>
-        <p>Explore all New Cairo compounds on the interactive map. Click any marker for details.</p>
+        <p>Explore all New Cairo compounds on the interactive map — click any marker for details.</p>
       </div>
       <a href="compounds.html" class="sec-link"><span data-i18n="allCpds"></span> <i data-lucide="arrow-right" class="i" style="width:16px;height:16px"></i></a>
     </div>
@@ -822,7 +822,7 @@
           <span id="hmf-active-badge" style="display:none;background:var(--pri);color:#fff;font-family:var(--mono);font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;letter-spacing:.04em;">0</span>
         </span>
         <span style="display:flex;align-items:center;gap:12px;">
-          <span id="home-map-count" style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em;white-space:nowrap;">… compounds</span>
+          <span id="home-map-count" style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em;white-space:nowrap;">— compounds</span>
           <i data-lucide="chevron-down" class="i" id="hmf-chevron" style="width:18px;height:18px;color:var(--muted);transition:transform .3s var(--silk);flex:none;"></i>
         </span>
       </button>
@@ -834,7 +834,7 @@
           <div style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">
             <i data-lucide="building-2" class="i" style="width:14px;height:14px;"></i>
             <span data-i18n="hmfCompounds">Compounds</span>
-            <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:none;color:var(--muted);opacity:.7;" data-i18n="hmfMultiHint">Click to select multiple</span>
+            <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:none;color:var(--muted);opacity:.7;" data-i18n="hmfMultiHint">— click to select multiple</span>
           </div>
           <!-- Selected chips area -->
           <div id="hmf-compound-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;min-height:0;"></div>
@@ -890,8 +890,9 @@
   <div class="wrap">
     <div class="sec-head rv">
       <div>
+        <div class="eyebrow" style="color:#34d399;">AI INSIGHTS · LIVE</div>
         <h2>Best Listings Right Now</h2>
-        <p>AI-ranked by match score, ROI potential, and market demand. Updates in real-time.</p>
+        <p>AI-ranked by match score, ROI potential, and market demand — updates in real-time.</p>
       </div>
     </div>
     <div id="insights-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-bottom:30px;"></div>
@@ -951,6 +952,7 @@
   <div class="wrap">
     <div class="perfect rv">
       <div class="pf-left">
+        <div class="eyebrow" style="color:#8fe1ff;" data-i18n="eyePerfect"></div>
         <h2 data-i18n="perfTit"></h2>
         <p data-i18n="perfSub"></p>
         <div class="pf-item"><span class="num">01</span><div><h4 data-i18n="pc1t"></h4><p data-i18n="pc1s"></p></div></div>
@@ -1239,7 +1241,7 @@
       }
       heroResults.innerHTML = matches.map(function (c) {
         return '<div class="compound-option" data-cpd="' + c.n + '" style="padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--line);font-size:13px;color:var(--ink);transition:.15s;">' +
-          '<b>' + c.n + '</b> <span style="color:var(--muted);font-size:11px;">&middot; ' + c.z + ' &middot; ' + D.unitsFor(c.n).length + ' units</span>' +
+          '<b>' + c.n + '</b> <span style="color:var(--muted);font-size:11px;">— ' + c.z + ' · ' + D.unitsFor(c.n).length + ' units</span>' +
           '</div>';
       }).join('');
       heroResults.style.display = 'block';

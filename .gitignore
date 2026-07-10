@@ -16,78 +16,48 @@ certs/
 service-account.json
 *-firebase-adminsdk-*.json
 google-credentials.json
-**/service-account.json
-**/firebase-adminsdk-*.json
 
 # Environment files
 .env
 .env.local
-.env.*.local
-.env.development
 .env.production
-.env.preview
+*.env
 
-# ─── Node.js ────────────────────────────────────────────────────────────────
+# ─── Dependencies ───────────────────────────────────────────────────────────
 node_modules/
-/node_modules
-.claude/worktrees/
-firebase/firebase/
-firebase/firebase/Sierra-Estates-Final/
 .pnp
-/.pnp
-.pnp.*
 .pnp.js
 
-# next.js
-/.next/
-/out/
-/build
+# ─── Build outputs ──────────────────────────────────────────────────────────
+dist/
+build/
+.next/
+.nuxt/
+.cache/
 
-# production
-/dist
-
-# ─── OS files ───────────────────────────────────────────────────────────────
-.DS_Store
-Thumbs.db
-*.log
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# firebase
-/firebase-debug.log
-/firestore-debug.log
-/ui-debug.log
-.firebaserc
-
-# vercel
-.vercel
-**/.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts.bak
-
-# tests
-/coverage
-/.coverage
-jest.config.ts.bak
-
-# ─── Editor ─────────────────────────────────────────────────────────────────
+# ─── IDE ────────────────────────────────────────────────────────────────────
 .vscode/
-/.vscode/*
-!/.vscode/settings.json
-!/.vscode/extensions.json
 .idea/
-/.idea
 *.swp
 *.swo
 
-# python (none expected, but defensive)
-__pycache__/
-*.pyc
-.venv/
-venv/
+# ─── OS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── AWS / Infra secrets ────────────────────────────────────────────────────
+secrets/
+!package.json
+!tsconfig.json
+
+# ─── n8n data ───────────────────────────────────────────────────────────────
+n8n-data/
+whatsapp-auth/
+
+# ─── Logs ───────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ─── Firebase config (safe to commit — designed to be public) ──────────────
+!firebase-config.js
+!supabase-config.js
