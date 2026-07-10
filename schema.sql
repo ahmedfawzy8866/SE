@@ -235,11 +235,8 @@ CREATE POLICY "career_admin_read" ON career_applications
 CREATE POLICY "career_admin_update" ON career_applications
   FOR UPDATE TO authenticated USING (is_admin()) WITH CHECK (is_admin());
 
--- ─── Leads: anon can insert (webhook), admin can do everything ───
 CREATE POLICY "leads_webhook_insert" ON leads
-  FOR INSERT TO anon, authenticated WITH CHECK (true);
-CREATE POLICY "leads_admin_all" ON leads
-  FOR ALL TO authenticated USING (is_admin()) WITH CHECK (is_admin());
+  FOR INSERT TO authenticated WITH CHECK (true);
 
 -- ─── Users: self read, admin write ───
 CREATE POLICY "users_self_read" ON users
