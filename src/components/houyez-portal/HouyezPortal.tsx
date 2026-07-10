@@ -226,8 +226,7 @@ export default function HouyezPortal() {
               {theme === 'dark' ? <Sun className="i" /> : <Moon className="i" />}
             </button>
             <button className="icon-btn lang-btn" onClick={toggleLocale}
-              aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}>
-              {isAr ? 'EN' : 'ع'}
+              aria-label={t('Switch to Arabic', 'التبديل إلى الإنجليزية')}>
             </button>
             <button className="btn btn-pri nav-cta" onClick={() => scrollTo('se-contact')}>
               {t('Get in touch', 'تواصل معنا')}
