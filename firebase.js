@@ -1,12 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════════
  * Sierra Estates — Firebase Integration Layer (LIVE PORTAL)
  * File: firebase.js
- * ═══════════════════════════════════════════════════════════════════════════
- *
- *  Provides window.SIERRA_DB API for the live portal.
- *  Uses Firebase compat SDK (works with the portal's ES5-style IIFEs).
- *
- *  FALLBACK: If Firebase fails to load, falls back to static data.js.
  * ═══════════════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -20,7 +14,12 @@
     if (!window.firebase || !window.SIERRA_FIREBASE_CONFIG) return false;
     var cfg = window.SIERRA_FIREBASE_CONFIG;
     try {
-      if (!firebase.app()) firebase.initializeApp(cfg);
+      // Check if app already initialized (prevents duplicate-app error)
+      try {
+        firebase.app();
+      } catch (e) {
+        firebase.initializeApp(cfg);
+      }
       db = firebase.firestore();
       connected = true;
       if (window.console) console.info('[Sierra] Firebase connected to project:', cfg.projectId);
@@ -33,7 +32,6 @@
 
   function isReady() { return connected; }
 
-  // ── Get all compounds ──
   function getCompounds() {
     if (!connected) return Promise.resolve(D.compounds || []);
     return db.collection('compounds').get().then(function (snap) {
@@ -41,7 +39,6 @@
     }).catch(function () { return D.compounds || []; });
   }
 
-  // ── Get units for a compound ──
   function getUnitsFor(name) {
     if (!connected) return Promise.resolve(D.unitsFor ? D.unitsFor(name) : []);
     return db.collection('units').where('compound', '==', name).get().then(function (snap) {
@@ -50,19 +47,13 @@
     }).catch(function () { return D.unitsFor ? D.unitsFor(name) : []; });
   }
 
-  // ── Add inquiry (from website form) ──
   function addInquiry(data) {
     var payload = {
       created_at: firebase.firestore.FieldValue.serverTimestamp(),
       mode: data.mode || 'buy',
-      name: data.name || '',
-      phone: data.phone || '',
-      email: data.email || '',
-      zone: data.zone || '',
-      type: data.type || '',
-      budget: data.budget || '',
-      status: 'new',
-      source: 'website'
+      name: data.name || '', phone: data.phone || '', email: data.email || '',
+      zone: data.zone || '', type: data.type || '', budget: data.budget || '',
+      status: 'new', source: 'website'
     };
     if (!connected) {
       try {
@@ -84,7 +75,6 @@
     });
   }
 
-  // ── Add career application ──
   function addCareerApp(data) {
     var payload = {
       created_at: firebase.firestore.FieldValue.serverTimestamp(),
@@ -102,9 +92,7 @@
     }
     return db.collection('career_applications').add(payload).then(function (ref) {
       return { id: ref.id, fallback: false };
-    }).catch(function () {
-      return { id: 'local-' + Date.now(), fallback: true };
-    });
+    }).catch(function () { return { id: 'local-' + Date.now(), fallback: true }; });
   }
 
   init();
