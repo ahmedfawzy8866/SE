@@ -28,6 +28,8 @@ google-credentials.json
 # ─── Node.js ────────────────────────────────────────────────────────────────
 node_modules/
 /node_modules
+.claude/worktrees/
+firebase/firebase/Sierra-Estates-Final/
 .pnp
 /.pnp
 .pnp.*
