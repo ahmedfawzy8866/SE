@@ -1520,7 +1520,8 @@
 
     // Bind click on each item
     compoundDropdown.querySelectorAll('.hmf-cpd-item').forEach(function (item) {
-      item.addEventListener('click', function () {
+      item.addEventListener('click', function (e) {
+        e.stopPropagation();
         var name = this.getAttribute('data-cpd');
         var idx = filterState.compounds.indexOf(name);
         if (idx >= 0) {
@@ -1619,6 +1620,8 @@
       compoundChevron.style.transform = 'rotate(180deg)';
       renderCompoundDropdown(e.target.value);
     });
+    // Prevent document click handler from closing dropdown when clicking input
+    compoundInput.addEventListener('click', function (e) { e.stopPropagation(); });
   }
   // Close dropdown when clicking outside
   document.addEventListener('click', function (e) {
