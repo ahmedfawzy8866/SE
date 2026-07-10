@@ -87,7 +87,8 @@
       afType: 'Type', afPrice: 'Price (EGP M)', afBeds: 'Bedrooms', afDelivery: 'Delivery', afMode: 'Mode',
       hmfPlaceholder: 'Filter by compound (e.g. Mivida, Hyde Park)…',
       hmfCountSingular: 'compound', hmfCountPlural: 'compounds',
-      hmfAny: 'Any', hmfBeds: 'Bedrooms'
+      hmfAny: 'Any', hmfBeds: 'Bedrooms',
+      hmfTitle: 'Smart Filter', hmfReset: 'Reset'
     },
     ar: {
       dir: 'rtl',
@@ -171,7 +172,8 @@
       afType: 'النوع', afPrice: 'السعر (مليون ج.م)', afBeds: 'غرف النوم', afDelivery: 'التسليم', afMode: 'النوع',
       hmfPlaceholder: 'ابحث باسم الكمبوند (مثال: ميفيدا، هايد بارك)…',
       hmfCountSingular: 'كمبوند', hmfCountPlural: 'كمبوند',
-      hmfAny: 'الكل', hmfBeds: 'غرف النوم'
+      hmfAny: 'الكل', hmfBeds: 'غرف النوم',
+      hmfTitle: 'فلتر ذكي', hmfReset: 'إعادة ضبط'
     }
   };
 
