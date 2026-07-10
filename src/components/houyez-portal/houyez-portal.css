@@ -156,6 +156,7 @@
   align-items: center;
   gap: 11px;
   background: rgba(255,255,255,0.14);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border: 1.5px solid rgba(255,255,255,0.35);
   color: #fff;
@@ -367,6 +368,13 @@
   scroll-snap-type: x mandatory;
   padding-bottom: 12px;
   scrollbar-width: thin;
+}
+.houyez-portal .hz-rooms::-webkit-scrollbar {
+  height: 6px;
+}
+.houyez-portal .hz-rooms::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px;
 }
 .houyez-portal .hz-room {
   position: relative;
