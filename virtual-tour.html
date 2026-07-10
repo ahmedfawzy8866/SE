@@ -28,6 +28,15 @@ const G = '#C8961A', GL = '#E9C176', N = '#071422';
 const Mo = (window.Motion || {}).motion;
 const AP = (window.Motion || {}).AnimatePresence;
 
+// Pull room data from HZDATA (data.js) — falls back to demo rooms if missing
+var ROOMS = (window.HZDATA && window.HZDATA.rooms) ? window.HZDATA.rooms : [
+  { name: 'Luxury Living Room', sub: 'Hyde Park · Grand Villa', img: 'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=1400&q=85' },
+  { name: 'Master Bedroom Suite', sub: 'Mountain View iCity · Penthouse', img: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=1400&q=85' },
+  { name: 'Garden Courtyard', sub: 'Villette · Villa G-Type', img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=85' },
+  { name: 'Infinity Pool & Deck', sub: 'Taj City · Signature Villa', img: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=1400&q=85' },
+  { name: 'Rooftop Sky Terrace', sub: 'Uptown Cairo · Penthouse', img: 'https://images.unsplash.com/photo-1622547748225-3fc4abd2cca0?w=1400&q=85' }
+];
+
 function Room(props) {
   var room = props.room;
   var drag = useRef({ x: 0, active: false, startX: 0 });
