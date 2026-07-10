@@ -206,12 +206,7 @@
       '</div>' +
     '</div></nav>' +
     // ─── Mobile bottom navigation bar (5 buttons) ───
-    '<nav class="bottom-nav" id="bottom-nav">' +
-      '<a href="index.html"' + act('home') + ' class="bn-item"><i data-lucide="home" class="i"></i><span data-i18n="navHome">' + t('navHome') + '</span></a>' +
-      '<a href="properties.html"' + act('best') + ' class="bn-item"><i data-lucide="search" class="i"></i><span data-i18n="navBest">' + t('navBest') + '</span></a>' +
-      '<a href="compounds.html"' + act('cpds') + ' class="bn-item"><i data-lucide="map" class="i"></i><span data-i18n="navCpds">' + t('navCpds') + '</span></a>' +
-      '<a href="index.html#ai" class="bn-item"><i data-lucide="sparkles" class="i"></i><span>AI Hub</span></a>' +
-      '<a href="index.html#contact" class="bn-item"><i data-lucide="heart" class="i"></i><span data-i18n="navContact">' + t('navContact') + '</span></a>' +
+      '<a href="index.html#ai" class="bn-item"><i data-lucide="sparkles" class="i"></i><span data-i18n="navAI">' + t('navAI') + '</span></a>' +
     '</nav>';
   }
 
