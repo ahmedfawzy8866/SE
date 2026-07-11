@@ -61,3 +61,6 @@ npm-debug.log*
 # ─── Firebase config (safe to commit — designed to be public) ──────────────
 !firebase-config.js
 !supabase-config.js
+apps/admin/.env
+apps/client/.env.local
+infra/.env
