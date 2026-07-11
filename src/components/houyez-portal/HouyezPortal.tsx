@@ -28,7 +28,10 @@ import {
   type HouyezListing,
 } from '@/data/houyez-properties';
 import VirtualTourViewer from '@/components/virtual-tour/VirtualTourViewer';
+import dynamic from 'next/dynamic';
 import './houyez-portal.css';
+
+const LiveMap = dynamic(() => import('@/components/Maps/LiveMap'), { ssr: false });
 
 const HERO_INTERVAL_MS = 6000;
 type Locale = 'en' | 'ar';
@@ -411,6 +414,14 @@ export default function HouyezPortal() {
               </a>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── LIVE MAP ── */}
+      <section className="block" id="se-map" style={{ padding: 0 }}>
+        <div style={{ height: '500px', width: '100%', position: 'relative' }}>
+          <LiveMap mode={theme} />
+          <div className="co-scrim" style={{ pointerEvents: 'none', background: 'linear-gradient(0deg, var(--bg) 0%, transparent 20%, transparent 80%, var(--bg) 100%)' }} />
         </div>
       </section>
 
