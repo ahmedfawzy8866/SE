@@ -10,13 +10,41 @@
  * Styling lives in ./admin-portal.css (extracted from the same bundle).
  */
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Bot, Zap, Settings, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import {
+  Bot, Zap, Settings, AlertCircle, CheckCircle2, Clock,
+  Plus, Search, Trash2, Phone, Eye, X, Check,
+  Building2, MapPin, BedDouble, Loader2,
+  MessageCircle, Send, User, Headphones, Tag,
+} from 'lucide-react';
 import {
   subscribeAllExchange,
   subscribeAgentTasks,
   subscribeWorkflowRuns,
   sendAdminSignal,
 } from '@sierra-estates/exchange';
+import {
+  fetchListings as adminFetchListings,
+  createListingWithOwner as adminCreateListingWithOwner,
+  updateListing as adminUpdateListing,
+  deleteListingAndOwner as adminDeleteListingAndOwner,
+  fetchOwnerByListingId as adminFetchOwnerByListingId,
+  fetchRequests as adminFetchRequests,
+  fetchRequestById as adminFetchRequestById,
+  escalateToAgent as adminEscalateToAgent,
+  closeRequest as adminCloseRequest,
+  appendChatMessage as adminAppendChatMessage,
+  type Listing as AdminListing,
+  type ListingInput as AdminListingInput,
+  type Owner as AdminOwner,
+  type ListingStatus as AdminListingStatus,
+  type PropertyType as AdminPropertyType,
+  type FinishingLevel as AdminFinishingLevel,
+  type DeliveryStatus as AdminDeliveryStatus,
+  type ListingMode as AdminListingMode,
+  type Request as AdminRequest,
+  type RequestStatus as AdminRequestStatus,
+  type ChatMessage as AdminChatMessage,
+} from '@sierra-estates/admin-data';
 import './admin-portal.css';
 
 
@@ -148,6 +176,8 @@ const NAV_ITEMS = (T) => [
   {id:'pipeline',label:T('lang')==='ar'?'الصفقات':'Pipeline',icon:'💼',section:T('operations')},
   {id:'tasks',label:T('lang')==='ar'?'المهام':'Tasks',icon:'✅',section:T('operations'),badge:'5',badgeCls:'nb-blue'},
   {id:'listings',label:T('listings'),icon:'🏘️',section:T('operations')},
+  {id:'listings-manager',label:T('lang')==='ar'?'إدارة الوحدات':'Listings Manager',icon:'📝',section:T('operations')},
+  {id:'requests',label:T('lang')==='ar'?'الطلبات':'Requests',icon:'🎫',section:T('operations')},
   {id:'curator',label:T('curator'),icon:'🎨',section:T('operations')},
   {id:'scribe',label:T('scribe'),icon:'✍️',section:T('operations')},
   {id:'closer',label:T('closer'),icon:'💼',section:T('operations')},
@@ -1093,6 +1123,854 @@ function NexusExchangePage({ T }) {
   );
 }
 
+/* ── LISTINGS MANAGER (ported from SE's Vite admin) ──────────────────────
+   Full CRUD over the listings/owners collections (@sierra-estates/admin-data)
+   — atomic create/delete with owner PII, separate from the read-only
+   Listings Hub tab above which reads the client-facing units/properties
+   collections. Two different data models on purpose (see report). */
+const LISTING_STATUS_COLORS: Record<string, string> = {
+  draft: 'bg-gray-100 text-gray-700 border-gray-300',
+  active: 'bg-green-100 text-green-700 border-green-300',
+  sold: 'bg-blue-100 text-blue-700 border-blue-300',
+};
+const LISTING_PROPERTY_TYPES: AdminPropertyType[] = [
+  'apartment', 'villa', 'townhouse', 'twin_house', 'penthouse', 'duplex', 'studio',
+];
+const LISTING_FINISHING_LEVELS: AdminFinishingLevel[] = [
+  'core_shell', 'semi', 'fully_finished', 'ultra_lux',
+];
+const LISTING_DELIVERY_STATUSES: AdminDeliveryStatus[] = [
+  'ready', 'under_construction', 'off_plan',
+];
+
+function ListingsManagerPage() {
+  const [listings, setListings] = useState<AdminListing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<AdminListingStatus | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [ownerCache, setOwnerCache] = useState<Record<string, AdminOwner | null>>({});
+  const [revealedOwners, setRevealedOwners] = useState<Set<string>>(new Set());
+
+  const loadListings = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await adminFetchListings({
+        status: filterStatus === 'all' ? undefined : filterStatus,
+        limitCount: 200,
+      });
+      setListings(data);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load listings');
+    } finally {
+      setLoading(false);
+    }
+  }, [filterStatus]);
+
+  useEffect(() => { loadListings(); }, [loadListings]);
+
+  const handleRevealOwner = async (listingId: string) => {
+    if (revealedOwners.has(listingId)) {
+      setRevealedOwners(prev => {
+        const next = new Set(prev);
+        next.delete(listingId);
+        return next;
+      });
+      return;
+    }
+    if (!ownerCache[listingId]) {
+      try {
+        const owner = await adminFetchOwnerByListingId(listingId);
+        setOwnerCache(prev => ({ ...prev, [listingId]: owner }));
+      } catch (err) {
+        console.error('Failed to fetch owner:', err);
+      }
+    }
+    setRevealedOwners(prev => new Set(prev).add(listingId));
+  };
+
+  const handleStatusChange = async (id: string, status: AdminListingStatus) => {
+    try {
+      await adminUpdateListing(id, { status });
+      setListings(prev => prev.map(l => l.id === id ? { ...l, status } : l));
+    } catch (err: any) {
+      setError(`Failed to update status: ${err.message}`);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this listing AND its owner record? This cannot be undone.')) return;
+    try {
+      await adminDeleteListingAndOwner(id);
+      setListings(prev => prev.filter(l => l.id !== id));
+    } catch (err: any) {
+      setError(`Failed to delete: ${err.message}`);
+    }
+  };
+
+  const filtered = listings.filter(l => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return l.compound_name.toLowerCase().includes(q) ||
+           l.location_sector.toLowerCase().includes(q) ||
+           l.property_type.toLowerCase().includes(q);
+  });
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Listings Manager</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {filtered.length} listing{filtered.length !== 1 ? 's' : ''} ·
+            Atomic create/delete with owner PII
+          </p>
+        </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm"
+        >
+          <Plus size={18} /> New Listing
+        </button>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-700">
+          <AlertCircle size={16} /> {error}
+          <button onClick={() => setError(null)} className="ml-auto"><X size={14} /></button>
+        </div>
+      )}
+
+      <div className="flex gap-3 mb-4">
+        <div className="flex-1 relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by compound, sector, or type..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <select
+          value={filterStatus}
+          onChange={e => setFilterStatus(e.target.value as any)}
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+        >
+          <option value="all">All Status</option>
+          <option value="draft">Draft</option>
+          <option value="active">Active</option>
+          <option value="sold">Sold</option>
+        </select>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-12 text-gray-400">
+          <Loader2 className="animate-spin mr-2" size={20} /> Loading listings...
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          <Building2 size={40} className="mx-auto mb-3 opacity-50" />
+          <p>No listings found. Create one to get started.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto bg-white rounded-xl border border-gray-200">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-600 text-xs uppercase">
+              <tr>
+                <th className="text-left px-4 py-3 font-semibold">Compound</th>
+                <th className="text-left px-4 py-3 font-semibold">Type</th>
+                <th className="text-left px-4 py-3 font-semibold">Beds</th>
+                <th className="text-left px-4 py-3 font-semibold">Area</th>
+                <th className="text-left px-4 py-3 font-semibold">Price (EGP)</th>
+                <th className="text-left px-4 py-3 font-semibold">Mode</th>
+                <th className="text-left px-4 py-3 font-semibold">Status</th>
+                <th className="text-left px-4 py-3 font-semibold">Owner</th>
+                <th className="text-right px-4 py-3 font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filtered.map(listing => (
+                <tr key={listing.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-gray-900">{listing.compound_name}</div>
+                    <div className="text-xs text-gray-500 flex items-center gap-1">
+                      <MapPin size={10} /> {listing.location_sector}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 capitalize">{listing.property_type.replace('_', ' ')}</td>
+                  <td className="px-4 py-3">{listing.bedrooms}</td>
+                  <td className="px-4 py-3">{listing.area_sqm} m²</td>
+                  <td className="px-4 py-3 font-mono font-medium">
+                    {listing.price_egp.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                      listing.mode === 'sale' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'
+                    }`}>
+                      {listing.mode}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
+                      value={listing.status}
+                      onChange={e => handleStatusChange(listing.id, e.target.value as AdminListingStatus)}
+                      className={`px-2 py-1 rounded border text-xs font-medium cursor-pointer ${LISTING_STATUS_COLORS[listing.status]}`}
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="active">Active</option>
+                      <option value="sold">Sold</option>
+                    </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    {revealedOwners.has(listing.id) ? (
+                      ownerCache[listing.id] ? (
+                        <div className="text-xs">
+                          <div className="font-medium text-gray-900">{ownerCache[listing.id]!.owner_name}</div>
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <Phone size={10} /> {ownerCache[listing.id]!.phone_number}
+                          </div>
+                          <div className="text-gray-400">{ownerCache[listing.id]!.source_type}</div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">No owner</span>
+                      )
+                    ) : (
+                      <button
+                        onClick={() => handleRevealOwner(listing.id)}
+                        className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                      >
+                        <Eye size={12} /> Reveal
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => handleDelete(listing.id)}
+                      className="text-red-500 hover:text-red-700 p-1"
+                      title="Delete listing + owner"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {showCreateModal && (
+        <CreateListingModal
+          onClose={() => setShowCreateModal(false)}
+          onCreated={() => {
+            setShowCreateModal(false);
+            loadListings();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function CreateListingModal({ onClose, onCreated }: {
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [compoundName, setCompoundName] = useState('');
+  const [locationSector, setLocationSector] = useState('');
+  const [propertyType, setPropertyType] = useState<AdminPropertyType>('apartment');
+  const [bedrooms, setBedrooms] = useState(3);
+  const [bathrooms, setBathrooms] = useState(2);
+  const [areaSqm, setAreaSqm] = useState(180);
+  const [priceEgp, setPriceEgp] = useState(10000000);
+  const [mode, setMode] = useState<AdminListingMode>('sale');
+  const [finishing, setFinishing] = useState<AdminFinishingLevel>('fully_finished');
+  const [deliveryStatus, setDeliveryStatus] = useState<AdminDeliveryStatus>('ready');
+  const [paymentPlan, setPaymentPlan] = useState('');
+  const [virtualTourUrl, setVirtualTourUrl] = useState('');
+  const [status, setStatus] = useState<AdminListingStatus>('draft');
+
+  const [ownerName, setOwnerName] = useState('');
+  const [ownerPhone, setOwnerPhone] = useState('');
+  const [ownerEmail, setOwnerEmail] = useState('');
+  const [sourceType, setSourceType] = useState<'direct' | 'broker'>('direct');
+  const [brokerName, setBrokerName] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!compoundName.trim() || !ownerName.trim() || !ownerPhone.trim()) {
+      setError('Compound name, owner name, and owner phone are required.');
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const listingInput: AdminListingInput = {
+        status,
+        property_type: propertyType,
+        compound_name: compoundName.trim(),
+        location_sector: locationSector.trim(),
+        price_egp: Number(priceEgp),
+        area_sqm: Number(areaSqm),
+        bedrooms: Number(bedrooms),
+        bathrooms: Number(bathrooms),
+        finishing,
+        mode,
+        delivery_status: deliveryStatus,
+        payment_plan: paymentPlan.trim() || undefined,
+        virtual_tour_url: virtualTourUrl.trim() || undefined,
+      };
+      const ownerInput = {
+        owner_name: ownerName.trim(),
+        phone_number: ownerPhone.trim(),
+        email: ownerEmail.trim() || undefined,
+        source_type: sourceType,
+        broker_name: sourceType === 'broker' ? brokerName.trim() : undefined,
+      };
+
+      await adminCreateListingWithOwner({ listing: listingInput, owner: ownerInput });
+      onCreated();
+    } catch (err: any) {
+      setError(err.message || 'Failed to create listing');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold">Create Listing + Owner</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-700">
+              <AlertCircle size={16} /> {error}
+            </div>
+          )}
+
+          <div>
+            <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+              <Building2 size={16} /> Listing Details (Public)
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              <ListingField label="Compound Name" required>
+                <input type="text" value={compoundName} onChange={e => setCompoundName(e.target.value)}
+                  className="input" placeholder="e.g. Mivida" required />
+              </ListingField>
+              <ListingField label="Location Sector">
+                <input type="text" value={locationSector} onChange={e => setLocationSector(e.target.value)}
+                  className="input" placeholder="e.g. 5th Settlement" />
+              </ListingField>
+              <ListingField label="Property Type">
+                <select value={propertyType} onChange={e => setPropertyType(e.target.value as AdminPropertyType)} className="input">
+                  {LISTING_PROPERTY_TYPES.map(t => <option key={t} value={t}>{t.replace('_', ' ')}</option>)}
+                </select>
+              </ListingField>
+              <ListingField label="Mode">
+                <select value={mode} onChange={e => setMode(e.target.value as AdminListingMode)} className="input">
+                  <option value="sale">Sale</option>
+                  <option value="rent">Rent</option>
+                </select>
+              </ListingField>
+              <ListingField label="Bedrooms">
+                <input type="number" min="0" max="10" value={bedrooms} onChange={e => setBedrooms(+e.target.value)} className="input" />
+              </ListingField>
+              <ListingField label="Bathrooms">
+                <input type="number" min="0" max="10" value={bathrooms} onChange={e => setBathrooms(+e.target.value)} className="input" />
+              </ListingField>
+              <ListingField label="Area (m²)">
+                <input type="number" min="0" value={areaSqm} onChange={e => setAreaSqm(+e.target.value)} className="input" />
+              </ListingField>
+              <ListingField label="Price (EGP)">
+                <input type="number" min="0" value={priceEgp} onChange={e => setPriceEgp(+e.target.value)} className="input" />
+              </ListingField>
+              <ListingField label="Finishing">
+                <select value={finishing} onChange={e => setFinishing(e.target.value as AdminFinishingLevel)} className="input">
+                  {LISTING_FINISHING_LEVELS.map(f => <option key={f} value={f}>{f.replace('_', ' ')}</option>)}
+                </select>
+              </ListingField>
+              <ListingField label="Delivery">
+                <select value={deliveryStatus} onChange={e => setDeliveryStatus(e.target.value as AdminDeliveryStatus)} className="input">
+                  {LISTING_DELIVERY_STATUSES.map(d => <option key={d} value={d}>{d.replace('_', ' ')}</option>)}
+                </select>
+              </ListingField>
+              <ListingField label="Status">
+                <select value={status} onChange={e => setStatus(e.target.value as AdminListingStatus)} className="input">
+                  <option value="draft">Draft</option>
+                  <option value="active">Active (public)</option>
+                  <option value="sold">Sold</option>
+                </select>
+              </ListingField>
+              <ListingField label="Payment Plan (optional)">
+                <input type="text" value={paymentPlan} onChange={e => setPaymentPlan(e.target.value)}
+                  className="input" placeholder="e.g. 10% down, 5 years" />
+              </ListingField>
+              <div className="col-span-2">
+                <ListingField label="Virtual Tour URL (optional)">
+                  <input type="url" value={virtualTourUrl} onChange={e => setVirtualTourUrl(e.target.value)}
+                    className="input" placeholder="https://listing3d.com/..." />
+                </ListingField>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+              <Phone size={16} /> Owner Details (Private PII — admin only)
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              <ListingField label="Owner Name" required>
+                <input type="text" value={ownerName} onChange={e => setOwnerName(e.target.value)}
+                  className="input" placeholder="Full name" required />
+              </ListingField>
+              <ListingField label="Phone Number" required>
+                <input type="tel" value={ownerPhone} onChange={e => setOwnerPhone(e.target.value)}
+                  className="input" placeholder="+20XXXXXXXXXX" required dir="ltr" />
+              </ListingField>
+              <ListingField label="Email (optional)">
+                <input type="email" value={ownerEmail} onChange={e => setOwnerEmail(e.target.value)}
+                  className="input" placeholder="owner@example.com" dir="ltr" />
+              </ListingField>
+              <ListingField label="Source">
+                <select value={sourceType} onChange={e => setSourceType(e.target.value as 'direct' | 'broker')} className="input">
+                  <option value="direct">Direct Owner</option>
+                  <option value="broker">Broker</option>
+                </select>
+              </ListingField>
+              {sourceType === 'broker' && (
+                <div className="col-span-2">
+                  <ListingField label="Broker Name">
+                    <input type="text" value={brokerName} onChange={e => setBrokerName(e.target.value)}
+                      className="input" placeholder="Broker / agency name" />
+                  </ListingField>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2 border-t">
+            <button type="button" onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+              Cancel
+            </button>
+            <button type="submit" disabled={saving}
+              className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium">
+              {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+              {saving ? 'Creating...' : 'Create Listing + Owner'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ListingField({ label, required, children }: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="text-xs font-medium text-gray-600 mb-1 block">
+        {label} {required && <span className="text-red-500">*</span>}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+/* ── REQUESTS / TICKETS (ported from SE's Vite admin) ────────────────────
+   Workflow ticket view over the requests/clients collections
+   (@sierra-estates/admin-data): bot→agent handoff, chat history, close. */
+const REQUEST_STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
+  bot_handling: { label: 'Bot Handling', color: 'bg-yellow-100 text-yellow-700 border-yellow-300', icon: Bot },
+  ready_for_agent: { label: 'Ready for Agent', color: 'bg-blue-100 text-blue-700 border-blue-300', icon: Headphones },
+  closed: { label: 'Closed', color: 'bg-gray-100 text-gray-600 border-gray-300', icon: CheckCircle2 },
+};
+
+function RequestsTicketPage() {
+  const [requests, setRequests] = useState<AdminRequest[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<AdminRequest | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<AdminRequestStatus | 'open'>('open');
+
+  const loadRequests = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await adminFetchRequests({
+        status: filterStatus === 'open' ? undefined : filterStatus,
+        limitCount: 50,
+      });
+      const filteredData = filterStatus === 'open'
+        ? data.filter(r => r.status === 'bot_handling' || r.status === 'ready_for_agent')
+        : data;
+      setRequests(filteredData);
+      if (filteredData.length > 0 && !selectedId) {
+        setSelectedId(filteredData[0].id);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to load requests');
+    } finally {
+      setLoading(false);
+    }
+  }, [filterStatus, selectedId]);
+
+  useEffect(() => { loadRequests(); }, [loadRequests]);
+
+  useEffect(() => {
+    if (!selectedId) {
+      setSelectedRequest(null);
+      return;
+    }
+    adminFetchRequestById(selectedId).then(req => {
+      setSelectedRequest(req);
+    }).catch(err => setError(err.message));
+  }, [selectedId]);
+
+  return (
+    <div className="flex h-[calc(100vh-2rem)] bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
+      <div className="w-96 border-r border-gray-200 bg-white flex flex-col">
+        <div className="p-4 border-b">
+          <h1 className="text-lg font-bold text-gray-900 mb-3">Requests</h1>
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+            {(['open', 'bot_handling', 'ready_for_agent', 'closed'] as const).map(s => (
+              <button
+                key={s}
+                onClick={() => setFilterStatus(s)}
+                className={`flex-1 px-2 py-1 rounded text-xs font-medium transition ${
+                  filterStatus === s ? 'bg-white shadow text-gray-900' : 'text-gray-500'
+                }`}
+              >
+                {s === 'open' ? 'Open' : REQUEST_STATUS_CONFIG[s].label.split(' ')[0]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-8 text-gray-400">
+              <Loader2 className="animate-spin mr-2" size={18} /> Loading...
+            </div>
+          ) : requests.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 text-sm">
+              <MessageCircle size={32} className="mx-auto mb-2 opacity-50" />
+              No requests
+            </div>
+          ) : (
+            requests.map(req => {
+              const cfg = REQUEST_STATUS_CONFIG[req.status];
+              const Icon = cfg.icon;
+              const lastMsg = req.bot_chat_history[req.bot_chat_history.length - 1];
+              return (
+                <button
+                  key={req.id}
+                  onClick={() => setSelectedId(req.id)}
+                  className={`w-full text-left p-3 border-b hover:bg-gray-50 transition ${
+                    selectedId === req.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon size={14} className={cfg.color.split(' ')[1]} />
+                    <span className="text-xs font-medium text-gray-500">{cfg.label}</span>
+                    <span className="text-xs text-gray-400 ml-auto">{req.matched_listings.length} matches</span>
+                  </div>
+                  <div className="text-sm font-medium text-gray-900 truncate">
+                    {req.client_id.substring(0, 8)}...
+                  </div>
+                  {lastMsg && (
+                    <div className="text-xs text-gray-500 truncate mt-0.5">{lastMsg.text}</div>
+                  )}
+                </button>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col">
+        {error && (
+          <div className="p-3 bg-red-50 border-b border-red-200 flex items-center gap-2 text-sm text-red-700">
+            <AlertCircle size={16} /> {error}
+            <button onClick={() => setError(null)} className="ml-auto"><X size={14} /></button>
+          </div>
+        )}
+        {!selectedRequest ? (
+          <div className="flex-1 flex items-center justify-center text-gray-400">
+            <div className="text-center">
+              <MessageCircle size={48} className="mx-auto mb-3 opacity-40" />
+              <p>Select a request to view conversation</p>
+            </div>
+          </div>
+        ) : (
+          <RequestTicketDetail
+            request={selectedRequest}
+            onUpdate={() => {
+              adminFetchRequestById(selectedRequest.id).then(setSelectedRequest);
+              loadRequests();
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RequestTicketDetail({ request, onUpdate }: {
+  request: AdminRequest;
+  onUpdate: () => void;
+}) {
+  const [agentReply, setAgentReply] = useState('');
+  const [sending, setSending] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [request.bot_chat_history.length]);
+
+  const cfg = REQUEST_STATUS_CONFIG[request.status];
+  const StatusIcon = cfg.icon;
+
+  const handleSendReply = async () => {
+    if (!agentReply.trim()) return;
+    setSending(true);
+    try {
+      const message: AdminChatMessage = {
+        sender: 'agent',
+        text: agentReply.trim(),
+        timestamp: new Date().toISOString(),
+      };
+      await adminAppendChatMessage(request.id, message);
+      setAgentReply('');
+      onUpdate();
+    } catch (err: any) {
+      console.error('Failed to send reply:', err);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleEscalate = async () => {
+    setActionLoading(true);
+    try {
+      // TODO: replace with the real agent uid from the admin auth context.
+      await adminEscalateToAgent(request.id, 'current-agent-uid');
+      onUpdate();
+    } catch (err: any) {
+      console.error('Escalate failed:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleClose = async () => {
+    if (!confirm('Close this request?')) return;
+    setActionLoading(true);
+    try {
+      await adminCloseRequest(request.id);
+      onUpdate();
+    } catch (err: any) {
+      console.error('Close failed:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex-1 flex flex-col">
+      <div className="px-6 py-4 bg-white border-b flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <StatusIcon size={16} className={cfg.color.split(' ')[1]} />
+            <span className={`px-2 py-0.5 rounded text-xs font-medium border ${cfg.color}`}>{cfg.label}</span>
+            <span className="text-xs text-gray-400">
+              Created {request.created_at ? new Date(request.created_at.seconds * 1000).toLocaleString() : '—'}
+            </span>
+          </div>
+          <h2 className="text-lg font-bold text-gray-900">Request {request.id.substring(0, 8)}</h2>
+        </div>
+        <div className="flex gap-2">
+          {request.status === 'bot_handling' && (
+            <button
+              onClick={handleEscalate}
+              disabled={actionLoading}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 disabled:opacity-50"
+            >
+              <Headphones size={14} /> Take Over
+            </button>
+          )}
+          {request.status !== 'closed' && (
+            <button
+              onClick={handleClose}
+              disabled={actionLoading}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 disabled:opacity-50"
+            >
+              <CheckCircle2 size={14} /> Close
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-gray-50">
+            {request.bot_chat_history.length === 0 ? (
+              <div className="text-center py-8 text-gray-400 text-sm">No messages yet</div>
+            ) : (
+              request.bot_chat_history.map((msg, i) => (
+                <RequestChatBubble key={i} message={msg} />
+              ))
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          {request.status !== 'closed' && (
+            <div className="p-4 bg-white border-t">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={agentReply}
+                  onChange={e => setAgentReply(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSendReply()}
+                  placeholder="Type your reply..."
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={handleSendReply}
+                  disabled={sending || !agentReply.trim()}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  Send
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="w-80 border-l bg-white overflow-y-auto p-4 space-y-4">
+          <div>
+            <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">Client Needs</h3>
+            <div className="space-y-1.5 text-sm">
+              <RequestNeedRow icon={Tag} label="Intent" value={request.client_needs.intent} />
+              <RequestNeedRow icon={MapPin} label="Zones" value={request.client_needs.preferred_zones?.join(', ')} />
+              <RequestNeedRow icon={MapPin} label="Compounds" value={request.client_needs.preferred_compounds?.join(', ')} />
+              <RequestNeedRow icon={BedDouble} label="Min Beds" value={request.client_needs.min_bedrooms?.toString()} />
+              <RequestNeedRow icon={Tag} label="Max Budget" value={request.client_needs.max_budget_egp ? `${request.client_needs.max_budget_egp.toLocaleString()} EGP` : null} />
+              <RequestNeedRow icon={BedDouble} label="Min Area" value={request.client_needs.min_area_sqm ? `${request.client_needs.min_area_sqm} m²` : null} />
+              <RequestNeedRow icon={Tag} label="Finishing" value={request.client_needs.finishing} />
+              <RequestNeedRow icon={Tag} label="Delivery" value={request.client_needs.delivery_status} />
+            </div>
+            {request.client_needs.notes && (
+              <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                {request.client_needs.notes}
+              </div>
+            )}
+          </div>
+
+          <div className="border-t pt-3">
+            <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">
+              Matched Listings ({request.matched_listings.length})
+            </h3>
+            {request.matched_listings.length === 0 ? (
+              <p className="text-xs text-gray-400">No matches yet</p>
+            ) : (
+              <div className="space-y-1">
+                {request.matched_listings.map(id => (
+                  <div key={id} className="text-xs p-2 bg-gray-50 rounded font-mono text-gray-600">
+                    {id.substring(0, 12)}...
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="border-t pt-3">
+            <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">Assignment</h3>
+            <div className="text-sm">
+              {request.assigned_agent_id ? (
+                <div className="flex items-center gap-2">
+                  <User size={14} className="text-blue-600" />
+                  <span className="font-medium">{request.assigned_agent_id.substring(0, 12)}...</span>
+                </div>
+              ) : (
+                <span className="text-gray-400 text-xs">Unassigned (bot handling)</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RequestChatBubble({ message }: { message: AdminChatMessage }) {
+  const isClient = message.sender === 'client';
+  const isBot = message.sender === 'bot';
+  const Icon = isClient ? User : isBot ? Bot : Headphones;
+
+  return (
+    <div className={`flex gap-2 ${isClient ? 'justify-start' : 'justify-end'}`}>
+      {isClient && (
+        <div className="flex-none w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+          <Icon size={16} className="text-white" />
+        </div>
+      )}
+      <div className={`max-w-[70%] ${isClient ? '' : 'items-end'}`}>
+        <div className={`px-3 py-2 rounded-2xl text-sm ${
+          isClient
+            ? 'bg-white border border-gray-200 text-gray-900'
+            : isBot
+            ? 'bg-yellow-50 border border-yellow-200 text-yellow-900'
+            : 'bg-blue-600 text-white'
+        }`}>
+          {message.text}
+        </div>
+        <div className={`text-xs text-gray-400 mt-1 ${isClient ? 'text-left' : 'text-right'}`}>
+          {message.sender} · {new Date(message.timestamp).toLocaleTimeString()}
+        </div>
+      </div>
+      {!isClient && (
+        <div className={`flex-none w-8 h-8 rounded-full flex items-center justify-center ${
+          isBot ? 'bg-yellow-400' : 'bg-blue-600'
+        }`}>
+          <Icon size={16} className="text-white" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RequestNeedRow({ icon: Icon, label, value }: {
+  icon: any;
+  label: string;
+  value?: string | null;
+}) {
+  if (!value) return null;
+  return (
+    <div className="flex items-center gap-2 text-gray-700">
+      <Icon size={12} className="text-gray-400 flex-none" />
+      <span className="text-gray-500 text-xs">{label}:</span>
+      <span className="font-medium capitalize">{value}</span>
+    </div>
+  );
+}
+
 /* ── REPORTS PAGE ─────────────────────────────────────────────────────── */
 function ReportsPage({ T }) {
   const MONTHS=['Jan','Feb','Mar','Apr','May','Jun'];
@@ -1587,6 +2465,8 @@ function AdminApp() {
       case 'tasks':return <TasksPage T={T}/>;
       case 'automations':return <AutomationsPage T={T}/>;
       case 'listings':return <ListingsHubPage T={T}/>;
+      case 'listings-manager':return <ListingsManagerPage/>;
+      case 'requests':return <RequestsTicketPage/>;
       case 'curator':return <CuratorPage T={T}/>;
       case 'scribe':return <ScribePage T={T}/>;
       case 'closer':return <Stage9CloserPage T={T}/>;

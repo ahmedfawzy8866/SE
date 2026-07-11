@@ -34,6 +34,7 @@
     "@opentelemetry/semantic-conventions": "^1.40.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
+    "@sierra-estates/admin-data": "workspace:*",
     "@sierra-estates/agents": "workspace:*",
     "@sierra-estates/db": "workspace:*",
     "@sierra-estates/exchange": "workspace:*",
