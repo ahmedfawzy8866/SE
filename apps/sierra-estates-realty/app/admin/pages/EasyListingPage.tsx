@@ -192,7 +192,14 @@ export default function EasyListingPage() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newImages = Array.from(e.target.files).map(file => URL.createObjectURL(file as any));
+      const newImages: string[] = [];
+      for (const file of Array.from(e.target.files)) {
+        const url = URL.createObjectURL(file);
+        // Only object URLs may reach <img src>; anything else could carry markup
+        if (url.startsWith('blob:')) {
+          newImages.push(url);
+        }
+      }
       setImages(prev => [...prev, ...newImages]);
     }
   };
