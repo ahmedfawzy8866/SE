@@ -35,6 +35,8 @@ import DBEditorPage from './pages/DBEditorPage';
 import PageEditorPage from './pages/PageEditorPage';
 import BotsControlPage from './pages/BotsControlPage';
 import FollowupsPage from './pages/FollowupsPage';
+import EasyListingPage from './pages/EasyListingPage';
+import SearchInsightsPage from './pages/SearchInsightsPage';
 import {
   fetchListings as adminFetchListings,
   createListingWithOwner as adminCreateListingWithOwner,
@@ -201,6 +203,8 @@ const NAV_ITEMS = (T) => [
   {id:'followups',label:T('lang')==='ar'?'المتابعات':'Follow-ups',icon:'🔔',section:T('operations')},
   {id:'page-editor',label:T('lang')==='ar'?'محرر الصفحات':'Page Editor',icon:'📄',section:T('system')},
   {id:'db-editor',label:T('lang')==='ar'?'محرر قاعدة البيانات':'DB Editor',icon:'🗄️',section:T('system')},
+  {id:'easy-listing',label:T('lang')==='ar'?'إدراج سريع':'Easy Listing',icon:'📤',section:T('operations')},
+  {id:'search-insights',label:T('lang')==='ar'?'تحليلات البحث':'Search Insights',icon:'🔍',section:T('analytics')},
   {id:'curator',label:T('curator'),icon:'🎨',section:T('operations')},
   {id:'scribe',label:T('scribe'),icon:'✍️',section:T('operations')},
   {id:'closer',label:T('closer'),icon:'💼',section:T('operations')},
@@ -3127,6 +3131,8 @@ function AdminApp() {
       case 'followups':return <FollowupsPage T={T} isAr={T('lang')==='ar'}/>;
       case 'page-editor':return <PageEditorPage T={T} isAr={T('lang')==='ar'}/>;
       case 'db-editor':return <DBEditorPage T={T} isAr={T('lang')==='ar'}/>;
+      case 'easy-listing':return <EasyListingPage/>;
+      case 'search-insights':return <SearchInsightsPage T={T} isAr={T('lang')==='ar'}/>;
       case 'curator':return <CuratorPage T={T}/>;
       case 'scribe':return <ScribePage T={T}/>;
       case 'closer':return <Stage9CloserPage T={T}/>;
