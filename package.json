@@ -11,7 +11,9 @@
     "lint": "eslint src next.config.mjs postcss.config.mjs eslint.config.mjs --max-warnings 0",
     "type-check": "tsc --noEmit",
     "test": "jest --passWithNoTests",
-    "test:ci": "jest --ci --passWithNoTests"
+    "test:ci": "jest --ci --passWithNoTests",
+    "deploy:rules": "firebase deploy --only firestore:rules,storage",
+    "deploy:functions": "firebase deploy --only functions"
   },
   "dependencies": {
     "firebase": "^11.0.0",
