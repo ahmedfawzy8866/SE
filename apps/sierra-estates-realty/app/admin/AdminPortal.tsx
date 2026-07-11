@@ -31,6 +31,10 @@ import {
   ResponsiveContainer, Cell as RechartsCell, Treemap,
 } from 'recharts';
 import type { Agent as SEAgentType } from '@sierra-estates/types';
+import DBEditorPage from './pages/DBEditorPage';
+import PageEditorPage from './pages/PageEditorPage';
+import BotsControlPage from './pages/BotsControlPage';
+import FollowupsPage from './pages/FollowupsPage';
 import {
   fetchListings as adminFetchListings,
   createListingWithOwner as adminCreateListingWithOwner,
@@ -193,6 +197,10 @@ const NAV_ITEMS = (T) => [
   {id:'price-heatmap',label:T('lang')==='ar'?'خريطة الأسعار':'Price Heatmap',icon:'🗺️',section:T('analytics')},
   {id:'automation-tools',label:T('lang')==='ar'?'أدوات الأتمتة':'Automation Tools',icon:'🧰',section:T('system')},
   {id:'system-health',label:T('lang')==='ar'?'صحة النظام':'System Health',icon:'💚',section:T('system')},
+  {id:'bots-control',label:T('lang')==='ar'?'التحكم بالبوتات':'Bots Control',icon:'🕹️',section:T('main')},
+  {id:'followups',label:T('lang')==='ar'?'المتابعات':'Follow-ups',icon:'🔔',section:T('operations')},
+  {id:'page-editor',label:T('lang')==='ar'?'محرر الصفحات':'Page Editor',icon:'📄',section:T('system')},
+  {id:'db-editor',label:T('lang')==='ar'?'محرر قاعدة البيانات':'DB Editor',icon:'🗄️',section:T('system')},
   {id:'curator',label:T('curator'),icon:'🎨',section:T('operations')},
   {id:'scribe',label:T('scribe'),icon:'✍️',section:T('operations')},
   {id:'closer',label:T('closer'),icon:'💼',section:T('operations')},
@@ -3115,6 +3123,10 @@ function AdminApp() {
       case 'price-heatmap':return <PriceHeatmapPage/>;
       case 'automation-tools':return <AutomationToolsPage/>;
       case 'system-health':return <AdminHealthMonitorPage/>;
+      case 'bots-control':return <BotsControlPage T={T} isAr={T('lang')==='ar'}/>;
+      case 'followups':return <FollowupsPage T={T} isAr={T('lang')==='ar'}/>;
+      case 'page-editor':return <PageEditorPage T={T} isAr={T('lang')==='ar'}/>;
+      case 'db-editor':return <DBEditorPage T={T} isAr={T('lang')==='ar'}/>;
       case 'curator':return <CuratorPage T={T}/>;
       case 'scribe':return <ScribePage T={T}/>;
       case 'closer':return <Stage9CloserPage T={T}/>;
