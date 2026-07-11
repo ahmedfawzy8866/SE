@@ -28,13 +28,13 @@
 
 ### Step 1: Validate Rules Locally (5 min)
 ```bash
-cd H:\Sierra-Estates-Final
-cat firestore.rules  # Verify file exists and syntax is valid
+cd H:\SE
+cat apps/sierra-estates-realty/firestore.rules  # Canonical rules — the path firebase.json deploys
 firebase validate    # Check rule syntax
 ```
 
 **Checklist**:
-- [ ] `firestore.rules` file exists and is readable
+- [ ] `apps/sierra-estates-realty/firestore.rules` file exists and is readable
 - [ ] No syntax errors from `firebase validate`
 - [ ] `storage.rules` file also validated
 
@@ -596,7 +596,7 @@ gcloud logging read "resource.type=cloud_function" --limit=100 --format=json | j
 ### Phase 1.1 Rollback (Firestore Rules)
 ```bash
 # Revert to previous rules (you backed these up in Step 1)
-# Edit firestore.rules with previous content
+# Edit apps/sierra-estates-realty/firestore.rules with previous content
 firebase deploy --only firestore:rules,storage
 
 # Verify rollback

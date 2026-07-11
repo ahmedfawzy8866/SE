@@ -303,6 +303,9 @@ importers:
       '@react-three/fiber':
         specifier: ^9.6.1
         version: 9.6.1(@types/react@19.2.17)(immer@11.1.11)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.184.0)
+      '@sierra-estates/admin-data':
+        specifier: workspace:*
+        version: link:../../packages/admin-data
       '@sierra-estates/agents':
         specifier: workspace:*
         version: link:../../packages/agents
@@ -315,6 +318,9 @@ importers:
       '@sierra-estates/memory-engine':
         specifier: workspace:*
         version: link:../../packages/memory-engine
+      '@sierra-estates/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@sierra-estates/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -354,9 +360,15 @@ importers:
       googleapis:
         specifier: ^171.4.0
         version: 171.4.0
+      html2canvas:
+        specifier: ^1.4.1
+        version: 1.4.1
       html2pdf.js:
         specifier: ^0.14.0
         version: 0.14.0
+      jspdf:
+        specifier: ^4.2.1
+        version: 4.2.1
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
@@ -506,6 +518,19 @@ importers:
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
+
+  packages/admin-data:
+    dependencies:
+      firebase:
+        specifier: ^12.11.0
+        version: 12.15.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
+      typescript:
+        specifier: ^5.3
+        version: 5.8.3
 
   packages/agents:
     dependencies:

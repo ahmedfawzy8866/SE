@@ -60,7 +60,9 @@ firebase deploy --only firestore:rules
 
 ### Option B: Via Firebase Console
 1. Firebase Console → Firestore → Rules tab
-2. Paste contents of `apps/admin/firestore.rules`
+2. Paste contents of `apps/sierra-estates-realty/firestore.rules` (the canonical
+   ruleset — the same file `firebase.json` deploys; do NOT use the per-app copy
+   in `apps/admin/`, it is a legacy leftover from the standalone admin repo)
 3. Click "Publish"
 
 ## Step 6: Download Service Account JSON (for n8n on EC2) (1 minute)
