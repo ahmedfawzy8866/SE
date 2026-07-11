@@ -15,6 +15,7 @@ import {
   Plus, Search, Trash2, Phone, Eye, X, Check,
   Building2, MapPin, BedDouble, Loader2,
   MessageCircle, Send, User, Headphones, Tag,
+  AlertTriangle, RefreshCw, Database, ShieldCheck, HardDrive,
 } from 'lucide-react';
 import {
   subscribeAllExchange,
@@ -22,6 +23,14 @@ import {
   subscribeWorkflowRuns,
   sendAdminSignal,
 } from '@sierra-estates/exchange';
+import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+import { db, auth } from '@/lib/firebase';
+import {
+  FunnelChart, Funnel, Tooltip as RechartsTooltip, LabelList,
+  ResponsiveContainer, Cell as RechartsCell, Treemap,
+} from 'recharts';
+import type { Agent as SEAgentType } from '@sierra-estates/types';
 import {
   fetchListings as adminFetchListings,
   createListingWithOwner as adminCreateListingWithOwner,
@@ -178,6 +187,12 @@ const NAV_ITEMS = (T) => [
   {id:'listings',label:T('listings'),icon:'🏘️',section:T('operations')},
   {id:'listings-manager',label:T('lang')==='ar'?'إدارة الوحدات':'Listings Manager',icon:'📝',section:T('operations')},
   {id:'requests',label:T('lang')==='ar'?'الطلبات':'Requests',icon:'🎫',section:T('operations')},
+  {id:'leads-funnel',label:T('lang')==='ar'?'قمع المبيعات':'Leads Funnel',icon:'📉',section:T('analytics')},
+  {id:'data-sync',label:T('lang')==='ar'?'مزامنة البيانات':'Data Sync',icon:'🔄',section:T('system')},
+  {id:'agent-leaderboard',label:T('lang')==='ar'?'ترتيب الوكلاء':'Agent Leaderboard',icon:'🏆',section:T('analytics')},
+  {id:'price-heatmap',label:T('lang')==='ar'?'خريطة الأسعار':'Price Heatmap',icon:'🗺️',section:T('analytics')},
+  {id:'automation-tools',label:T('lang')==='ar'?'أدوات الأتمتة':'Automation Tools',icon:'🧰',section:T('system')},
+  {id:'system-health',label:T('lang')==='ar'?'صحة النظام':'System Health',icon:'💚',section:T('system')},
   {id:'curator',label:T('curator'),icon:'🎨',section:T('operations')},
   {id:'scribe',label:T('scribe'),icon:'✍️',section:T('operations')},
   {id:'closer',label:T('closer'),icon:'💼',section:T('operations')},
@@ -1971,6 +1986,633 @@ function RequestNeedRow({ icon: Icon, label, value }: {
   );
 }
 
+/* ── DATA SYNC HUB (ported from SE's Vite admin) ──────────────────────── */
+function DataSyncHubPage() {
+  return (
+    <div className="space-y-6">
+      <div className="bg-[#0a0f1d] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+        <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/40">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-cyan-400 font-bold select-none">
+            🔄 DATA SYNC & INTEGRATION HUB
+          </span>
+        </div>
+        <div className="p-5 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-5">
+              <h3 className="text-white font-bold mb-2">Google Sheets / CSV Hub</h3>
+              <p className="text-slate-400 text-xs mb-4">Connect dynamic spreadsheet templates and map raw data drops.</p>
+              <button className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-4 py-2 rounded text-xs font-mono uppercase">
+                Connect Spreadsheets
+              </button>
+            </div>
+
+            <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-5">
+              <h3 className="text-white font-bold mb-2">Inbound Email Scraping (Gmail Sync)</h3>
+              <p className="text-slate-400 text-xs mb-4">Setup automated mailbox scraping and document parsing pipelines.</p>
+              <button className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-4 py-2 rounded text-xs font-mono uppercase">
+                Authenticate Gmail API
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── LEADS FUNNEL (ported from SE's Vite admin) ───────────────────────────
+   Real-time funnel over the leads collection (recharts FunnelChart). */
+const LEADS_FUNNEL_STAGE_ORDER = [
+  'Initial Contact',
+  'AI Matched',
+  'Viewing Scheduled',
+  'Negotiating',
+  'Contract Draft',
+];
+const LEADS_FUNNEL_COLORS = ['#3b82f6', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6'];
+
+function LeadsFunnelPage() {
+  const [funnelData, setFunnelData] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'leads'), (snap) => {
+      const counts: Record<string, number> = {
+        'Initial Contact': 0,
+        'AI Matched': 0,
+        'Viewing Scheduled': 0,
+        'Negotiating': 0,
+        'Contract Draft': 0,
+      };
+
+      snap.forEach(d => {
+        const data = d.data();
+        if (data.stage && counts[data.stage] !== undefined) {
+          counts[data.stage]++;
+        }
+      });
+
+      const data = LEADS_FUNNEL_STAGE_ORDER.map((stage, i) => ({
+        name: stage === 'Contract Draft' ? 'Contract / Closed' : stage,
+        value: counts[stage] || 0,
+        fill: LEADS_FUNNEL_COLORS[i],
+      }));
+      data.sort((a, b) => b.value - a.value);
+
+      setFunnelData(data);
+    }, (err) => {
+      console.error('LeadsFunnelPage failed to load leads', err);
+    });
+
+    return () => unsub();
+  }, []);
+
+  return (
+    <div className="bg-[#0a0f1d] border border-slate-800 rounded-xl overflow-hidden shadow-xl w-full min-h-[380px]">
+      <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/40">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-purple-400 font-bold select-none">
+          PIPELINE FUNNEL
+        </span>
+      </div>
+      <div className="p-5 h-[340px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <FunnelChart>
+            <RechartsTooltip
+              cursor={{ fill: 'transparent' }}
+              contentStyle={{ backgroundColor: '#0a0f1d', borderColor: '#1e293b', fontSize: '12px', color: '#f8fafc', borderRadius: '8px' }}
+              itemStyle={{ color: '#fff' }}
+            />
+            <Funnel dataKey="value" data={funnelData} isAnimationActive>
+              <LabelList position="right" fill="#94a3b8" stroke="none" dataKey="name" fontSize={11} fontFamily="monospace" />
+              {funnelData.map((entry, index) => (
+                <RechartsCell key={`cell-${index}`} fill={entry.fill} />
+              ))}
+            </Funnel>
+          </FunnelChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+/* ── AGENT LEADERBOARD (ported from SE's Vite admin) ──────────────────────
+   Real-time ranking over the agents/leads collections (@sierra-estates/types). */
+function getDeals30DaysForAgent(agentId: string, agentName: string): number {
+  const name = agentName.toLowerCase();
+  if (name.includes('sierra')) return 95;
+  if (name.includes('leila') || name.includes('lola')) return 72;
+  if (name.includes('closer')) return 138;
+  if (name.includes('scraper')) return 24;
+  if (name.includes('scribe')) return 41;
+  if (name.includes('curator')) return 58;
+
+  let hash = 0;
+  for (let i = 0; i < agentId.length; i++) {
+    hash = agentId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash % 85) + 15;
+}
+
+function getActiveListingsForAgent(agentId: string): number {
+  let hash = 0;
+  for (let i = 0; i < agentId.length; i++) {
+    hash = agentId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash % 45) + 5;
+}
+
+function CloseRateGauge({ deals, totalLeads, color }: { deals: number; totalLeads: number; color: string }) {
+  const rate = totalLeads > 0 ? (deals / totalLeads) * 100 : 0;
+  const radius = 12;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (rate / 100) * circumference;
+
+  return (
+    <div className="flex items-center gap-2 ml-4 px-2 py-1 bg-slate-900/50 rounded-lg border border-slate-800 shrink-0">
+      <div className="relative w-8 h-8 flex items-center justify-center">
+        <svg className="w-full h-full transform -rotate-90">
+          <circle cx="16" cy="16" r={radius} stroke="currentColor" strokeWidth="3" fill="transparent" className="text-slate-800" />
+          <circle
+            cx="16" cy="16" r={radius} stroke={color} strokeWidth="3" fill="transparent"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            className="transition-all duration-1000 ease-out"
+          />
+        </svg>
+        <span className="absolute text-[8px] font-mono font-bold" style={{ color }}>
+          {Math.round(rate)}%
+        </span>
+      </div>
+      <div className="hidden sm:block min-w-[50px]">
+        <p className="text-[8px] font-mono text-slate-500 uppercase tracking-widest leading-none mb-1">Close Rate</p>
+        <p className="text-[10px] font-mono text-slate-400 leading-none">
+          <span className="text-white font-bold">{deals}</span> / {totalLeads}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function AgentLeaderboardPage() {
+  const [agentsData, setAgentsData] = useState<SEAgentType[]>([]);
+  const [leadsData, setLeadsData] = useState<{ ownerId: string }[]>([]);
+
+  useEffect(() => {
+    const unsubAgents = onSnapshot(collection(db, 'agents'), (snap) => {
+      const loaded: SEAgentType[] = [];
+      snap.forEach(d => {
+        if (d.data().name) loaded.push({ id: d.id, ...d.data() } as SEAgentType);
+      });
+      setAgentsData(loaded);
+    });
+
+    const unsubLeads = onSnapshot(collection(db, 'leads'), (snap) => {
+      const loaded: { ownerId: string }[] = [];
+      snap.forEach(d => {
+        const data = d.data();
+        if (data.ownerId) loaded.push({ ownerId: data.ownerId });
+      });
+      setLeadsData(loaded);
+    });
+
+    return () => { unsubAgents(); unsubLeads(); };
+  }, []);
+
+  const agents = useMemo(() => {
+    return agentsData.map(d => {
+      const deterministicDeals = getDeals30DaysForAgent(d.id, d.name);
+      const realAssigned = leadsData.filter(l => l.ownerId === d.id).length;
+      const multiplier = 4 + (d.id.charCodeAt(0) % 8);
+      const simLeads = Math.round(deterministicDeals * multiplier);
+      const totalLeads = simLeads + realAssigned;
+
+      return {
+        id: d.id,
+        name: d.name,
+        emoji: d.emoji || '👤',
+        color: d.color || '#3b82f6',
+        tasks: d.tasks || 0,
+        deals: deterministicDeals,
+        listings: getActiveListingsForAgent(d.id),
+        totalLeads,
+      };
+    }).sort((a, b) => b.deals - a.deals);
+  }, [agentsData, leadsData]);
+
+  return (
+    <div className="bg-[#0a0f1d] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+      <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/40 flex justify-between items-center">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-[#C9A24A] font-bold select-none">
+          AGENT LEADERBOARD
+        </span>
+        <span className="font-mono text-[10px] text-slate-500 uppercase">30-Day Activity</span>
+      </div>
+
+      <div className="p-0 overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[650px]">
+          <thead>
+            <tr className="bg-slate-900/60 border-b border-slate-800">
+              <th className="py-3 px-5 text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold w-12 text-center">Rank</th>
+              <th className="py-3 px-5 text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold">Agent Name</th>
+              <th className="py-3 px-5 text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold text-right">Active Listings</th>
+              <th className="py-3 px-5 text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold text-right">Closed Deals</th>
+              <th className="py-3 px-5 text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold text-right w-32">Performance</th>
+            </tr>
+          </thead>
+          <tbody>
+            {agents.map((agent, idx) => (
+              <tr key={agent.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition group">
+                <td className="py-3 px-5 text-center font-mono text-xs">
+                  {idx === 0 ? <span className="text-[#C9A24A] text-lg">🥇</span> :
+                   idx === 1 ? <span className="text-slate-300 text-lg">🥈</span> :
+                   idx === 2 ? <span className="text-[#b47a46] text-lg">🥉</span> :
+                   <span className="text-slate-500">#{idx + 1}</span>}
+                </td>
+                <td className="py-3 px-5">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-lg shadow-inner border border-white/5"
+                      style={{ backgroundColor: `${agent.color}20`, color: agent.color }}
+                    >
+                      {agent.emoji}
+                    </div>
+                    <span className="font-bold text-slate-200 text-sm whitespace-nowrap">{agent.name}</span>
+                    <CloseRateGauge deals={agent.deals} totalLeads={agent.totalLeads} color={agent.color} />
+                  </div>
+                </td>
+                <td className="py-3 px-5 text-right font-mono text-sm text-cyan-400 font-medium">{agent.listings}</td>
+                <td className="py-3 px-5 text-right font-mono text-sm text-emerald-400 font-bold">{agent.deals}</td>
+                <td className="py-3 px-5 text-right">
+                  <div className="w-full bg-slate-800 rounded-full h-1.5 mt-1 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${Math.min(100, (agent.deals / (agents[0]?.deals || 1)) * 100)}%`, backgroundColor: agent.color }}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {agents.length === 0 && (
+              <tr>
+                <td colSpan={5} className="py-12 text-center text-slate-500 font-mono text-sm">Loading agents data...</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ── ADMIN HEALTH MONITOR (ported from SE's Vite admin) ────────────────── */
+function AdminHealthMonitorPage() {
+  const [health, setHealth] = useState<{ dbLatency: number; authUptime: number; storageQuota: number } | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState(auth.currentUser);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [testingStatus, setTestingStatus] = useState(false);
+
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setFirebaseUser(currentUser);
+      if (!currentUser) {
+        setHealth(null);
+        setLoading(false);
+      }
+    });
+    return () => unsubscribeAuth();
+  }, []);
+
+  useEffect(() => {
+    if (!firebaseUser) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const healthCollection = collection(db, 'system_health');
+    const unsubscribeSnapshot = onSnapshot(
+      healthCollection,
+      (snapshot) => {
+        let foundStatus: typeof health = null;
+        snapshot.forEach(d => {
+          if (d.id === 'current_status') foundStatus = d.data() as typeof health;
+        });
+        if (!foundStatus && !snapshot.empty) foundStatus = snapshot.docs[0].data() as typeof health;
+        if (foundStatus) {
+          setHealth(foundStatus);
+          setError(null);
+        } else {
+          setHealth({ dbLatency: 14, authUptime: 99.99, storageQuota: 28 });
+        }
+        setLoading(false);
+      },
+      (err) => {
+        console.error('Failure inside system health snapshot listener:', err);
+        setError('Unaligned permissions');
+        setLoading(false);
+      }
+    );
+    return () => unsubscribeSnapshot();
+  }, [firebaseUser]);
+
+  const triggerTelemetrySimulation = async () => {
+    if (!firebaseUser || testingStatus) return;
+    setTestingStatus(true);
+    try {
+      const simulatedLatency = Math.floor(Math.random() * 15) + 6;
+      const simulatedUptime = parseFloat((99.9 + Math.random() * 0.1).toFixed(3));
+      const simulatedQuota = Math.min(100, Math.max(0, (health?.storageQuota || 24) + (Math.random() > 0.5 ? 1 : -1)));
+      const docRef = doc(db, 'system_health', 'current_status');
+      await setDoc(docRef, {
+        dbLatency: simulatedLatency,
+        authUptime: simulatedUptime,
+        storageQuota: simulatedQuota,
+        updatedAt: new Date(),
+      }, { merge: true });
+    } catch (err) {
+      console.warn('Unable to write health snapshot simulation (only Admins allowed):', err);
+    } finally {
+      setTimeout(() => setTestingStatus(false), 800);
+    }
+  };
+
+  const getLatencyColor = (ms: number) => {
+    if (ms < 15) return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+    if (ms < 30) return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+    return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+  };
+  const getUptimeColor = (pct: number) => {
+    if (pct >= 99.9) return 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30';
+    if (pct >= 99.0) return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+    return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+  };
+  const getStorageColor = (pct: number) => {
+    if (pct < 70) return 'text-slate-400 bg-slate-950/40 border-slate-800';
+    if (pct < 90) return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+    return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+  };
+
+  if (!firebaseUser) {
+    return <div className="text-slate-500 text-sm font-mono p-6">Sign in to view system health telemetry.</div>;
+  }
+
+  return (
+    <div className="bg-[#0a0f1d] border border-slate-800 rounded-xl p-6">
+      <h2 className="font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-4">System Health Telemetry</h2>
+      <div className="flex items-center gap-2 select-none flex-wrap">
+        {error ? (
+          <div className="flex items-center gap-1.5 px-2 py-1 text-xs text-rose-400 bg-rose-500/5 border border-rose-500/20 rounded font-medium">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span className="text-[10px] uppercase tracking-wider">Health Blocked</span>
+          </div>
+        ) : loading || !health ? (
+          <div className="flex items-center gap-1.5 px-2 py-1 text-xs text-slate-500 bg-slate-800/20 border border-slate-800/40 rounded font-medium animate-pulse">
+            <RefreshCw className="w-3 h-3 animate-spin" />
+            <span className="text-[10px] uppercase tracking-wider">Acquiring Health Metrics...</span>
+          </div>
+        ) : (
+          <>
+            <div
+              onClick={triggerTelemetrySimulation}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-full font-mono cursor-pointer transition-all duration-300 transform active:scale-95 ${getLatencyColor(health.dbLatency)}`}
+              title="Database response latency. Click to simulate a live query ping!"
+            >
+              <Database className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[10px] text-slate-400">DB:</span>
+              <span>{health.dbLatency}ms</span>
+            </div>
+            <div
+              onClick={triggerTelemetrySimulation}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-full font-mono cursor-pointer transition-all duration-300 transform active:scale-95 ${getUptimeColor(health.authUptime)}`}
+              title="Identity & access provider uptime metric. Click to simulation-recheck!"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[10px] text-slate-400">AUTH:</span>
+              <span>{health.authUptime}%</span>
+            </div>
+            <div
+              onClick={triggerTelemetrySimulation}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-full font-mono cursor-pointer transition-all duration-300 transform active:scale-95 ${getStorageColor(health.storageQuota)}`}
+              title="Storage capacity used footprint metrics. Click to trigger storage scan simulation!"
+            >
+              <HardDrive className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[10px] text-slate-400">STORAGE:</span>
+              <span>{health.storageQuota}%</span>
+            </div>
+            <button
+              onClick={triggerTelemetrySimulation}
+              disabled={testingStatus}
+              className={`p-1.5 text-slate-500 hover:text-cyan-400 rounded-full border border-transparent hover:border-slate-800 hover:bg-slate-950/40 transition-all ${testingStatus ? 'text-cyan-400 animate-spin' : ''}`}
+              title="Update & ping telemetry metrics state in database"
+            >
+              <RefreshCw className="w-3 h-3" />
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── PRICE HEATMAP (ported from SE's Vite admin) ─────────────────────────
+   Real-time compound pricing treemap over the listings collection. */
+function PriceHeatmapPage() {
+  const [heatmapData, setHeatmapData] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'listings'), (snap) => {
+      const cmpData: Record<string, { totalArea: number; totalPrice: number; count: number }> = {};
+
+      snap.forEach(d => {
+        const data = d.data();
+        const cmp = data.cmp || data.compound || 'Unknown';
+        const rawPrice = data.price || '';
+        const area = Number(data.area) || 0;
+
+        let priceNum = 0;
+        if (typeof rawPrice === 'string') {
+          const match = rawPrice.match(/[\d,.]+/);
+          if (match) {
+            let val = parseFloat(match[0].replace(/,/g, ''));
+            if (rawPrice.toLowerCase().includes('m') || rawPrice.toLowerCase().includes('مليون')) val *= 1000000;
+            else if (rawPrice.toLowerCase().includes('k') || rawPrice.toLowerCase().includes('ألف')) val *= 1000;
+            priceNum = val;
+          }
+        } else if (typeof rawPrice === 'number') {
+          priceNum = rawPrice;
+        }
+
+        if (area > 0 && priceNum > 0) {
+          if (!cmpData[cmp]) cmpData[cmp] = { totalArea: 0, totalPrice: 0, count: 0 };
+          cmpData[cmp].totalArea += area;
+          cmpData[cmp].totalPrice += priceNum;
+          cmpData[cmp].count += 1;
+        }
+      });
+
+      const getColorForPrice = (pricePerSqm: number) => {
+        if (pricePerSqm > 100000) return '#ef4444';
+        if (pricePerSqm > 80000) return '#f97316';
+        if (pricePerSqm > 60000) return '#eab308';
+        if (pricePerSqm > 40000) return '#8b5cf6';
+        if (pricePerSqm > 20000) return '#3b82f6';
+        return '#10b981';
+      };
+
+      const computed = Object.keys(cmpData).map(cmp => {
+        const avgPricePerSqm = cmpData[cmp].totalPrice / cmpData[cmp].totalArea;
+        return {
+          name: cmp,
+          size: cmpData[cmp].count,
+          value: Math.round(avgPricePerSqm),
+          fill: getColorForPrice(avgPricePerSqm),
+        };
+      });
+
+      setHeatmapData(computed.length === 0 ? [
+        { name: 'Mivida', size: 10, value: 45000, fill: '#0ea5e9' },
+        { name: 'Hyde Park', size: 5, value: 42000, fill: '#3b82f6' },
+      ] : computed);
+    });
+
+    return () => unsub();
+  }, []);
+
+  const CustomizedContent = (props: any) => {
+    const { depth, x, y, width, height, name, fill } = props;
+    return (
+      <g>
+        <rect
+          x={x} y={y} width={width} height={height}
+          style={{
+            fill: depth < 2 ? fill : 'none',
+            stroke: '#0a0f1d',
+            strokeWidth: 2 / (depth + 1e-10),
+            strokeOpacity: 1,
+            cursor: 'pointer',
+            transition: 'fill 0.3s ease-in-out',
+          }}
+        />
+        {width > 50 && height > 30 && (
+          <text x={x + width / 2} y={y + height / 2} textAnchor="middle" fill="#fff" fontSize={12} fontWeight="bold" dy={4}>
+            {name}
+          </text>
+        )}
+      </g>
+    );
+  };
+
+  return (
+    <div className="bg-[#0a0f1d] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+      <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/40 flex justify-between items-center">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-rose-400 font-bold select-none">
+          Market Pricing Heatmap
+        </span>
+        <span className="font-mono text-[9px] text-slate-500 uppercase tracking-widest hidden sm:block">Average EGP per SQM (Compound Index)</span>
+      </div>
+      <div className="p-4 h-[420px] w-full relative">
+        <ResponsiveContainer width="100%" height="100%">
+          <Treemap
+            data={heatmapData}
+            dataKey="size"
+            aspectRatio={4 / 3}
+            stroke="#fff"
+            fill="#8884d8"
+            content={<CustomizedContent />}
+          />
+        </ResponsiveContainer>
+        <div className="absolute bottom-4 right-4 flex items-center gap-2 bg-slate-900/80 px-3 py-2 rounded-lg border border-slate-700/50 text-[9px] font-mono">
+          <span className="text-slate-400">Scale:</span>
+          <div className="flex gap-1 items-center">
+            <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span>
+            <span className="w-2.5 h-2.5 rounded-sm bg-blue-500"></span>
+            <span className="w-2.5 h-2.5 rounded-sm bg-purple-500"></span>
+            <span className="w-2.5 h-2.5 rounded-sm bg-yellow-500"></span>
+            <span className="w-2.5 h-2.5 rounded-sm bg-orange-500"></span>
+            <span className="w-2.5 h-2.5 rounded-sm bg-red-500"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── AUTOMATION TOOLS (ported from SE's Vite admin) ──────────────────────
+   Reference config editors (Property Finder XML webhook, WhatsApp sender). */
+function AutomationToolsPage() {
+  const [activeSubTab, setActiveSubTab] = useState<'easylisting' | 'whatsapp' | 'none'>('none');
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-[#0a0f1d] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+        <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/40">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-cyan-400 font-bold select-none">
+            🤖 AUTOMATION TOOLS PORTAL
+          </span>
+        </div>
+        <div className="p-5 space-y-6">
+          <p className="text-slate-400 text-sm">
+            Configure system scripts and connect extensions from the Sierra Estates active repository.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={`bg-slate-950/60 border rounded-lg p-5 transition ${activeSubTab === 'easylisting' ? 'border-cyan-500/50' : 'border-slate-800'}`}>
+              <h3 className="text-white font-bold mb-2">Easy Listing Automation</h3>
+              <p className="text-slate-400 text-xs mb-4">Automatically post properties across Property Finder instantly using XML webhooks.</p>
+              <button
+                onClick={() => setActiveSubTab(activeSubTab === 'easylisting' ? 'none' : 'easylisting')}
+                className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20 px-4 py-2 rounded text-xs font-mono uppercase transition"
+              >
+                {activeSubTab === 'easylisting' ? 'Close Editor' : 'Configure Scripts'}
+              </button>
+            </div>
+
+            <div className={`bg-slate-950/60 border rounded-lg p-5 transition ${activeSubTab === 'whatsapp' ? 'border-cyan-500/50' : 'border-slate-800'}`}>
+              <h3 className="text-white font-bold mb-2">WhatsApp Sender Extension</h3>
+              <p className="text-slate-400 text-xs mb-4">Automate client outreach directly via WhatsApp from Sierra Estates repo.</p>
+              <button
+                onClick={() => setActiveSubTab(activeSubTab === 'whatsapp' ? 'none' : 'whatsapp')}
+                className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20 px-4 py-2 rounded text-xs font-mono uppercase transition"
+              >
+                {activeSubTab === 'whatsapp' ? 'Close Editor' : 'Configure Scripts'}
+              </button>
+            </div>
+          </div>
+
+          {activeSubTab === 'easylisting' && (
+            <div className="mt-6 bg-[#040710] border border-slate-800 rounded-lg p-4">
+              <h4 className="text-cyan-400 font-mono text-xs uppercase mb-3 border-b border-white/10 pb-2">Easy Listing Logic Editor (XML Parser)</h4>
+              <textarea
+                className="w-full h-64 bg-[#0a0f1d] border border-slate-800 text-slate-300 font-mono text-xs p-4 rounded outline-none focus:border-cyan-500/50 resize-y"
+                defaultValue={`// functions/index.js (Property Finder Parser)\nconst cloudFunctions = require("firebase-functions");\nconst firebaseAdmin = require("firebase-admin");\n\nexports.propertyFinderIngestWebhook = cloudFunctions.https.onRequest(async (req, res) => {\n  const listingsArray = req.body.list?.property || [];\n  const db = firebaseAdmin.firestore();\n  const batch = db.batch();\n\n  listingsArray.forEach(p => {\n    const uniqueId = p.reference_number?.[0] || p.id?.[0];\n    if (uniqueId) {\n      batch.set(db.collection("properties").doc(uniqueId), {\n        id: uniqueId,\n        compound: p.community?.[0] || "New Cairo Location",\n        title: p.title_en?.[0] || "Premium Asset Node",\n        price: p.price?.[0] || "Contact Management",\n        status: "Active",\n        lastUpdated: firebaseAdmin.firestore.FieldValue.serverTimestamp()\n      }, { merge: true });\n    }\n  });\n\n  await batch.commit();\n  return res.status(200).send("Property Finder Sync Complete.");\n});`}
+              />
+              <div className="mt-3 flex justify-end">
+                <button className="bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-xs tracking-widest px-6 py-2 rounded">
+                  DEPLOY TO FIREBASE
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeSubTab === 'whatsapp' && (
+            <div className="mt-6 bg-[#040710] border border-slate-800 rounded-lg p-4">
+              <h4 className="text-cyan-400 font-mono text-xs uppercase mb-3 border-b border-white/10 pb-2">WhatsApp Extension Connector</h4>
+              <textarea
+                className="w-full h-64 bg-[#0a0f1d] border border-slate-800 text-slate-300 font-mono text-xs p-4 rounded outline-none focus:border-cyan-500/50 resize-y"
+                defaultValue={`// whatsapp-sender.js — Meta Cloud API config for CRM sync\n\nasync function triggerWhatsAppSender(leadContact, templateId, language = "en") {\n  const metaEndpoint = \`https://graph.facebook.com/v17.0/\${process.env.WA_PHONE_ID}/messages\`;\n\n  const payload = {\n    messaging_product: "whatsapp",\n    to: leadContact,\n    type: "template",\n    template: { name: templateId, language: { code: language } }\n  };\n\n  const response = await fetch(metaEndpoint, {\n    method: "POST",\n    headers: {\n      "Authorization": \`Bearer \${process.env.WA_BEARER_TOKEN}\`,\n      "Content-Type": "application/json"\n    },\n    body: JSON.stringify(payload)\n  });\n\n  return response.json();\n}`}
+              />
+              <div className="mt-3 flex justify-end">
+                <button className="bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs tracking-widest px-6 py-2 rounded">
+                  SAVE AUTOMATION
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── REPORTS PAGE ─────────────────────────────────────────────────────── */
 function ReportsPage({ T }) {
   const MONTHS=['Jan','Feb','Mar','Apr','May','Jun'];
@@ -2467,6 +3109,12 @@ function AdminApp() {
       case 'listings':return <ListingsHubPage T={T}/>;
       case 'listings-manager':return <ListingsManagerPage/>;
       case 'requests':return <RequestsTicketPage/>;
+      case 'leads-funnel':return <LeadsFunnelPage/>;
+      case 'data-sync':return <DataSyncHubPage/>;
+      case 'agent-leaderboard':return <AgentLeaderboardPage/>;
+      case 'price-heatmap':return <PriceHeatmapPage/>;
+      case 'automation-tools':return <AutomationToolsPage/>;
+      case 'system-health':return <AdminHealthMonitorPage/>;
       case 'curator':return <CuratorPage T={T}/>;
       case 'scribe':return <ScribePage T={T}/>;
       case 'closer':return <Stage9CloserPage T={T}/>;

@@ -318,6 +318,9 @@ importers:
       '@sierra-estates/memory-engine':
         specifier: workspace:*
         version: link:../../packages/memory-engine
+      '@sierra-estates/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@sierra-estates/ui':
         specifier: workspace:*
         version: link:../../packages/ui
