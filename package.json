@@ -10,7 +10,8 @@
     "lint": "eslint src next.config.mjs postcss.config.mjs eslint.config.mjs --max-warnings 0",
     "type-check": "tsc --noEmit",
     "test": "jest --passWithNoTests",
-    "test:ci": "jest --ci --passWithNoTests"
+    "test:ci": "jest --ci --passWithNoTests",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "dependencies": {
     "firebase": "^11.0.0",
