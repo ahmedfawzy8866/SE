@@ -1,13 +1,15 @@
-import Link from 'next/link';
-import { ArrowLeft, Home, LayoutDashboard, Settings, User } from 'lucide-react';
+'use client';
 
-export const metadata = {
-  title: 'Client Dashboard — Sierra Estates',
-  description: 'Manage your portfolio, view enrollments, and track ROI.',
-};
+import Link from 'next/link';
+import { ArrowLeft, Home, LayoutDashboard, Settings } from 'lucide-react';
+import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
+import { useAuth } from '../../../lib/AuthContext';
 
 export default function DashboardPage() {
+  const { user, signOut } = useAuth();
+
   return (
+    <ProtectedRoute>
     <main
       style={{
         minHeight: '100vh',
@@ -42,7 +44,13 @@ export default function DashboardPage() {
         </Link>
         <div style={{ fontWeight: 700, letterSpacing: '-0.02em' }}>Sierra Estates</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <User size={18} color="#666" />
+          <div style={{ fontSize: 13, color: '#555' }}>{user?.email}</div>
+          <button 
+            onClick={() => void signOut()} 
+            style={{ background: 'none', border: '1px solid #ddd', padding: '6px 12px', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontWeight: 500 }}
+          >
+            Sign out
+          </button>
         </div>
       </header>
 
@@ -76,11 +84,12 @@ export default function DashboardPage() {
             </div>
           </div>
           <div style={{ marginTop: 40, padding: 40, background: '#fff', border: '1px dashed #ccc', borderRadius: 12, textAlign: 'center' }}>
-            <h3 style={{ margin: '0 0 8px' }}>Welcome to your portal</h3>
+            <h3 style={{ margin: '0 0 8px' }}>Welcome back, {user?.email?.split('@')[0] || 'Client'}!</h3>
             <p style={{ color: '#666', margin: 0 }}>Enroll in a program or save properties to see them here.</p>
           </div>
         </section>
       </div>
     </main>
+    </ProtectedRoute>
   );
 }
