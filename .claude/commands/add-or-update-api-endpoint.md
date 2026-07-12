@@ -1,12 +1,12 @@
 ---
 name: add-or-update-api-endpoint
-description: Workflow command scaffold for add-or-update-api-endpoint in Sierra-Estates-Final.
+description: Workflow command scaffold for add-or-update-api-endpoint in SE.
 allowed_tools: ["Bash", "Read", "Write", "Grep", "Glob"]
 ---
 
 # /add-or-update-api-endpoint
 
-Use this workflow when working on **add-or-update-api-endpoint** in `Sierra-Estates-Final`.
+Use this workflow when working on **add-or-update-api-endpoint** in `SE`.
 
 ## Goal
 

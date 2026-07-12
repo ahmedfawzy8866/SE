@@ -1,12 +1,12 @@
 ---
 name: add-or-update-whatsapp-bot-features
-description: Workflow command scaffold for add-or-update-whatsapp-bot-features in Sierra-Estates-Final.
+description: Workflow command scaffold for add-or-update-whatsapp-bot-features in SE.
 allowed_tools: ["Bash", "Read", "Write", "Grep", "Glob"]
 ---
 
 # /add-or-update-whatsapp-bot-features
 
-Use this workflow when working on **add-or-update-whatsapp-bot-features** in `Sierra-Estates-Final`.
+Use this workflow when working on **add-or-update-whatsapp-bot-features** in `SE`.
 
 ## Goal
 

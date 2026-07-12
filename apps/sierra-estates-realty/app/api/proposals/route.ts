@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { generateOptionsPackage } from '@/lib/services/sales-engine';
 import { verifyAdminRequest, unauthorizedResponse } from '@/lib/server/auth-guard';
 
@@ -22,10 +23,10 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('[PROPOSAL_API_ERROR]', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: error.message 
+    logger.error('Proposal API error', { error: error instanceof Error ? error.message : String(error) });
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to generate proposal'
     }, { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { getOpenClawGatewayConfig } from '@/lib/server/openclaw';
 
 export async function POST(req: Request) {
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
     const json = JSON.parse(content.match(/\{[\s\S]*\}/)?.[0] || '{}');
     return NextResponse.json(json);
   } catch (err: any) {
-    console.error("AI Analysis API error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    logger.error('AI analysis API error', { error: err instanceof Error ? err.message : String(err) });
+    return NextResponse.json({ error: 'Failed to analyze text' }, { status: 500 });
   }
 }

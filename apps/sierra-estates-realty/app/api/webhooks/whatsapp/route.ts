@@ -1,4 +1,6 @@
+import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { WhatsAppStatusService } from '@/lib/services/WhatsAppStatusService';
 import { WhatsAppParserService } from '@/lib/services/WhatsAppParserService';
 
@@ -10,11 +12,12 @@ import { WhatsAppParserService } from '@/lib/services/WhatsAppParserService';
  */
 
 export async function POST(req: NextRequest) {
-  // Optional secret verification for WhatsApp webhook
-  const SECRET_KEY = process.env.SBR_SECRET_KEY || '';
+  // Secret key verification using timing-safe comparison to prevent timing attacks
+  const SECRET_KEY = process.env.SBR_SECRET_KEY;
   if (SECRET_KEY) {
     const secretHeader = req.headers.get('x-sbr-secret-key');
-    if (!secretHeader || secretHeader !== SECRET_KEY) {
+    if (!secretHeader || !crypto.timingSafeEqual(Buffer.from(secretHeader), Buffer.from(SECRET_KEY))) {
+      logger.warn('Webhook unauthorized attempt', { ip: req.headers.get('x-forwarded-for') });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
   }
@@ -22,8 +25,8 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     
-    // Log incoming payload for audit
-    console.log("📥 Incoming Webhook Payload:", JSON.stringify(body, null, 2));
+    // Log incoming payload for audit (PII-safe logging)
+    logger.info('Webhook payload received', { hasMessage: !!body.message, sender: body.from });
 
     // Update Node Connectivity Heartbeat
     await WhatsAppStatusService.recordHeartbeat('syncing');
@@ -49,7 +52,7 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error("🚨 Webhook Critical Failure:", error);
+    logger.error('Webhook processing failed', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: "Internal processing error" }, { status: 500 });
   }
 }

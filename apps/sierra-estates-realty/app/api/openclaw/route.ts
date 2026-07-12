@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { getOpenClawGatewayConfig } from '@/lib/server/openclaw';
 import { verifyAppCheck } from '@/lib/server/app-check';
 
@@ -84,7 +85,7 @@ export async function POST(req: NextRequest) {
     const gateway = getOpenClawGatewayConfig();
 
     if (!gateway.configured) {
-      console.warn('[OpenClaw] Missing OPENCLAW_TOKEN; returning fallback response.');
+      logger.warn('OpenClaw: Missing OPENCLAW_TOKEN; returning fallback response');
       return NextResponse.json({ insights: null, error: 'OpenClaw token is not configured.' }, { status: 200 });
     }
 
@@ -138,7 +139,7 @@ Generate 3–4 actionable insights based on this data. Highlight high-priority i
 
     if (!response.ok) {
       const errText = await response.text();
-      console.warn('[OpenClaw] Gateway error:', response.status, errText);
+      logger.warn('OpenClaw gateway error', { status: response.status });
       return NextResponse.json({ insights: null, error: `Gateway ${response.status}` }, { status: 200 });
     }
 
@@ -151,7 +152,7 @@ Generate 3–4 actionable insights based on this data. Highlight high-priority i
     return NextResponse.json({ insights });
   } catch (err: unknown) {
     const error = err as Error;
-    console.warn('[OpenClaw] Fetch failed:', error.message);
-    return NextResponse.json({ insights: null, error: error.message }, { status: 200 });
+    logger.warn('OpenClaw fetch failed', { error: error instanceof Error ? error.message : String(error) });
+    return NextResponse.json({ insights: null }, { status: 200 });
   }
 }

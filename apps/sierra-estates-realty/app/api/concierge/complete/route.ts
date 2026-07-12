@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { generateCloserHandoff } from '@/lib/services/handoff-service';
 
 export async function POST(req: Request) {
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, summary });
   } catch (error: any) {
-    console.error("Handoff API error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logger.error('Handoff API error', { error: error instanceof Error ? error.message : String(error) });
+    return NextResponse.json({ error: 'Failed to process handoff' }, { status: 500 });
   }
 }

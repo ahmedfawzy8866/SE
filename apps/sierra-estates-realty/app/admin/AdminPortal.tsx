@@ -26,6 +26,7 @@ import {
 import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '@/lib/firebase';
+import { clientLogger } from '@/lib/client-logger';
 import {
   FunnelChart, Funnel, Tooltip as RechartsTooltip, LabelList,
   ResponsiveContainer, Cell as RechartsCell, Treemap,
@@ -1050,7 +1051,7 @@ function NexusExchangePage({ T }) {
       setAgentId('');
       setTimeout(() => setLastSignalId(null), 5000);
     } catch (err) {
-      console.error('[Nexus] Failed to send signal:', err);
+      clientLogger.error('Nexus signal dispatch failed', { error: err instanceof Error ? err.message : String(err) });
     } finally {
       setSending(false);
     }
@@ -1212,7 +1213,7 @@ function ListingsManagerPage() {
         const owner = await adminFetchOwnerByListingId(listingId);
         setOwnerCache(prev => ({ ...prev, [listingId]: owner }));
       } catch (err) {
-        console.error('Failed to fetch owner:', err);
+        clientLogger.error('Failed to fetch owner', { error: err instanceof Error ? err.message : String(err) });
       }
     }
     setRevealedOwners(prev => new Set(prev).add(listingId));
@@ -1786,7 +1787,7 @@ function RequestTicketDetail({ request, onUpdate }: {
       setAgentReply('');
       onUpdate();
     } catch (err: any) {
-      console.error('Failed to send reply:', err);
+      clientLogger.error('Failed to send reply', { error: err instanceof Error ? err.message : String(err) });
     } finally {
       setSending(false);
     }
@@ -1799,7 +1800,7 @@ function RequestTicketDetail({ request, onUpdate }: {
       await adminEscalateToAgent(request.id, 'current-agent-uid');
       onUpdate();
     } catch (err: any) {
-      console.error('Escalate failed:', err);
+      clientLogger.error('Escalate failed', { error: err instanceof Error ? err.message : String(err) });
     } finally {
       setActionLoading(false);
     }
@@ -1812,7 +1813,7 @@ function RequestTicketDetail({ request, onUpdate }: {
       await adminCloseRequest(request.id);
       onUpdate();
     } catch (err: any) {
-      console.error('Close failed:', err);
+      clientLogger.error('Close failed', { error: err instanceof Error ? err.message : String(err) });
     } finally {
       setActionLoading(false);
     }
@@ -2072,7 +2073,7 @@ function LeadsFunnelPage() {
 
       setFunnelData(data);
     }, (err) => {
-      console.error('LeadsFunnelPage failed to load leads', err);
+      clientLogger.error('LeadsFunnelPage failed to load leads', { error: err instanceof Error ? err.message : String(err) });
     });
 
     return () => unsub();
@@ -2319,7 +2320,7 @@ function AdminHealthMonitorPage() {
         setLoading(false);
       },
       (err) => {
-        console.error('Failure inside system health snapshot listener:', err);
+        clientLogger.error('Failure inside system health snapshot listener', { error: err instanceof Error ? err.message : String(err) });
         setError('Unaligned permissions');
         setLoading(false);
       }
@@ -2342,7 +2343,7 @@ function AdminHealthMonitorPage() {
         updatedAt: new Date(),
       }, { merge: true });
     } catch (err) {
-      console.warn('Unable to write health snapshot simulation (only Admins allowed):', err);
+      clientLogger.warn('Unable to write health snapshot simulation (only Admins allowed)', { error: err instanceof Error ? err.message : String(err) });
     } finally {
       setTimeout(() => setTestingStatus(false), 800);
     }

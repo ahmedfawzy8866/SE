@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { verifyAdminRequest } from '@/lib/auth/admin';
 import {
   runMigrations,
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
         };
 
         // Log migration to audit trail
-        console.log('[Admin Migration]', {
+        logger.info('Admin migration completed', {
           user: authResult.userId || 'unknown',
           status: result.success ? 'success' : 'failed',
           recordsMigrated: result.results.reduce(
@@ -82,12 +83,11 @@ export async function POST(req: NextRequest) {
           { status: result.success ? 200 : 207 }
         );
       } catch (error) {
-        console.error('[Admin Migration Error]', error);
+        logger.error('Admin migration error', { error: error instanceof Error ? error.message : String(error) });
         return NextResponse.json(
           {
             success: false,
             error: 'Migration failed',
-            message: error instanceof Error ? error.message : 'Unknown error',
           },
           { status: 500 }
         );
@@ -110,11 +110,10 @@ export async function POST(req: NextRequest) {
       );
     }
   } catch (error) {
-    console.error('[Admin Migration API Error]', error);
+    logger.error('Admin migration API error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       {
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -157,11 +156,10 @@ export async function GET(req: NextRequest) {
       );
     }
   } catch (error) {
-    console.error('[Admin Migration API Error]', error);
+    logger.error('Admin migration API error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       {
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
