@@ -1,4 +1,4 @@
-# CLAUDE.md — Sierra Estates (Sierra-Estates-Final)
+# CLAUDE.md — Sierra Estates (SE)
 
 Context for Claude Code / AI sessions.
 
@@ -46,13 +46,13 @@ and `lib/server/python-api-client.ts`) — scrapers/agents never run in the Next
 path, so they cannot affect public-site performance.
 
 **Admin lives in ONE place**: `apps/sierra-estates-realty/app/admin/`. The duplicate
-`apps/admin-dashboard` (Vite SPA) has been **removed** — its Firebase Hosting site now serves
-only a 302 redirect to the Vercel `/admin` (wired in `firebase.json` → `firebase/admin-redirect/`).
+Vite SPA (`apps/admin` in this repo) is **DEPRECATED** (see its `DEPRECATED.md`) and is not
+deployed — the Firebase Hosting site serves only a 302 redirect to the Vercel `/admin`
+(wired in `firebase.json` → `firebase/admin-redirect/`).
 (The older `sierra-estates-admin-portal` was removed June 2026.)
 
 ## Config files
-- `vercel.json` (root) — Vercel config when root dir = repo root (buildCommand points to the realty app)
-- `apps/sierra-estates-realty/vercel.json` — Vercel config when root dir = `apps/sierra-estates-realty` in Vercel dashboard
+- `apps/sierra-estates-realty/vercel.json` — the LIVE Vercel config (root dir = `apps/sierra-estates-realty` in the Vercel dashboard). There is no root `vercel.json` in this repo; the config validator treats it as optional.
 - `firebase.json` — Functions + Firestore rules + Storage rules + emulators + Hosting (the `admin-sierra-blu` site is a 302 redirect to the Vercel `/admin`, not a real web host)
 - `.firebaserc` — Firebase project: `sierra-blu` (hosting target `sierra-estates-admin` → site `admin-sierra-blu`)
 
@@ -80,17 +80,15 @@ only a 302 redirect to the Vercel `/admin` (wired in `firebase.json` → `fireba
 `.github/workflows/deploy-vercel.yml` re-pins it via the Vercel API (`PATCH .../projects/:id`)
 on every deploy, so the dashboard value is self-healing even if changed manually.
 `apps/sierra-estates-realty/vercel.json` is the config Vercel actually reads (crons,
-security headers, the `/api` rewrite, redirects) — keep it in sync with the root
-`vercel.json` below.
+security headers, the `/api` rewrite, redirects).
 
 - Framework Preset: `Next.js` (zero-config detected inside the app directory)
 - Build/Install commands: left to Vercel's Next.js zero-config detection (no override needed)
 - Deploy mechanism: **GitHub Action only** (`deploy-vercel.yml`, `vercel pull` → `vercel build` → `vercel deploy --prebuilt`). Vercel's own git auto-deploy is OFF (`git.deploymentEnabled: false`).
 
-The root `vercel.json` is kept as a ready-made fallback for the **alternate** topology
-(Root Directory = repo root) — only relevant if the dashboard root directory is ever
-changed back and the re-pin step in `deploy-vercel.yml` is removed. Until then, it is
-not read by Vercel; `apps/sierra-estates-realty/vercel.json` is the live one.
+There is no root `vercel.json` in this repo — `apps/sierra-estates-realty/vercel.json`
+is the live one. (A root file would only matter in the alternate topology where the
+dashboard Root Directory is the repo root; the config validator treats it as optional.)
 
 ## Conventions
 
@@ -125,7 +123,7 @@ Pre-production. Some services are mock/scaffolded (`MockAIService`, unwired i18n
 
 ## Constraints for AI sessions
 
-- GitHub access is scoped to `ahmedfawzy8866/Sierra-Estates-Final` only — do not touch other repos.
+- GitHub access is scoped to `ahmedfawzy8866/SE` only — do not touch other repos.
 - The `main` branch is protected on GitHub. Direct commits are blocked. Never force-push or delete `main`.
 - For all changes, checkout a new branch, push it to remote, and open a Pull Request.
 - Do not deploy without explicit approval. Never place API keys or credentials in raw code or in chat.
