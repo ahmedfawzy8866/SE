@@ -35,7 +35,7 @@ Storage:
 ### Option 1: Firebase CLI (Recommended)
 ```bash
 # From repo root
-cd H:\Sierra-Estates-Final
+cd H:\SE
 firebase deploy --only firestore:rules,storage
 ```
 

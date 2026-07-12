@@ -1,11 +1,11 @@
 ```markdown
-# Sierra-Estates-Final Development Patterns
+# SE Development Patterns
 
 > Auto-generated skill from repository analysis
 
 ## Overview
 
-This skill teaches you the core development patterns, coding conventions, and common workflows used in the `Sierra-Estates-Final` TypeScript codebase. The repository powers real estate and agent automation, including API endpoints, WhatsApp bot features, and a single-file MVP frontend. It emphasizes clear commit conventions, modular TypeScript, and robust developer tooling. This guide will help you quickly contribute, debug, and extend the project using established best practices.
+This skill teaches you the core development patterns, coding conventions, and common workflows used in the `SE` TypeScript codebase. The repository powers real estate and agent automation, including API endpoints, WhatsApp bot features, and a single-file MVP frontend. It emphasizes clear commit conventions, modular TypeScript, and robust developer tooling. This guide will help you quickly contribute, debug, and extend the project using established best practices.
 
 ## Coding Conventions
 

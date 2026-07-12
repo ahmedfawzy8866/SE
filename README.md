@@ -172,12 +172,10 @@ The following files are in `.gitignore` and will NEVER be committed:
 
 ---
 
-# SE — Sierra Estates (consolidated repo)
+# SE — Sierra Estates (The Main Repository)
 
-This is now the **single source of truth** for Sierra Estates. Backend,
-business logic, bots, AI agents, and automation workflows all live on
-`main`. The two production frontends each get their own branch — no
-frontend code lives on `main`.
+**SE** is the main repository and the **single source of truth** for all Sierra Estates projects. Backend,
+business logic, bots, AI agents, automation workflows, and frontends all live here in this consolidated monorepo. The branches are organized as follows:
 
 | Branch   | What it is                                                                 | Deploys to |
 |----------|-----------------------------------------------------------------------------|------------|
@@ -187,7 +185,7 @@ frontend code lives on `main`.
 
 ## `main` — backend, bots, agents, workflows
 
-Consolidated from `Sierra-Estates-Final`, keeping only what's actually
+Consolidated from `SE`, keeping only what's actually
 current (the repo had accumulated many stale duplicate/archive folders —
 `.archive`, `22`, `33`, `SE222`, `Sierra-Estates-Egypt`, `.claude/worktrees/*`,
 etc. — none of that came along; the `arc` repo, a graveyard of older Sierra

@@ -1,6 +1,6 @@
 # Sierra Estates — Backend Architecture & Hierarchy
 
-**Repository:** `Sierra-Estates-Final` → `https://github.com/ahmedfawzy8866/Sierra-Estates-Final.git`
+**Main Repository:** `SE` → `https://github.com/ahmedfawzy8866/SE.git`
 **Frontend:** Inside monorepo → `apps/sierra-estates-realty`
 
 ---
@@ -18,7 +18,7 @@
                 ▼                             ▼
     ┌───────────────────────────────────────────────────────┐
     │              SIERRA ESTATES BACKEND                    │
-    │       (Sierra-Estates-Final monorepo · Turborepo)     │
+    │       (SE monorepo · Turborepo)     │
     │                                                       │
     │  ┌─────────────────┐    ┌──────────────────────────┐  │
     │  │   apps/api      │    │   apps/agents-dashboard  │  │
@@ -64,7 +64,7 @@
 ## Directory Hierarchy
 
 ```
-Sierra-Estates-Final/                  ← Turborepo monorepo root
+SE/                  ← Turborepo monorepo root
 │
 ├── apps/                              ← Deployable applications
 │   ├── api/                           ← 🐍 Python API server
@@ -255,7 +255,7 @@ GitHub Push → .github/workflows/
 
 | Principle | Implementation |
 |-----------|---------------|
-| **Separation of concerns** | Frontend and Backend unified in `Sierra-Estates-Final` monorepo. |
+| **Separation of concerns** | Frontend and Backend unified in `SE` monorepo. |
 | **Single source of truth** | All state flows through Firestore `/exchange` collection |
 | **Event-driven** | Agents don't call each other — they write to Exchange Sheet |
 | **Observable** | Admin Hub reads all state live via Firestore `onSnapshot` |

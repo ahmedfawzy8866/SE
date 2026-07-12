@@ -1,4 +1,4 @@
-# CLAUDE.md — Sierra Estates (Sierra-Estates-Final)
+# CLAUDE.md — Sierra Estates (SE)
 
 Context for Claude Code / AI sessions.
 
@@ -125,7 +125,7 @@ Pre-production. Some services are mock/scaffolded (`MockAIService`, unwired i18n
 
 ## Constraints for AI sessions
 
-- GitHub access is scoped to `ahmedfawzy8866/Sierra-Estates-Final` only — do not touch other repos.
+- GitHub access is scoped to `ahmedfawzy8866/SE` only — do not touch other repos.
 - The `main` branch is protected on GitHub. Direct commits are blocked. Never force-push or delete `main`.
 - For all changes, checkout a new branch, push it to remote, and open a Pull Request.
 - Do not deploy without explicit approval. Never place API keys or credentials in raw code or in chat.

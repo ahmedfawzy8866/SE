@@ -2,7 +2,7 @@
 
 ## Current State Assessment
 
-### Admin Page (Sierra-Estates-Final)
+### Admin Page (SE)
 - **Type**: Monolithic Next.js component (AdminPortal.tsx, 1,400 LOC)
 - **Features**: 6 agents, 8 workflows, KPI cards, leads management, compounds data
 - **Data**: Demo arrays (hardcoded) — need Firestore wiring
@@ -21,7 +21,7 @@
 - **Type**: Vite React monorepo (`apps/admin`)
 - **Current**: Modern modular admin with 26+ pages
 - **Tech**: React Router, Firestore, Firebase Auth
-- **Better than**: Sierra-Estates-Final admin (modular, scalable)
+- **Better than**: SE admin (modular, scalable)
 
 ---
 
@@ -177,7 +177,7 @@ Kill-switch available if error rate > 5%
 ---
 
 ### Phase 1: Merge Admin Pages (Week 1)
-**Goal**: Port Sierra-Estates-Final admin features into SE admin while keeping modular architecture
+**Goal**: Port SE admin features into SE admin while keeping modular architecture
 
 #### 1a. Core Features to Port
 - [x] 6 AI Agents → new `AgentsPage` component (already exists)

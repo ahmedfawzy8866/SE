@@ -7,7 +7,7 @@
 
 ## Overview
 
-The client page from the Claude Design project has been successfully integrated into Sierra-Estates-Final. The implementation includes a comprehensive luxury real estate portal with map functionality, compound selection, unit listings, and full bilingual (EN/AR) support.
+The client page from the Claude Design project has been successfully integrated into SE. The implementation includes a comprehensive luxury real estate portal with map functionality, compound selection, unit listings, and full bilingual (EN/AR) support.
 
 ---
 
@@ -25,7 +25,7 @@ The client page from the Claude Design project has been successfully integrated 
   - Navigation with language toggle
   - Full i18n support (English/Arabic)
 
-### ✅ 2. Integrate Into Sierra-Estates-Final
+### ✅ 2. Integrate Into SE
 - **Status:** COMPLETE
 - **Location:** `apps/sierra-estates-realty/`
 - **Key Files:**
@@ -390,7 +390,7 @@ apps/sierra-estates-realty/
 
 For deployment issues or questions:
 - Email: a.fawzy8866@gmail.com
-- GitHub: ahmedfawzy8866/Sierra-Estates-Final
+- GitHub: ahmedfawzy8866/SE
 - Branch: main (production)
 
 ---

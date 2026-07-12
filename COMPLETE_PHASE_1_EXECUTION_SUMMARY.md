@@ -32,9 +32,9 @@ firebase deploy --only firestore:rules,storage
 ```
 
 **Files**:
-- H:\Sierra-Estates-Final\firestore.rules
-- H:\Sierra-Estates-Final\storage.rules
-- H:\Sierra-Estates-Final\DEPLOY_FIRESTORE_RULES.md
+- H:\SE\firestore.rules
+- H:\SE\storage.rules
+- H:\SE\DEPLOY_FIRESTORE_RULES.md
 
 ---
 
@@ -75,8 +75,8 @@ npm run deploy:functions
 ```
 
 **Files**:
-- H:\Sierra-Estates-Final\functions\src\middleware\sanitizer.ts
-- H:\Sierra-Estates-Final\functions\src\agents\sanitized-workflow.ts
+- H:\SE\functions\src\middleware\sanitizer.ts
+- H:\SE\functions\src\agents\sanitized-workflow.ts
 
 ---
 
@@ -113,8 +113,8 @@ gcloud scheduler jobs create pubsub cleanup-retry-queue \
 ```
 
 **Files**:
-- H:\Sierra-Estates-Final\functions\src\services\retry-queue.ts
-- H:\Sierra-Estates-Final\PHASE_1_3_PUBSUB_IMPLEMENTATION.md
+- H:\SE\functions\src\services\retry-queue.ts
+- H:\SE\PHASE_1_3_PUBSUB_IMPLEMENTATION.md
 
 ---
 
@@ -154,8 +154,8 @@ gcloud alpha monitoring policies create <alert-policies>
 ```
 
 **Files**:
-- H:\Sierra-Estates-Final\functions\src\middleware\observability.ts
-- H:\Sierra-Estates-Final\PHASE_1_4_OBSERVABILITY_DEPLOYMENT.md
+- H:\SE\functions\src\middleware\observability.ts
+- H:\SE\PHASE_1_4_OBSERVABILITY_DEPLOYMENT.md
 
 ---
 
@@ -393,7 +393,7 @@ Day 24-28:
 ## Files Ready for Deployment
 
 ```
-H:\Sierra-Estates-Final\
+H:\SE\
 ├── firestore.rules ✅
 ├── storage.rules ✅
 ├── DEPLOY_FIRESTORE_RULES.md ✅

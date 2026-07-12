@@ -70,7 +70,7 @@ When the portal is wired to Firestore:
 The portal is currently a **static HTML site** on GitHub Pages. Content is in
 `data.js`. To make it fully dynamic:
 
-1. Set up Firebase Firestore (already scaffolded in Sierra-Estates-Final)
+1. Set up Firebase Firestore (already scaffolded in SE)
 2. Replace `data.js` reads with Firestore `onSnapshot` subscriptions
 3. Build an admin page that writes to Firestore
 4. OpenClaw can then suggest content changes via the admin page
