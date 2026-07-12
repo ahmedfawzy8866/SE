@@ -1,4 +1,8 @@
-```markdown
+---
+name: SE
+description: Development patterns and conventions for the SE monorepo: file naming, import style, testing patterns, and pnpm workspace maintenance. Use when writing or reviewing code anywhere in this repository.
+---
+
 # SE Development Patterns
 
 > Auto-generated skill from repository analysis
@@ -71,4 +75,3 @@ This skill provides guidance on contributing to the SE TypeScript codebase. It c
 | Command                  | Purpose                                                        |
 |--------------------------|----------------------------------------------------------------|
 | /update-pnpm-workspace   | Update `pnpm-workspace.yaml` after package changes or CI issues|
-```
