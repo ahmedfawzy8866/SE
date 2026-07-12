@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { verifyAdminRequest } from '@/lib/server/auth-guard';
+import { withAdminAuth } from '@/lib/middleware/auth-guard';
 import { adminDb } from '@/lib/server/firebase-admin';
 import { AUTOMATION_COLLECTIONS } from '@/lib/models/automation';
 import { logger } from '@/lib/logger';
@@ -41,11 +42,9 @@ const automationCreateSchema = z.object({
   }).optional(),
 });
 
-export async function GET(req: NextRequest) {
+const getHandler = async (req: NextRequest) => {
   const authResult = await verifyAdminRequest(req);
-  if (!authResult.authenticated) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // auth already verified by withAdminAuth
 
   try {
     const snap = await adminDb.collection(AUTOMATION_COLLECTIONS.rules).get();
@@ -71,11 +70,9 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+const postHandler = async (req: NextRequest) => {
   const authResult = await verifyAdminRequest(req);
-  if (!authResult.authenticated) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // auth already verified by withAdminAuth
 
   try {
     const body = await req.json();
@@ -135,3 +132,6 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export const GET = withAdminAuth(getHandler);
+export const POST = withAdminAuth(postHandler);

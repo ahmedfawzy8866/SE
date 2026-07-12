@@ -1,3 +1,4 @@
+import { withSecretKey } from '@/lib/middleware/auth-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { PFIntegrationService } from '@/lib/services/PFIntegrationService';
 import { adminDb } from '@/lib/server/firebase-admin';
@@ -10,13 +11,8 @@ import { logger } from '@/lib/logger';
  * Runs every 6 hours via Vercel Cron to pull listings from PF into Firestore.
  */
 
-export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+const getHandler = async (req: NextRequest) => {
+  // cron secret verified by withSecretKey wrapper
 
   try {
     logger.info('🔄 [CRON] Starting Property Finder listing sync...');
@@ -51,3 +47,5 @@ export async function GET(req: NextRequest) {
     }, { status: 500 });
   }
 }
+
+export const GET = withSecretKey(getHandler);
