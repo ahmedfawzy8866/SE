@@ -10,11 +10,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800;900&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="shared.css"/>
 <script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<!-- Leaflet + MarkerCluster are self-hosted (vendored under assets/vendor/leaflet)
+     so the map never depends on an external CDN (unpkg) being reachable — a
+     blocked/slow CDN was silently killing the map ("if (!window.L) return"). -->
+<link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css"/>
+<link rel="stylesheet" href="assets/vendor/leaflet/MarkerCluster.css"/>
+<link rel="stylesheet" href="assets/vendor/leaflet/MarkerCluster.Default.css"/>
+<script src="assets/vendor/leaflet/leaflet.js"></script>
+<script src="assets/vendor/leaflet/leaflet.markercluster.js"></script>
 <!-- Firebase SDK (Firestore + Auth) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -628,9 +631,6 @@
         <h2 data-i18n="tourTit" style="font-family:var(--display);font-size:34px;font-weight:700;letter-spacing:-.01em;"></h2>
         <p data-i18n="tourSub"></p>
       </div>
-      <a href="virtual-tour.html" style="color:var(--pri);font-weight:700;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;padding:10px 18px;border:1.5px solid var(--pri);border-radius:999px;transition:.25s var(--silk);">
-        Open full page <i data-lucide="arrow-right" class="i" style="width:14px;height:14px;"></i>
-      </a>
     </div>
 
     <!-- ── Banner frame: gold gradient border + glow ── -->
@@ -1481,6 +1481,22 @@
 
   // Fit bounds to show all compounds
   try { map.fitBounds(clusterGroup.getBounds(), { padding: [40, 40], maxZoom: 13 }); } catch (e) {}
+
+  // The map section animates in via the reveal system, so Leaflet may measure a
+  // 0-size / stale container at init and render blank tiles. Re-measure after the
+  // next frame, on full load, and whenever the section scrolls into view.
+  function refreshMap() { try { map.invalidateSize(); } catch (e) {} }
+  requestAnimationFrame(refreshMap);
+  setTimeout(refreshMap, 400);
+  window.addEventListener('load', refreshMap);
+  if ('IntersectionObserver' in window) {
+    var mapSectionEl = document.getElementById('map-section');
+    if (mapSectionEl) {
+      new IntersectionObserver(function (entries) {
+        if (entries.some(function (en) { return en.isIntersecting; })) refreshMap();
+      }, { threshold: 0.1 }).observe(mapSectionEl);
+    }
+  }
 
   // ═══ HOME MAP FILTER (compound multi-select + single beds) ═══
   // Per user request:
