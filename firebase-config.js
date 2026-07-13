@@ -13,7 +13,8 @@ window.SIERRA_FIREBASE_CONFIG = {
   projectId:         "sierra-blu",
   storageBucket:     "sierra-blu.firebasestorage.app",
   messagingSenderId: "941030513456",
-  appId:             "1:941030513456:web:56209a1495d69f217086f5"
+  appId:             "1:941030513456:web:56209a1495d69f217086f5",
+  measurementId:     "G-ZP054BPJ8Q"
 };
 
 // Set to true — Firebase is now active

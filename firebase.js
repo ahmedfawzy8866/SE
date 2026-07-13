@@ -22,6 +22,12 @@
       }
       db = firebase.firestore();
       connected = true;
+      // Google Analytics (optional) — only when a measurementId is configured
+      // and the analytics-compat SDK is present. Guarded so a missing id/SDK
+      // never blocks Firestore.
+      try {
+        if (cfg.measurementId && firebase.analytics) firebase.analytics();
+      } catch (e) { /* analytics is best-effort */ }
       if (window.console) console.info('[Sierra] Firebase connected to project:', cfg.projectId);
       return true;
     } catch (e) {
