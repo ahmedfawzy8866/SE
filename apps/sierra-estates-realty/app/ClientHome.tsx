@@ -13,7 +13,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { motion, useReducedMotion } from 'framer-motion';
-import { collection, query, limit, getDocs } from 'firebase/firestore';
+import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { db as clientDb } from '@/lib/firebase';
 import { useI18n } from '@/lib/I18nContext';
 import { SiteConfig } from '@/lib/config';
@@ -186,7 +186,11 @@ export default function ClientHome() {
     let cancelled = false;
     (async () => {
       try {
-        const snap = await getDocs(query(collection(clientDb, 'properties'), limit(6)));
+        // Public catalog reads must be status-gated to satisfy the Firestore
+        // rules (`properties` allows public read only when status == 'published').
+        const snap = await getDocs(
+          query(collection(clientDb, 'properties'), where('status', '==', 'published'), limit(6)),
+        );
         if (cancelled || snap.empty) return;
         const items: Listing[] = snap.docs.map((d, i) => {
           const p = d.data() as Record<string, any>;
