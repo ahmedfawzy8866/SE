@@ -9,7 +9,7 @@
    design-system/components/property/PropertyCard.jsx
    ============================================================================ */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -17,10 +17,26 @@ import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { db as clientDb } from '@/lib/firebase';
 import { useI18n } from '@/lib/I18nContext';
 import { SiteConfig } from '@/lib/config';
+import { COMPOUNDS } from './client/portalData';
+import type { MapPoint } from '@/components/Maps/LiveMap';
 import './client-home.css';
 
 // Leaflet map — SSR-safe, client-only (reuses the existing vanilla-Leaflet map)
-const LiveMap = dynamic<{ mode?: 'dark' | 'light' }>(() => import('@/components/Maps/LiveMap'), { ssr: false });
+const LiveMap = dynamic<{
+  mode?: 'dark' | 'light';
+  points?: MapPoint[];
+  labels?: { yield: string; price: string; ai: string; demand: string };
+}>(() => import('@/components/Maps/LiveMap'), { ssr: false });
+
+// Interactive panorama — SSR-safe (uses pointer events + clipboard).
+const PanoViewer = dynamic<import('@/components/Panorama/PanoViewer').PanoViewerProps>(
+  () => import('@/components/Panorama/PanoViewer'),
+  { ssr: false },
+);
+
+// Immersive-tour panorama plate. Swap for a true equirectangular 360° asset when
+// available; any wide, high-resolution shot pans well in the meantime.
+const PANO_SRC = 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=2400&q=85';
 
 const WHATSAPP = SiteConfig.contact.whatsapp;
 
@@ -62,6 +78,11 @@ const COPY = {
     s1: 'Verified Units', s2: 'Compounds', s3: 'Match Accuracy', s4: 'Avg. Response',
     featEyebrow: 'AI-CURATED INVENTORY', featTitle: 'Featured Properties', featTitleItalic: 'Properties', viewAll: 'View All →',
     mapEyebrow: 'LIVE MARKET MAP', mapTitle: 'Where the Signals Are', mapSub: 'Real-time demand and yield across New Cairo compounds.',
+    mapLegend: 'Marker size = live demand · colour = expected yield',
+    mapYield: 'Yield', mapPrice: 'Avg', mapAi: 'AI', mapDemand: 'live',
+    tourEyebrow: 'IMMERSIVE TOURS', tourTitle: 'Step Inside, From Anywhere',
+    tourSub: 'Drag to explore our flagship residences in an interactive 360° panorama — then share the tour with a single link.',
+    tourBadge: '360° TOUR', tourHint: 'Drag to explore', tourCopy: 'Copy tour link', tourCopied: 'Link copied',
     whyEyebrow: 'OUR ADVANTAGE', whyTitle: 'Why Sierra Estates', whyTitleItalic: 'Sierra Estates',
     w1t: 'AI Opportunity Scanner', w1s: 'Our engine scans 1,200+ units daily — ROI, AVM pricing and smart matching surface the best deals first.',
     w2t: 'Verified Inventory', w2s: 'Every listing is personally verified on-site before it reaches your feed. No ghosts, no bait.',
@@ -79,6 +100,11 @@ const COPY = {
     s1: 'وحدة موثقة', s2: 'كمبوند', s3: 'دقة التوافق', s4: 'متوسط الرد',
     featEyebrow: 'مخزون منتقى بالذكاء', featTitle: 'عقارات مميزة', featTitleItalic: '', viewAll: '← عرض الكل',
     mapEyebrow: 'خريطة السوق الحية', mapTitle: 'أين تتحرك الإشارات', mapSub: 'الطلب والعائد لحظياً عبر كمبوندات القاهرة الجديدة.',
+    mapLegend: 'حجم النقطة = الطلب الحي · اللون = العائد المتوقع',
+    mapYield: 'العائد', mapPrice: 'متوسط', mapAi: 'ذكاء', mapDemand: 'وحدة',
+    tourEyebrow: 'جولات غامرة', tourTitle: 'ادخل من أي مكان',
+    tourSub: 'اسحب لاستكشاف أرقى وحداتنا بزاوية 360° تفاعلية — ثم شارك الجولة برابط واحد.',
+    tourBadge: 'جولة 360°', tourHint: 'اسحب للاستكشاف', tourCopy: 'انسخ رابط الجولة', tourCopied: 'تم نسخ الرابط',
     whyEyebrow: 'مزايانا', whyTitle: 'لماذا سيرا إستيتس', whyTitleItalic: '',
     w1t: 'ماسح الفرص الذكي', w1s: 'محركنا يفحص +1200 وحدة يومياً — العائد والتسعير والتوافق الذكي لإيجاد أفضل الفرص أولاً.',
     w2t: 'مخزون موثق', w2s: 'كل وحدة يتم التحقق منها ميدانياً قبل ظهورها. لا وحدات وهمية.',
@@ -221,6 +247,24 @@ export default function ClientHome() {
 
   const enter = reduce ? {} : { initial: { transform: 'translateY(20px)' }, animate: { transform: 'translateY(0px)' } };
 
+  // Intelligence-map markers: real New Cairo compounds (coords + yield + AI),
+  // with a live demand signal = count of currently-loaded listings per compound.
+  const mapPoints: MapPoint[] = useMemo(() => {
+    const norm = (s: string) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    return COMPOUNDS.map((c) => {
+      const key = norm(c.n.split(' (')[0]).split(' ').slice(0, 2).join(' ');
+      const demand = listings.reduce((n, l) => (norm(l.location).includes(key) ? n + 1 : n), 0);
+      return {
+        name: c.n,
+        coord: c.c,
+        yieldPct: parseInt(String(c.g).replace(/[^0-9-]/g, ''), 10) || 0,
+        priceM: c.priceM,
+        ai: c.ai,
+        demand: demand > 0 ? demand : undefined,
+      };
+    });
+  }, [listings]);
+
   return (
     <div dir={isAr ? 'rtl' : 'ltr'} className={isAr ? 'sb-ar' : ''} style={{ minHeight: '100vh', overflowX: 'hidden' }}>
       {/* NAV */}
@@ -327,10 +371,32 @@ export default function ClientHome() {
           </Reveal>
           <Reveal reduce={reduce} delay={0.1}>
             <div style={{ height: 440, borderRadius: 'var(--radius-xl)', overflow: 'hidden', border: '1px solid var(--bd-gold)', background: 'var(--bg-e2)' }}>
-              <LiveMap mode="dark" />
+              <LiveMap
+                mode="dark"
+                points={mapPoints}
+                labels={{ yield: t.mapYield, price: t.mapPrice, ai: t.mapAi, demand: t.mapDemand }}
+              />
             </div>
+            <p className="sb-body" style={{ color: 'var(--tx-f)', fontSize: 13, margin: '12px 0 0' }}>{t.mapLegend}</p>
           </Reveal>
         </div>
+      </section>
+
+      {/* IMMERSIVE TOUR — interactive panorama + shareable link */}
+      <section id="tours" style={{ maxWidth: 'var(--container)', margin: '0 auto', padding: 'var(--section-pad) var(--gutter)' }}>
+        <Reveal reduce={reduce}>
+          <div className="sb-eyebrow" style={{ marginBottom: 12 }}>{t.tourEyebrow}</div>
+          <h2 className="sb-display-l" style={{ margin: '0 0 8px' }}>{t.tourTitle}</h2>
+          <p className="sb-body" style={{ color: 'var(--tx-m)', margin: '0 0 28px', maxWidth: 640 }}>{t.tourSub}</p>
+        </Reveal>
+        <Reveal reduce={reduce} delay={0.1}>
+          <PanoViewer
+            src={PANO_SRC}
+            alt={t.tourTitle}
+            shareUrl={typeof window !== 'undefined' ? `${window.location.origin}/virtual-tour` : '/virtual-tour'}
+            labels={{ badge: t.tourBadge, hint: t.tourHint, copy: t.tourCopy, copied: t.tourCopied }}
+          />
+        </Reveal>
       </section>
 
       {/* WHY SIERRA */}
