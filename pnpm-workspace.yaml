@@ -1,12 +1,13 @@
 packages:
   - '.'
   - 'apps/*'
-  - 'apps/agents/*'
   - 'packages/*'
   - 'functions'
 
-allowBuilds:
-  '@firebase/util': false
-  protobufjs: false
-  sharp: false
-  unrs-resolver: false
+onlyBuiltDependencies:
+  - '@firebase/util'
+  - '@google/genai'
+  - core-js
+  - esbuild
+  - protobufjs
+  - sharp

@@ -51,6 +51,10 @@
     {
       "source": "/api/:path*",
       "destination": "/api/:path*"
+    },
+    {
+      "source": "/client-page",
+      "destination": "/client-page/index.html"
     }
   ],
   "redirects": [

@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "realty-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "sierra-estates-realty", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "admin-portal-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "sierra-estates-admin-portal", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "admin-portal-preview",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "sierra-estates-admin-portal", "exec", "vite", "preview", "--port", "5180", "--strictPort"],
+      "port": 5180
+    }
+  ]
+}
