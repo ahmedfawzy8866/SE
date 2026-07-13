@@ -4,7 +4,7 @@
  * The `listings`/`compounds` arrays are the LOCAL FALLBACK; live data is read
  * from Firestore `properties` at runtime (see fetchFeaturedProperties / etc.).
  */
-import { collection, query, limit as fbLimit, getDocs } from 'firebase/firestore';
+import { collection, query, where, limit as fbLimit, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export interface Listing {
@@ -162,7 +162,11 @@ function mapDoc(id: string, p: Record<string, unknown>): Listing {
 
 export async function fetchListings(max = 24): Promise<Listing[]> {
   try {
-    const snap = await getDocs(query(collection(db, 'properties'), fbLimit(max)));
+    // Public catalog reads must be status-gated to satisfy the Firestore rules
+    // (`properties` allows public read only when status == 'published').
+    const snap = await getDocs(
+      query(collection(db, 'properties'), where('status', '==', 'published'), fbLimit(max)),
+    );
     if (snap.empty) return [];
     return snap.docs.map((d) => mapDoc(d.id, d.data() as Record<string, unknown>));
   } catch {
