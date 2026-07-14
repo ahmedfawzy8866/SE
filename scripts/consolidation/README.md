@@ -1,7 +1,7 @@
 # Consolidation Scripts
 
 These are the scripts that were used to consolidate all 31 repositories
-from `github.com/ahmedfawzy8866` into this single `Sierra-Estates-Final`
+from `github.com/ahmedfawzy8866` into this single `SE`
 monorepo on **2026-07-06**. They are preserved here so the work is
 reproducible and auditable.
 
@@ -25,7 +25,7 @@ python3 analyze_repos.py
 python3 fingerprint_repos.py
 
 # 4. Build the consolidated tree:
-#    - Base: Sierra-Estates-Final codebase (copied to /consolidated/)
+#    - Base: SE codebase (copied to /consolidated/)
 #    - Each distinct repo copied to /consolidated/_archived_repos/<name>/
 #    - Skip empty repos, fingerprint duplicates, older Sierra snapshots
 #    - Strip .git/, node_modules/, dist/, build/, files >50 MB

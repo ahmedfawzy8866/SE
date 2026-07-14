@@ -351,9 +351,9 @@ export async function createMigrationAuditTrail(
       entity: 'admin_data',
       entityId: 'phase2_to_phase3',
       changes: {
-        totalCollectionsMigrated: results.reduce((sum, r) => sum + r.migratedCollections.length, 0),
-        totalRecordsMigrated: results.reduce((sum, r) => sum + r.recordsMigrated, 0),
-        totalErrors: results.reduce((sum, r) => sum + r.errors.length, 0),
+        totalCollectionsMigrated: results.reduce((sum: number, r) => sum + r.migratedCollections.length, 0 as number),
+        totalRecordsMigrated: results.reduce((sum: number, r) => sum + r.recordsMigrated, 0 as number),
+        totalErrors: results.reduce((sum: number, r) => sum + r.errors.length, 0 as number),
         timestamp: new Date().toISOString(),
       },
       migrationResults: results,

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Providers } from '../components/Providers';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -27,11 +28,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
         />
       </head>
       <body>
-        <main id="main-content">{children}</main>
+        <Providers>
+          <main id="main-content">{children}</main>
+        </Providers>
       </body>
     </html>
   );

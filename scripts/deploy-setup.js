@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { execSync } from 'child_process';
 import readline from 'readline';
 import fs from 'fs';
@@ -35,11 +36,11 @@ async function run() {
     // Check Firebase project
     let currentProject = '';
     try {
-      const activeProjectInfo = execSync('firebase project:active', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-      currentProject = activeProjectInfo;
+      const activeProjectInfo = execSync('firebase use', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+      currentProject = activeProjectInfo.replace(/[\r\n]+/g, ' ').replace(/.*project\s+/i, '').trim();
       console.log(`📡 Current active Firebase project: \x1b[32m${currentProject}\x1b[0m`);
     } catch {
-      console.log('⚠️ Could not fetch active project. Attempting to list projects...');
+      console.log('⚠️ Could not fetch active project.');
     }
 
     const deployRules = await question('❓ Deploy Firestore and Storage security rules to this project? (y/n): ');
@@ -48,7 +49,7 @@ async function run() {
       try {
         execSync('firebase deploy --only firestore:rules,storage', { stdio: 'inherit' });
         console.log('✅ Security rules deployed successfully.');
-      } catch (err) {
+      } catch {
         console.error('❌ Failed to deploy security rules. Make sure you are logged in using `firebase login`.');
       }
     }

@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, query, where } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, query, where, type QueryDocumentSnapshot } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -36,7 +36,7 @@ export async function fetchPropertiesFromDB(typeFilter: 'Rent' | 'Resale'): Prom
     const querySnapshot = await getDocs(q);
     
     const properties: Property[] = [];
-    querySnapshot.forEach((doc) => {
+    querySnapshot.forEach((doc: QueryDocumentSnapshot) => {
       properties.push({ id: doc.id, ...doc.data() } as Property);
     });
     

@@ -1,5 +1,5 @@
-import { doc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/server/firebase-admin';
+import { Timestamp } from 'firebase-admin/firestore';
 
 export class WhatsAppStatusService {
   private static STATUS_DOC = 'system_status/whatsapp_node';
@@ -9,10 +9,11 @@ export class WhatsAppStatusService {
    */
   static async recordHeartbeat(status: 'active' | 'syncing' | 'error' = 'active') {
     try {
-      const statusRef = doc(db, this.STATUS_DOC);
-      await setDoc(statusRef, {
+      const parts = this.STATUS_DOC.split('/');
+      const statusRef = adminDb.collection(parts[0]).doc(parts[1]);
+      await statusRef.set({
         status,
-        lastPulse: serverTimestamp(),
+        lastPulse: Timestamp.now(),
         nodeId: 'OPENCLAW_NODE_01',
         heartbeatInterval: 60000 // Expected pulse every 60s
       }, { merge: true });
@@ -26,14 +27,16 @@ export class WhatsAppStatusService {
    */
   static async recordError(errorMessage: string) {
     try {
-      const statusRef = doc(db, this.STATUS_DOC);
-      await updateDoc(statusRef, {
+      const parts = this.STATUS_DOC.split('/');
+      const statusRef = adminDb.collection(parts[0]).doc(parts[1]);
+      await statusRef.update({
         status: 'error',
         lastError: errorMessage,
-        errorTimestamp: serverTimestamp()
+        errorTimestamp: Timestamp.now()
       });
     } catch (error) {
       console.error("❌ Failed to record node error:", error);
     }
   }
 }
+

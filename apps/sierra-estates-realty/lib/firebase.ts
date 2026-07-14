@@ -1,119 +1,82 @@
 /**
- * sierra estates — FIREBASE CLIENT SINGLETON
- * Central Firebase initialization for the frontend.
- * Admin SDK (service-account.json) is for server/scripts only.
+ * Firebase client SDK — singleton, lazy-initialized.
+ * Reads config from NEXT_PUBLIC_* env vars. If unset, the app falls back
+ * to the seed data in lib/seed.ts (so the dev sandbox always renders).
  */
-import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { logger } from '@/lib/logger';
+import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
+import { getFirestore, type Firestore } from "firebase/firestore";
+import { getAuth, type Auth } from "firebase/auth";
 
-const isDummyKey = (key?: string) => {
-  if (!key) return true;
-  return key.includes('Dummy') || key === 'AIzaSyDummyKey123456789';
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-const hasValidFirebaseConfig = Boolean(
-  process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
-  process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN &&
-  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
-  process.env.NEXT_PUBLIC_FIREBASE_APP_ID &&
-  !isDummyKey(process.env.NEXT_PUBLIC_FIREBASE_API_KEY)
+export const firebaseEnabled = Boolean(
+  firebaseConfig.apiKey && firebaseConfig.projectId
 );
 
-const canUsePlaceholderConfig = !hasValidFirebaseConfig && typeof window === 'undefined';
+/**
+ * isFirebaseClientConfigured — convenience boolean alias used by auth guards
+ * and client components to branch at runtime without calling a getter.
+ */
+export const isFirebaseClientConfigured = firebaseEnabled;
 
-if (!hasValidFirebaseConfig && !canUsePlaceholderConfig && typeof window !== 'undefined') {
-  logger.warn('[firebase] Using development mock - real Firebase not configured.');
+let _app: FirebaseApp | null = null;
+let _db: Firestore | null = null;
+let _auth: Auth | null = null;
+
+export function getFirebaseApp(): FirebaseApp | null {
+  if (!firebaseEnabled) return null;
+  if (_app) return _app;
+  _app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  return _app;
 }
 
-const firebaseConfig = hasValidFirebaseConfig
-  ? {
-      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    }
-  : {
-      apiKey: 'dev-mode-placeholder',
-      authDomain: 'dev.firebaseapp.com',
-      projectId: 'dev-project',
-      storageBucket: 'dev.appspot.com',
-      messagingSenderId: '000000000000',
-      appId: '1:000000000000:web:dev',
-    };
-
-let app: FirebaseApp;
-try {
-  app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-} catch (error) {
-  logger.warn('[firebase] Failed to initialize app:', error);
-  app = getApps()[0];
+export function getDb(): Firestore | null {
+  if (!firebaseEnabled) return null;
+  if (_db) return _db;
+  const app = getFirebaseApp();
+  if (!app) return null;
+  _db = getFirestore(app);
+  return _db;
 }
 
-export const isFirebaseClientConfigured = hasValidFirebaseConfig;
-
-const createMockAuth = (): Auth => {
-  // Must behave like a real signed-out Auth for the modular API:
-  // getModularInstance() reads `_delegate`, and onAuthStateChanged must
-  // invoke the callback (with null) and return an unsubscribe function.
-  const mockAuth: any = {
-    currentUser: null,
-    onAuthStateChanged(next: ((user: null) => void) | { next?: (user: null) => void }) {
-      const cb = typeof next === 'function' ? next : next?.next;
-      const timerId = cb ? setTimeout(() => cb(null), 0) : undefined;
-      return () => { if (timerId !== undefined) clearTimeout(timerId); };
-    },
-    signOut: () => Promise.resolve(),
-  };
-  mockAuth._delegate = mockAuth;
-  return new Proxy(mockAuth, {
-    get(target, prop) {
-      if (prop in target) return target[prop];
-      if (prop === '_isProxy') return true;
-      return () => Promise.resolve(null);
-    },
-  });
-};
-
-const unavailableClientService = <T>(serviceName: string): T =>
-  new Proxy(
-    {},
-    {
-      get() {
-        throw new Error(
-          `Firebase client ${serviceName} is unavailable - use real Firebase credentials in production.`
-        );
-      },
-    }
-  ) as T;
-
-const isBuildTime = typeof window === 'undefined' && process.env.NEXT_PHASE === 'phase-production-build';
-
-export const auth: Auth = hasValidFirebaseConfig && !isBuildTime
-  ? getAuth(app)
-  : createMockAuth();
-
-export const db: Firestore = hasValidFirebaseConfig && !isBuildTime
-  ? getFirestore(app)
-  : unavailableClientService<Firestore>('firestore');
-
-export const storage: FirebaseStorage = hasValidFirebaseConfig && !isBuildTime
-  ? getStorage(app)
-  : unavailableClientService<FirebaseStorage>('storage');
-
-export async function getAnalyticsInstance() {
-  if (typeof window === 'undefined') return null;
-  if (!hasValidFirebaseConfig) return null;
-  try {
-    const { getAnalytics } = await import('firebase/analytics');
-    return getAnalytics(app);
-  } catch {
-    return null;
-  }
+export function getFirebaseAuth(): Auth | null {
+  if (!firebaseEnabled) return null;
+  if (_auth) return _auth;
+  const app = getFirebaseApp();
+  if (!app) return null;
+  _auth = getAuth(app);
+  return _auth;
 }
 
-export default app;
+/**
+ * Named singleton exports for consumers that import { db } / { auth } directly.
+ * Both are lazily initialised — null when Firebase env vars are absent.
+ *
+ * NOTE: These are module-level constants that call the getters once on first
+ * import. Server-side API routes that run before env vars are set should use
+ * getDb() / getFirebaseAuth() instead, but the pattern below is fine for
+ * client components and route handlers that run after config is available.
+ */
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+export const db: Firestore = firebaseEnabled
+  ? (() => {
+      const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+      return getFirestore(app);
+    })()
+  : (null as unknown as Firestore);
+
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+export const auth: Auth = firebaseEnabled
+  ? (() => {
+      const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+      return getAuth(app);
+    })()
+  : (null as unknown as Auth);

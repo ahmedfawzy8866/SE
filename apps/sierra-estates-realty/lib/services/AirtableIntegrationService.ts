@@ -1,4 +1,5 @@
 import { adminDb } from '../server/firebase-admin';
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { COLLECTIONS, Unit } from '../models/schema';
 import { mapRowToUnit } from './listing-normalize';
 
@@ -287,7 +288,7 @@ export class AirtableIntegrationService {
     try {
       const snap = await adminDb.collection(COLLECTIONS.units).get();
       const records: Array<{ fields: Record<string, unknown> }> = [];
-      snap.docs.forEach((doc) => {
+      snap.docs.forEach((doc: QueryDocumentSnapshot) => {
         const fields = this.unitToAirtableFields(doc.id, doc.data() as Partial<Unit>);
         if (fields) records.push({ fields });
       });
@@ -319,7 +320,7 @@ export class AirtableIntegrationService {
 
     try {
       const snap = await adminDb.collection(COLLECTIONS.stakeholders).get();
-      const records = snap.docs.map((doc) => {
+      const records = snap.docs.map((doc: QueryDocumentSnapshot) => {
         const d = doc.data() as Record<string, unknown>;
         const createdAt = d.createdAt as { toDate?: () => Date } | undefined;
         const fields: Record<string, unknown> = {

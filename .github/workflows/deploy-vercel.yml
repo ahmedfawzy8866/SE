@@ -1,0 +1,117 @@
+name: Deploy · Vercel (client site)
+
+# Deploys the Sierra Estates web app (apps/sierra-estates-realty: public client
+# site + backend /api routes) to its OWN Vercel project.
+#
+# ⚠️ The admin (Vercel project `admin-dashboard`, prj_cJSEzNFE1JOAHzIdjrsJtVaqq7vJ)
+# is a SEPARATE codebase in a separate repo with its own git auto-deploy. This
+# workflow must NEVER target that project — doing so would overwrite the live
+# admin. That is why the client project id is NOT hardcoded here: it is read
+# from the repo Actions variable CLIENT_VERCEL_PROJECT_ID, and the deploy job
+# is skipped entirely (green, with a notice) until that variable is set to the
+# dedicated client project (Vercel dashboard → Add New → Project → copy its
+# prj_... id, then GitHub → Settings → Secrets and variables → Actions →
+# Variables). The guard is a separate job gating `deploy` via `needs:`, so a
+# future step added to `deploy` can't accidentally skip the check.
+#
+# Required repo secret:  VERCEL_TOKEN
+# Required repo variable: CLIENT_VERCEL_PROJECT_ID (prj_... of the CLIENT project)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy target'
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - preview
+
+concurrency:
+  group: vercel-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VERCEL_ORG_ID: team_UvdJ5ezVTaqEKyhqZ5QVqOKJ
+  VERCEL_PROJECT_ID: ${{ vars.CLIENT_VERCEL_PROJECT_ID }}
+  VERCEL_CLI_VERSION: '43.3.0'
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - name: Require a dedicated CLIENT project id
+        id: check
+        run: |
+          if [ -z "${VERCEL_PROJECT_ID}" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Deploy skipped::CLIENT_VERCEL_PROJECT_ID repo variable is not set. Create a dedicated Vercel project for the client site and set the variable — this workflow will not deploy until then (protects the separate admin-dashboard project from being overwritten)."
+          elif [ "${VERCEL_PROJECT_ID}" = "prj_cJSEzNFE1JOAHzIdjrsJtVaqq7vJ" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::error title=Refusing to deploy::CLIENT_VERCEL_PROJECT_ID points at the admin-dashboard project. Set it to the dedicated CLIENT project id."
+            exit 1
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: guard
+    if: needs.guard.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm must be set up BEFORE setup-node so the cache key is correct
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Determine deploy target
+        id: target
+        run: |
+          ENV="${{ github.event.inputs.environment || 'production' }}"
+          echo "name=$ENV" >> "$GITHUB_OUTPUT"
+          if [ "$ENV" = "production" ]; then
+            echo "flag=--prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "flag=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Normalize Vercel project settings (monorepo self-heal)
+        run: |
+          # Best-effort self-heal: Next.js zero-config + monorepo root directory,
+          # clearing any stale build/install/output overrides. Non-2xx must NOT
+          # abort the deploy — otherwise production never ships.
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -X PATCH \
+            "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}?teamId=${VERCEL_ORG_ID}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory":"apps/sierra-estates-realty","framework":"nextjs","buildCommand":null,"installCommand":null,"outputDirectory":null,"devCommand":null}' || echo "000")
+          if [ "$code" = "200" ] || [ "$code" = "204" ]; then
+            echo "Project settings normalized: Next.js zero-config, root apps/sierra-estates-realty (HTTP $code)"
+          else
+            echo "::warning::Could not normalize Vercel project settings (HTTP $code). Continuing deploy — verify VERCEL_TOKEN has project-write scope and that the dashboard settings are framework=Next.js, root=apps/sierra-estates-realty, no build/install/output overrides."
+          fi
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@${VERCEL_CLI_VERSION}
+
+      - name: Pull Vercel project settings
+        run: vercel pull --yes --environment=${{ steps.target.outputs.name }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build
+        run: vercel build ${{ steps.target.outputs.flag }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy (prebuilt)
+        run: vercel deploy --prebuilt ${{ steps.target.outputs.flag }} --token=${{ secrets.VERCEL_TOKEN }}

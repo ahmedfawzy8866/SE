@@ -73,6 +73,7 @@
 import {
   collection, query, orderBy, onSnapshot, where,
   addDoc, setDoc, doc, getDocs, writeBatch, serverTimestamp,
+  type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db, isFirebaseClientConfigured } from '@/lib/firebase';
 import {
@@ -261,7 +262,7 @@ export async function seedHouyezPortal(opts: { overwrite?: boolean } = {}): Prom
       }
       if (opts.overwrite && !existing.empty) {
         const batch = writeBatch(db);
-        existing.docs.forEach((d) => batch.delete(d.ref));
+        existing.docs.forEach((d: QueryDocumentSnapshot) => batch.delete(d.ref));
         await batch.commit();
       }
       for (const row of rows) {

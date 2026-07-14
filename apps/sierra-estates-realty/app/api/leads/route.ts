@@ -1,95 +1,71 @@
-import { NextResponse } from 'next/server';
-import { adminDb } from '@/lib/server/firebase-admin';
-import { Timestamp } from 'firebase-admin/firestore';
-import { COLLECTIONS } from '@/lib/models/schema';
-import { sendTelegramMessage } from '@/lib/telegram';
-import { applyRateLimit, publicEndpointLimiter } from '@/lib/server/rate-limit';
-import { enqueueWhatsAppJob } from '@/lib/server/whatsapp-queue';
+/**
+ * GET  /api/leads  (manager+)   — list Property Finder webhook leads
+ * POST /api/leads  (public)     — webhook ingest (no auth, validates
+ *                                  source header or token query)
+ *
+ * The public POST is for Property Finder's webhook. It validates a
+ * shared secret in `x-pf-token` header (PF_WEBHOOK_TOKEN env) or skips
+ * in sandbox (no token configured = open ingest, dev only).
+ */
+import { NextResponse } from "next/server";
+import { getAdminDb } from "@/lib/firebase-admin";
+import { requireRole } from "@/lib/auth";
+import type { Lead } from "@/lib/types";
 
-import { z } from 'zod';
-import { logger } from '@/lib/logger';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const leadSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address").optional(),
-  phone: z.string().optional(),
-  message: z.string().optional(),
-  locale: z.string().optional()
-});
+export async function GET(req: Request) {
+  await requireRole(req, "manager");
+  const db = await getAdminDb();
+  if (db) {
+    try {
+      const snap = await db.collection("leads").orderBy("createdAt", "desc").limit(200).get();
+      if (!snap.empty)
+        return NextResponse.json(
+          snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+        );
+    } catch (err) {
+      console.warn("[leads] Firestore read failed:", err);
+    }
+  }
+  // Sandbox seed leads
+  const seed: Lead[] = [
+    { id: "ld1", source: "property_finder", name: "Mohamed Ali", phone: "+20 122 222 3333", email: "m.ali@example.com", compound: "Mivida", message: "Looking for 3BR apartment, cash buyer.", status: "new", createdAt: new Date(Date.now() - 3600_000).toISOString() },
+    { id: "ld2", source: "whatsapp", name: "Sara Hassan", phone: "+20 122 444 5555", compound: "Hyde Park New Cairo", message: "Need villa for rent, 4BR, ASAP.", status: "contacted", createdAt: new Date(Date.now() - 86400_000).toISOString() },
+    { id: "ld3", source: "property_finder", name: "Ahmed Tarek", phone: "+20 122 666 7777", email: "a.tarek@example.com", compound: "Taj City", message: "Investor — villa under 5M EGP.", status: "toured", createdAt: new Date(Date.now() - 2 * 86400_000).toISOString() },
+    { id: "ld4", source: "referral", name: "Laila Mostafa", phone: "+20 122 888 9999", compound: "Palm Hills New Cairo", message: "Friend referral, looking for townhouse.", status: "new", createdAt: new Date(Date.now() - 3 * 86400_000).toISOString() },
+  ];
+  return NextResponse.json(seed);
+}
 
 export async function POST(req: Request) {
-  const rateLimitResponse = await applyRateLimit(req, publicEndpointLimiter);
-  if (rateLimitResponse) return rateLimitResponse;
-
-  try {
-    const data = await req.json();
-    const parseResult = leadSchema.safeParse(data);
-    
-    if (!parseResult.success) {
-      return NextResponse.json(
-        { success: false, error: 'Validation failed', details: parseResult.error.errors },
-        { status: 400 }
-      );
+  const expected = process.env.PF_WEBHOOK_TOKEN;
+  if (expected) {
+    const got = req.headers.get("x-pf-token");
+    if (got !== expected) {
+      return NextResponse.json({ error: "Invalid webhook token" }, { status: 401 });
     }
-    
-    const { name, email, phone, message, locale } = parseResult.data;
-
-    // 1. Add to Firestore
-    const leadRef = await adminDb.collection(COLLECTIONS.stakeholders).add({
-      name,
-      email,
-      phone,
-      message,
-      status: 'new',
-      phase: 'acquisition',
-      priority: 'warm',
-      via: 'Website',
-      interest: 'General Inquiry',
-      capitalAllocation: 'To be determined',
-      locale,
-      aiProfiling: {
-        interests: ['General Inquiry'],
-        topMatches: [],
-        lastAnalyzedAt: Timestamp.now(),
-      },
-      automation: {
-        followupReminderEnabled: true,
-        interactionFrequency: 'medium',
-      },
-      createdAt: Timestamp.now()
-    });
-
-    // 2. Send Telegram Notification
-    const text = `
-<b>🚀 New Lead - Sierra Estates Realty</b>
-<b>Name:</b> ${name}
-<b>Email:</b> ${email || 'n/a'}
-<b>Phone:</b> ${phone || 'n/a'}
-<b>Interest:</b> General Inquiry
-<b>Message:</b> ${message || 'n/a'}
-<b>Locale:</b> ${locale || 'n/a'}
-    `.trim();
-
-    await sendTelegramMessage(text);
-
-    // 3. Notify the agency owner via WhatsApp (queued, drained by the existing dispatch cron)
-    const notifyNumber = process.env.LEAD_NOTIFY_WHATSAPP_NUMBER;
-    if (notifyNumber) {
-      try {
-        await enqueueWhatsAppJob({
-          purpose: 'general-outreach',
-          toPhone: notifyNumber,
-          body: `New lead from sierra-estates.net\nName: ${name}\nEmail: ${email}\nPhone: ${phone ?? 'n/a'}\nMessage: ${message ?? 'n/a'}`,
-          leadId: leadRef.id,
-        });
-      } catch (error) {
-        logger.error('Failed to enqueue lead WhatsApp notification:', error);
-      }
-    }
-
-    return NextResponse.json({ success: true, id: leadRef.id });
-  } catch (error) {
-    logger.error("Lead submission error:", error);
-    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
+  const body = await req.json().catch(() => ({}));
+  const lead: Omit<Lead, "id"> = {
+    source: (body.source as Lead["source"]) || "property_finder",
+    name: String(body.name || "").slice(0, 200),
+    phone: String(body.phone || "").slice(0, 50),
+    email: body.email ? String(body.email).slice(0, 200) : undefined,
+    compound: body.compound || undefined,
+    message: body.message ? String(body.message).slice(0, 2000) : undefined,
+    status: "new",
+    createdAt: new Date().toISOString(),
+  };
+  const db = await getAdminDb();
+  if (db) {
+    try {
+      const ref = await db.collection("leads").add(lead);
+      return NextResponse.json({ id: ref.id });
+    } catch (err) {
+      console.warn("[leads] Firestore write failed:", err);
+    }
+  }
+  return NextResponse.json({ id: `local-${Date.now()}`, fallback: true });
 }

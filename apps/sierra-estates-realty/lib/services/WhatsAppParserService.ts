@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { adminDb } from "../server/firebase-admin";
+import { adminDb, loadAndInitializeAdmin } from "../server/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { COLLECTIONS, type InboundAssetSignal } from "../models/schema";
 import { buildSierraCodeMetadata, type PropertyCodeInput } from "./coding-algorithm";
@@ -37,7 +37,7 @@ export class WhatsAppParserService {
       throw new Error("Gemini API key is missing. Neural parsing disabled.");
     }
 
-    const modelName = media ? "gemini-1.5-pro" : "gemini-1.5-flash";
+    const modelName = media ? "gemini-3.1-flash-image" : "gemini-3.1-flash-lite";
     const model = genAI.getGenerativeModel({ model: modelName });
 
     const systemInstruction = `ROLE: You are the Sierra Estates Strategic Intelligence Parser (The Scribe).
@@ -227,21 +227,31 @@ export class WhatsAppParserService {
   private static async checkForDuplicates(data: any): Promise<string | null> {
     if (!data.compound || !data.price) return null;
 
-    const snapshot = await adminDb.collection(COLLECTIONS.brokerListings)
-      .where('extractedData.compound', '==', data.compound)
-      .where('extractedData.bedrooms', '==', data.bedrooms)
-      .get();
+    try {
+      // Ensure Firebase Admin is initialized before querying
+      await loadAndInitializeAdmin();
 
-    const margin = 0.05; // 5% price margin
+      const snapshot = await adminDb.collection(COLLECTIONS.brokerListings)
+        .where('extractedData.compound', '==', data.compound)
+        .where('extractedData.bedrooms', '==', data.bedrooms)
+        .get();
 
-    for (const doc of snapshot.docs) {
-      const existing = doc.data() as InboundAssetSignal;
-      const existingPrice = existing.extractedData.price || 0;
-      const priceDiff = Math.abs(existingPrice - data.price) / (existingPrice || 1);
+      const margin = 0.05; // 5% price margin
+      const docs = snapshot?.docs;
 
-      if (priceDiff <= margin) {
-        return doc.id;
+      if (!docs || !Array.isArray(docs)) return null;
+
+      for (const doc of docs) {
+        const existing = doc.data() as InboundAssetSignal;
+        const existingPrice = existing.extractedData?.price || 0;
+        const priceDiff = Math.abs(existingPrice - data.price) / (existingPrice || 1);
+
+        if (priceDiff <= margin) {
+          return doc.id;
+        }
       }
+    } catch (err) {
+      logger.warn({ err }, '[ParserService] Duplicate check failed — skipping');
     }
 
     return null;

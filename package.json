@@ -1,53 +1,23 @@
 {
   "name": "se",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Sierra Estates — clean Next.js + Firebase stack for the Houzez-Style Portal",
+  "packageManager": "pnpm@10.33.0",
+  "description": "Sierra Estates — pnpm + Turborepo monorepo. The Next.js app lives in apps/sierra-estates-realty.",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint src next.config.mjs postcss.config.mjs eslint.config.mjs --max-warnings 0",
-    "type-check": "tsc --noEmit",
-    "test": "jest --passWithNoTests",
-    "test:ci": "jest --ci --passWithNoTests"
-  },
-  "dependencies": {
-    "next": "^15.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "firebase": "^11.0.0",
-    "firebase-admin": "^13.0.0",
-    "lucide-react": "^0.460.0",
-    "framer-motion": "^11.11.0"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "test": "turbo run test",
+    "test:ci": "turbo run test:ci",
+    "validate": "turbo run build lint type-check test",
+    "deploy:rules": "firebase deploy --only firestore:rules,storage",
+    "deploy:functions": "firebase deploy --only functions"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "typescript": "^5.7.0",
-    "eslint": "^9.15.0",
-    "eslint-config-next": "^15.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.15.0",
-    "@typescript-eslint/parser": "^8.15.0",
-    "eslint-plugin-unused-imports": "^4.1.0",
-    "jest": "^29.7.0",
-    "@types/jest": "^29.5.0",
-    "ts-jest": "^29.2.0",
-    "tailwindcss": "^4.0.0",
-    "@tailwindcss/postcss": "^4.0.0",
-    "postcss": "^8.4.0"
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0"
   },
-  "engines": {
-    "node": ">=20"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "core-js",
-      "protobufjs",
-      "@firebase/util",
-      "@google/genai"
-    ]
-  }
+  "engines": { "node": ">=20" }
 }

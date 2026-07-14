@@ -6,6 +6,7 @@ import {
   query,
   where,
   QueryConstraint,
+  type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 
 /**
@@ -55,7 +56,7 @@ export async function fetchPropertiesFromDB(
     const q = query(collection(db, 'properties'), ...constraints);
     const querySnapshot = await getDocs(q);
 
-    return querySnapshot.docs.map((doc) => ({
+    return querySnapshot.docs.map((doc: QueryDocumentSnapshot) => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.() || new Date(),
@@ -83,7 +84,7 @@ export async function fetchAllMapProperties(): Promise<SierraProperty[]> {
     const querySnapshot = await getDocs(q);
 
     return querySnapshot.docs
-      .map((doc) => ({
+      .map((doc: QueryDocumentSnapshot) => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate?.() || new Date(),
@@ -110,7 +111,7 @@ export async function fetchPropertiesByCompound(
     );
 
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map((doc) => ({
+    return querySnapshot.docs.map((doc: QueryDocumentSnapshot) => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.() || new Date(),
