@@ -36,7 +36,7 @@ function Hero(props) {
         </h1>
         <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
           {SLIDES.map(function (sl, i) {return (
-                <button key={i} onClick={function () {setImgI(i);}} style={{ height: 3, width: i === imgI ? 24 : 7, borderRadius: 2, background: i === imgI ? G : 'rgba(255,255,255,.3)', border: 'none', cursor: 'pointer', padding: 0, transition: 'all .4s cubic-bezier(.16,1,.3,1)' }} />);
+                <button aria-label={"Slide " + (i + 1)} key={i} onClick={function () {setImgI(i);}} style={{ height: 3, width: i === imgI ? 24 : 7, borderRadius: 2, background: i === imgI ? G : 'rgba(255,255,255,.3)', border: 'none', cursor: 'pointer', padding: 0, transition: 'all .4s cubic-bezier(.16,1,.3,1)' }} />);
             })}
         </div>
       </div>
@@ -151,7 +151,7 @@ function Listings(props) {
       <div ref={ref} className="sec-inner" style={{ opacity: vis ? 1 : 0, transform: vis ? 'none' : 'translateY(20px)', transition: 'all .55s .1s cubic-bezier(.16,1,.3,1)', position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px 0', flexDirection: isAr ? 'row-reverse' : 'row' }}>
           <SH eye={t.eyeList} title={t.propTit + ' (' + items.length + ')'} />
-          <select value={sort} onChange={function (e) {setSort(e.target.value);}} style={{ marginTop: 12, padding: '6px 10px', borderRadius: 8, background: dark ? '#1A2C3F' : '#fff', border: '1px solid ' + (dark ? 'rgba(200,150,26,.3)' : 'rgba(13,32,53,.15)'), fontSize: 10, fontWeight: 600, color: dark ? G : N, outline: 'none', fontFamily: isAr ? "'Cairo',sans-serif" : 'Inter', flexShrink: 0, cursor: 'pointer' }}>
+          <select aria-label="Sort listings" value={sort} onChange={function (e) {setSort(e.target.value);}} style={{ marginTop: 12, padding: '6px 10px', borderRadius: 8, background: dark ? '#1A2C3F' : '#fff', border: '1px solid ' + (dark ? 'rgba(200,150,26,.3)' : 'rgba(13,32,53,.15)'), fontSize: 10, fontWeight: 600, color: dark ? G : N, outline: 'none', fontFamily: isAr ? "'Cairo',sans-serif" : 'Inter', flexShrink: 0, cursor: 'pointer' }}>
             <option value="ai">AI ↓</option><option value="px">Price ↑</option><option value="pd">Price ↓</option><option value="area">Area</option>
           </select>
         </div>
@@ -159,8 +159,8 @@ function Listings(props) {
         <div style={{ padding: '10px 20px 8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', borderRadius: 14, border: '1px solid ' + (q ? G : dark ? 'rgba(200,150,26,.25)' : 'rgba(13,32,53,.12)'), background: dark ? '#122436' : '#fff', boxShadow: '0 3px 16px rgba(13,32,53,.06)', flexDirection: isAr ? 'row-reverse' : 'row' }}>
             <span style={{ fontSize: 17, color: q ? G : '#8A94A0' }}>⌕</span>
-            <input value={searchQ} onChange={function (e) {setSearchQ(e.target.value);}} placeholder={isAr ? 'ابحث عن كومباوند، نوع الوحدة...' : 'Search compound, type, beds…'} style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, fontWeight: 500, color: dark ? '#EAF0F6' : N, fontFamily: isAr ? "'Cairo',sans-serif" : 'Inter', textAlign: isAr ? 'right' : 'left', minWidth: 0 }} />
-            {searchQ && <button onClick={function () {setSearchQ('');}} style={{ fontSize: 16, color: '#8A94A0', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1, padding: 0 }}>×</button>}
+            <input aria-label="Search" value={searchQ} onChange={function (e) {setSearchQ(e.target.value);}} placeholder={isAr ? 'ابحث عن كومباوند، نوع الوحدة...' : 'Search compound, type, beds…'} style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, fontWeight: 500, color: dark ? '#EAF0F6' : N, fontFamily: isAr ? "'Cairo',sans-serif" : 'Inter', textAlign: isAr ? 'right' : 'left', minWidth: 0 }} />
+            {searchQ && <button aria-label="Clear search" onClick={function () {setSearchQ('');}} style={{ fontSize: 16, color: '#8A94A0', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1, padding: 0 }}>×</button>}
           </div>
           {q &&
           <div style={{ marginTop: 8, fontSize: 11, color: C.txM, fontFamily: isAr ? "'Cairo',sans-serif" : 'Inter', textAlign: isAr ? 'right' : 'left' }}>
@@ -619,4 +619,8 @@ function ContactUs(props) {
         {/* Request CTA */}
         <div style={{ padding: '14px 20px 0' }}>
           <button onClick={onReq} style={{ width: '100%', padding: '14px', borderRadius: 13, background: 'linear-gradient(135deg,' + G + ',' + GL + ')', color: N, fontSize: 11.5, fontWeight: 900, letterSpacing: '.06em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', fontFamily: isAr ? "'Cairo',sans-serif" : 'Inter', boxShadow: '0 8px 28px rgba(200,150,26,.35)' }}>{isAr ? 'اطلب عقارك الآن — خصم 25%' : 'Request Your Property — 25% OFF'}</button>
-     
+        </div>
+      </div>
+    </section>
+  );
+}

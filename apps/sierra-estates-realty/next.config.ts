@@ -37,6 +37,11 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
   poweredByHeader: false,
+  // Pin the monorepo root for webpack's file tracing too (mirrors the
+  // turbopack.root pin below) — without it, running from a second checkout
+  // of this repo (e.g. a sibling git worktree) can make Next infer the
+  // wrong workspace root and break vendor-chunk/module resolution.
+  outputFileTracingRoot: path.join(__dirname, '..', '..'),
   async headers() {
     return [
       {

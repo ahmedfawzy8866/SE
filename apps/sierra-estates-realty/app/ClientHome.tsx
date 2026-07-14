@@ -9,19 +9,36 @@
    design-system/components/property/PropertyCard.jsx
    ============================================================================ */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { motion, useReducedMotion } from 'framer-motion';
-import { collection, query, limit, getDocs } from 'firebase/firestore';
+import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { db as clientDb } from '@/lib/firebase';
 import { useI18n } from '@/lib/I18nContext';
+import { SiteConfig } from '@/lib/config';
+import { COMPOUNDS } from './client/portalData';
+import type { MapPoint } from '@/components/Maps/LiveMap';
 import './client-home.css';
 
 // Leaflet map — SSR-safe, client-only (reuses the existing vanilla-Leaflet map)
-const LiveMap = dynamic<{ mode?: 'dark' | 'light' }>(() => import('@/components/Maps/LiveMap'), { ssr: false });
+const LiveMap = dynamic<{
+  mode?: 'dark' | 'light';
+  points?: MapPoint[];
+  labels?: { yield: string; price: string; ai: string; demand: string };
+}>(() => import('@/components/Maps/LiveMap'), { ssr: false });
 
-const WHATSAPP = 'https://wa.me/201061399688';
+// Interactive panorama — SSR-safe (uses pointer events + clipboard).
+const PanoViewer = dynamic<import('@/components/Panorama/PanoViewer').PanoViewerProps>(
+  () => import('@/components/Panorama/PanoViewer'),
+  { ssr: false },
+);
+
+// Immersive-tour panorama plate. Swap for a true equirectangular 360° asset when
+// available; any wide, high-resolution shot pans well in the meantime.
+const PANO_SRC = 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=2400&q=85';
+
+const WHATSAPP = SiteConfig.contact.whatsapp;
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
 interface Listing {
@@ -61,6 +78,11 @@ const COPY = {
     s1: 'Verified Units', s2: 'Compounds', s3: 'Match Accuracy', s4: 'Avg. Response',
     featEyebrow: 'AI-CURATED INVENTORY', featTitle: 'Featured Properties', featTitleItalic: 'Properties', viewAll: 'View All →',
     mapEyebrow: 'LIVE MARKET MAP', mapTitle: 'Where the Signals Are', mapSub: 'Real-time demand and yield across New Cairo compounds.',
+    mapLegend: 'Marker size = live demand · colour = expected yield',
+    mapYield: 'Yield', mapPrice: 'Avg', mapAi: 'AI', mapDemand: 'live',
+    tourEyebrow: 'IMMERSIVE TOURS', tourTitle: 'Step Inside, From Anywhere',
+    tourSub: 'Drag to explore our flagship residences in an interactive 360° panorama — then share the tour with a single link.',
+    tourBadge: '360° TOUR', tourHint: 'Drag to explore', tourCopy: 'Copy tour link', tourCopied: 'Link copied',
     whyEyebrow: 'OUR ADVANTAGE', whyTitle: 'Why Sierra Estates', whyTitleItalic: 'Sierra Estates',
     w1t: 'AI Opportunity Scanner', w1s: 'Our engine scans 1,200+ units daily — ROI, AVM pricing and smart matching surface the best deals first.',
     w2t: 'Verified Inventory', w2s: 'Every listing is personally verified on-site before it reaches your feed. No ghosts, no bait.',
@@ -78,6 +100,11 @@ const COPY = {
     s1: 'وحدة موثقة', s2: 'كمبوند', s3: 'دقة التوافق', s4: 'متوسط الرد',
     featEyebrow: 'مخزون منتقى بالذكاء', featTitle: 'عقارات مميزة', featTitleItalic: '', viewAll: '← عرض الكل',
     mapEyebrow: 'خريطة السوق الحية', mapTitle: 'أين تتحرك الإشارات', mapSub: 'الطلب والعائد لحظياً عبر كمبوندات القاهرة الجديدة.',
+    mapLegend: 'حجم النقطة = الطلب الحي · اللون = العائد المتوقع',
+    mapYield: 'العائد', mapPrice: 'متوسط', mapAi: 'ذكاء', mapDemand: 'وحدة',
+    tourEyebrow: 'جولات غامرة', tourTitle: 'ادخل من أي مكان',
+    tourSub: 'اسحب لاستكشاف أرقى وحداتنا بزاوية 360° تفاعلية — ثم شارك الجولة برابط واحد.',
+    tourBadge: 'جولة 360°', tourHint: 'اسحب للاستكشاف', tourCopy: 'انسخ رابط الجولة', tourCopied: 'تم نسخ الرابط',
     whyEyebrow: 'مزايانا', whyTitle: 'لماذا سيرا إستيتس', whyTitleItalic: '',
     w1t: 'ماسح الفرص الذكي', w1s: 'محركنا يفحص +1200 وحدة يومياً — العائد والتسعير والتوافق الذكي لإيجاد أفضل الفرص أولاً.',
     w2t: 'مخزون موثق', w2s: 'كل وحدة يتم التحقق منها ميدانياً قبل ظهورها. لا وحدات وهمية.',
@@ -124,8 +151,10 @@ function SpecIcon({ d }: { d: string }) {
 /* ── Property card (ports design-system PropertyCard.jsx to the tokens) ─── */
 function PropertyCard({ item, isAr: _isAr }: { item: Listing; isAr: boolean }) {
   const [saved, setSaved] = useState(false);
+  // Firestore docs have string ids and a real detail page; fallback items go to the index.
+  const href = typeof item.id === 'string' ? `/property/${item.id}` : '/properties';
   return (
-    <Link href="/listings" className="se-pcard" style={{ textDecoration: 'none' }}>
+    <Link href={href} className="se-pcard" style={{ textDecoration: 'none' }}>
       <div className="se-pcard__media">
         <img className="se-pcard__img" src={item.img} alt={item.title} loading="lazy" />
         <div className="se-pcard__scrim" />
@@ -133,7 +162,7 @@ function PropertyCard({ item, isAr: _isAr }: { item: Listing; isAr: boolean }) {
         {item.badge && <span className="se-pcard__badge" style={{ background: item.badgeColor || 'var(--gold)' }}>{item.badge}</span>}
         <span className="se-pcard__ai"><span className="live-dot" /> AI {item.aiScore}</span>
         <button type="button" className={saved ? 'se-pcard__save se-pcard__save--on' : 'se-pcard__save'}
-          aria-label={saved ? 'Saved' : 'Save'}
+          aria-label={saved ? 'Saved' : 'Save'} aria-pressed={saved}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSaved((s) => !s); }}>
           <svg viewBox="0 0 24 24" fill={saved ? 'var(--red)' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
             <path d={SPEC_ICONS.heart} />
@@ -176,13 +205,18 @@ export default function ClientHome() {
   const t = COPY[isAr ? 'ar' : 'en'];
   const reduce = !!useReducedMotion();
   const [listings, setListings] = useState<Listing[]>(FALLBACK);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Real Firestore data (falls back to hardcoded set when empty/unconfigured)
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const snap = await getDocs(query(collection(clientDb, 'properties'), limit(6)));
+        // Public catalog reads must be status-gated to satisfy the Firestore
+        // rules (`properties` allows public read only when status == 'published').
+        const snap = await getDocs(
+          query(collection(clientDb, 'properties'), where('status', '==', 'published'), limit(6)),
+        );
         if (cancelled || snap.empty) return;
         const items: Listing[] = snap.docs.map((d, i) => {
           const p = d.data() as Record<string, any>;
@@ -213,6 +247,24 @@ export default function ClientHome() {
 
   const enter = reduce ? {} : { initial: { transform: 'translateY(20px)' }, animate: { transform: 'translateY(0px)' } };
 
+  // Intelligence-map markers: real New Cairo compounds (coords + yield + AI),
+  // with a live demand signal = count of currently-loaded listings per compound.
+  const mapPoints: MapPoint[] = useMemo(() => {
+    const norm = (s: string) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    return COMPOUNDS.map((c) => {
+      const key = norm(c.n.split(' (')[0]).split(' ').slice(0, 2).join(' ');
+      const demand = listings.reduce((n, l) => (norm(l.location).includes(key) ? n + 1 : n), 0);
+      return {
+        name: c.n,
+        coord: c.c,
+        yieldPct: parseInt(String(c.g).replace(/[^0-9-]/g, ''), 10) || 0,
+        priceM: c.priceM,
+        ai: c.ai,
+        demand: demand > 0 ? demand : undefined,
+      };
+    });
+  }, [listings]);
+
   return (
     <div dir={isAr ? 'rtl' : 'ltr'} className={isAr ? 'sb-ar' : ''} style={{ minHeight: '100vh', overflowX: 'hidden' }}>
       {/* NAV */}
@@ -225,19 +277,36 @@ export default function ClientHome() {
               <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 8, letterSpacing: '.28em', color: 'var(--gold)', textTransform: 'uppercase' }}>{t.footerSub}</span>
             </span>
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
-            <Link href="/listings" className="nav-link">{t.navListings}</Link>
-            <a href="#map" className="nav-link">{t.navMap}</a>
-            <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="nav-link">{t.navContact}</a>
-            <button onClick={() => setLocale(isAr ? 'en' : 'ar')} aria-label="language"
+          <div className="nav-right">
+            <div className="nav-links">
+              <Link href="/properties" className="nav-link">{t.navListings}</Link>
+              <a href="#map" className="nav-link">{t.navMap}</a>
+              <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="nav-link">{t.navContact}</a>
+            </div>
+            <button onClick={() => setLocale(isAr ? 'en' : 'ar')} aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
               style={{ background: 'var(--surf)', border: '1px solid var(--bd-gold)', color: 'var(--gold-lt)', borderRadius: 'var(--radius-sm)', padding: '6px 12px', fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
               {isAr ? 'EN' : 'عربي'}
             </button>
-            <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="btn-gold">{t.navCta}</a>
+            <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="btn-gold nav-cta">{t.navCta}</a>
+            <button type="button" className="nav-burger" aria-label={isAr ? 'القائمة' : 'Menu'} aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((v) => !v)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 20, height: 20 }}>
+                {menuOpen ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M3 6h18M3 12h18M3 18h18" />}
+              </svg>
+            </button>
           </div>
         </nav>
+        {menuOpen && (
+          <div className="nav-mobile">
+            <Link href="/properties" className="nav-link" onClick={() => setMenuOpen(false)}>{t.navListings}</Link>
+            <a href="#map" className="nav-link" onClick={() => setMenuOpen(false)}>{t.navMap}</a>
+            <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="nav-link" onClick={() => setMenuOpen(false)}>{t.navContact}</a>
+            <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="btn-gold" onClick={() => setMenuOpen(false)}>{t.navCta}</a>
+          </div>
+        )}
       </header>
 
+      <main>
       {/* HERO */}
       <section style={{ position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=2000&q=80)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.2 }} />
@@ -253,7 +322,7 @@ export default function ClientHome() {
             </h1>
             <p className="sb-body-lg" style={{ maxWidth: 580, margin: '26px auto 38px', color: 'var(--tx-m)' }}>{t.sub}</p>
             <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link href="/listings" className="btn-gold btn-lg">{t.ctaBrowse}</Link>
+              <Link href="/properties" className="btn-gold btn-lg">{t.ctaBrowse}</Link>
               <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="btn-wa btn-lg">{t.ctaWhatsapp}</a>
             </div>
           </motion.div>
@@ -280,7 +349,7 @@ export default function ClientHome() {
               <div className="sb-eyebrow" style={{ marginBottom: 12 }}>{t.featEyebrow}</div>
               <h2 className="sb-display-l" style={{ margin: 0 }}>{isAr ? t.featTitle : <>Featured <span className="gold-static">Properties</span></>}</h2>
             </div>
-            <Link href="/listings" style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: 'var(--gold-lt)' }}>{t.viewAll}</Link>
+            <Link href="/properties" style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: 'var(--gold-lt)' }}>{t.viewAll}</Link>
           </div>
         </Reveal>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: 22 }}>
@@ -302,10 +371,32 @@ export default function ClientHome() {
           </Reveal>
           <Reveal reduce={reduce} delay={0.1}>
             <div style={{ height: 440, borderRadius: 'var(--radius-xl)', overflow: 'hidden', border: '1px solid var(--bd-gold)', background: 'var(--bg-e2)' }}>
-              <LiveMap mode="dark" />
+              <LiveMap
+                mode="dark"
+                points={mapPoints}
+                labels={{ yield: t.mapYield, price: t.mapPrice, ai: t.mapAi, demand: t.mapDemand }}
+              />
             </div>
+            <p className="sb-body" style={{ color: 'var(--tx-f)', fontSize: 13, margin: '12px 0 0' }}>{t.mapLegend}</p>
           </Reveal>
         </div>
+      </section>
+
+      {/* IMMERSIVE TOUR — interactive panorama + shareable link */}
+      <section id="tours" style={{ maxWidth: 'var(--container)', margin: '0 auto', padding: 'var(--section-pad) var(--gutter)' }}>
+        <Reveal reduce={reduce}>
+          <div className="sb-eyebrow" style={{ marginBottom: 12 }}>{t.tourEyebrow}</div>
+          <h2 className="sb-display-l" style={{ margin: '0 0 8px' }}>{t.tourTitle}</h2>
+          <p className="sb-body" style={{ color: 'var(--tx-m)', margin: '0 0 28px', maxWidth: 640 }}>{t.tourSub}</p>
+        </Reveal>
+        <Reveal reduce={reduce} delay={0.1}>
+          <PanoViewer
+            src={PANO_SRC}
+            alt={t.tourTitle}
+            shareUrl={typeof window !== 'undefined' ? `${window.location.origin}/virtual-tour` : '/virtual-tour'}
+            labels={{ badge: t.tourBadge, hint: t.tourHint, copy: t.tourCopy, copied: t.tourCopied }}
+          />
+        </Reveal>
       </section>
 
       {/* WHY SIERRA */}
@@ -335,44 +426,13 @@ export default function ClientHome() {
           <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="btn-wa btn-lg" style={{ display: 'inline-flex' }}>💬 {t.bandCta}</a>
         </Reveal>
       </section>
+      </main>
 
       {/* FOOTER */}
       <footer style={{ borderTop: '1px solid var(--bd)', padding: '26px var(--gutter)', textAlign: 'center' }}>
         <div className="sb-caption">{t.footer}</div>
       </footer>
 
-      {/* Component-scoped styles (nav links, buttons + ported PropertyCard) */}
-      <style jsx global>{`
-        .nav-link { color: var(--tx-m); text-decoration: none; font-family: var(--font-ui); font-size: 14px; transition: color var(--dur-base) var(--ease-std); }
-        .nav-link:hover { color: var(--gold-lt); }
-        .btn-gold { display: inline-flex; align-items: center; justify-content: center; background: var(--grad-gold); color: var(--bg-d); border-radius: var(--radius-sm); padding: 10px 20px; font-family: var(--font-ui); font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; transition: transform var(--dur-base) var(--ease-silk), box-shadow var(--dur-base) var(--ease-silk); }
-        .btn-gold:hover { transform: translateY(-2px); box-shadow: var(--shd-gold); color: var(--bg-d); }
-        .btn-lg { padding: 15px 34px; font-size: 15px; border-radius: var(--radius-md); }
-        .btn-wa { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid rgba(52,211,153,.55); color: var(--emerald); background: rgba(52,211,153,.08); border-radius: var(--radius-md); font-family: var(--font-ui); font-weight: 700; text-decoration: none; transition: background var(--dur-base) var(--ease-silk); }
-        .btn-wa:hover { background: rgba(52,211,153,.16); color: var(--emerald); }
-
-        /* PropertyCard — ported verbatim from design-system/components/property/PropertyCard.jsx */
-        .se-pcard { position: relative; display: flex; flex-direction: column; text-align: start; cursor: pointer; background: var(--bg-e); border: 1px solid var(--bd); border-radius: var(--radius-lg); overflow: hidden; transition: transform var(--dur-slow) var(--ease-silk), box-shadow var(--dur-slow) var(--ease-silk), border-color var(--dur-slow) var(--ease-silk); }
-        .se-pcard:hover { transform: translateY(-5px); border-color: var(--bd-gold); box-shadow: var(--shd-gold); }
-        .se-pcard__media { position: relative; aspect-ratio: 4/3; overflow: hidden; background: var(--bg-e2); }
-        .se-pcard__img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--dur-xslow) var(--ease-silk); }
-        .se-pcard:hover .se-pcard__img { transform: scale(1.06); }
-        .se-pcard__scrim { position: absolute; inset: 0; background: linear-gradient(to top, var(--ov-c), transparent 55%); }
-        .se-pcard__code { position: absolute; top: 11px; inset-inline-start: 11px; font-family: var(--font-mono); font-weight: 700; font-size: 9px; letter-spacing: .12em; color: var(--gold-lt); background: rgba(8,21,38,.7); backdrop-filter: blur(6px); padding: 5px 9px; border-radius: var(--radius-pill); border: 1px solid rgba(233,193,118,.25); }
-        .se-pcard__badge { position: absolute; top: 11px; inset-inline-end: 11px; font-family: var(--font-mono); font-weight: 700; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #fff; padding: 5px 10px; border-radius: var(--radius-pill); }
-        .se-pcard__ai { position: absolute; bottom: 11px; inset-inline-start: 11px; display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-weight: 700; font-size: 10px; color: var(--emerald); background: rgba(8,21,38,.62); backdrop-filter: blur(6px); padding: 4px 9px; border-radius: var(--radius-pill); }
-        .se-pcard__ai .live-dot { background: var(--emerald); animation: pulseGold 2s infinite; }
-        .se-pcard__save { position: absolute; bottom: 11px; inset-inline-end: 11px; width: 34px; height: 34px; display: grid; place-items: center; border: none; cursor: pointer; border-radius: 50%; background: rgba(8,21,38,.62); backdrop-filter: blur(6px); color: #fff; transition: all var(--dur-base) var(--ease-silk); }
-        .se-pcard__save:hover { background: rgba(8,21,38,.85); }
-        .se-pcard__save--on { color: var(--red); }
-        .se-pcard__body { padding: 15px 16px 17px; display: flex; flex-direction: column; gap: 9px; }
-        .se-pcard__loc { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--tx-f); }
-        .se-pcard__title { font-family: var(--font-display); font-weight: 600; font-size: 19px; line-height: 1.15; color: var(--tx-s); }
-        .se-pcard__price { font-family: var(--font-mono); font-weight: 700; font-size: 16px; color: var(--gold-lt); }
-        .se-pcard__specs { display: flex; gap: 14px; margin-top: 2px; padding-top: 11px; border-top: 1px solid var(--bd); }
-        .se-pcard__spec { display: flex; align-items: center; gap: 6px; font-family: var(--font-ui); font-size: 12px; color: var(--tx-m); }
-        @media (prefers-reduced-motion: reduce) { .se-pcard__ai .live-dot { animation: none; } }
-      `}</style>
     </div>
   );
 }

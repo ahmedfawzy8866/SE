@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "types": ["node"],
+    "lib": ["esnext", "dom"]
+  },
+  "include": ["types.ts", "firebase-utils.ts", "index.ts"],
+  "exclude": ["node_modules", "dist"]
+}
