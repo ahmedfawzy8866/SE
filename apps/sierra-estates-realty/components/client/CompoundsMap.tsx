@@ -10,7 +10,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { MapPin, TrendingUp, DollarSign, Loader2 } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n-client";
 import { api } from "@/lib/api-client";
 import { fmtEGPM, fmtScore } from "@/lib/format";
 import type { Compound } from "@/lib/types";

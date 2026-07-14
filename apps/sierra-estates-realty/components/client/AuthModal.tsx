@@ -12,7 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { X, Shield, Loader2, Mail, Lock } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n-client";
 import { useToast } from "@/components/client/Toast";
 import { api } from "@/lib/api-client";
 import { firebaseEnabled, getFirebaseAuth } from "@/lib/firebase";

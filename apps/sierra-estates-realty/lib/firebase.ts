@@ -21,6 +21,12 @@ export const firebaseEnabled = Boolean(
   firebaseConfig.apiKey && firebaseConfig.projectId
 );
 
+/**
+ * isFirebaseClientConfigured — convenience boolean alias used by auth guards
+ * and client components to branch at runtime without calling a getter.
+ */
+export const isFirebaseClientConfigured = firebaseEnabled;
+
 let _app: FirebaseApp | null = null;
 let _db: Firestore | null = null;
 let _auth: Auth | null = null;
@@ -49,3 +55,28 @@ export function getFirebaseAuth(): Auth | null {
   _auth = getAuth(app);
   return _auth;
 }
+
+/**
+ * Named singleton exports for consumers that import { db } / { auth } directly.
+ * Both are lazily initialised — null when Firebase env vars are absent.
+ *
+ * NOTE: These are module-level constants that call the getters once on first
+ * import. Server-side API routes that run before env vars are set should use
+ * getDb() / getFirebaseAuth() instead, but the pattern below is fine for
+ * client components and route handlers that run after config is available.
+ */
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+export const db: Firestore = firebaseEnabled
+  ? (() => {
+      const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+      return getFirestore(app);
+    })()
+  : (null as unknown as Firestore);
+
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+export const auth: Auth = firebaseEnabled
+  ? (() => {
+      const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+      return getAuth(app);
+    })()
+  : (null as unknown as Auth);

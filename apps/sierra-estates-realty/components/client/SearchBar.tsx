@@ -6,7 +6,7 @@
  */
 import { useState } from "react";
 import { Search, BedDouble, Building2, Tag, DollarSign } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n-client";
 import { PROPERTY_TYPES, COMPOUND_ZONES } from "@/lib/seed";
 
 export interface SearchFilters {

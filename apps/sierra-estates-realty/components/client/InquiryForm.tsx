@@ -5,7 +5,7 @@
  */
 import { useState } from "react";
 import { ConciergeBell, Loader2, CheckCircle2, Phone, Mail } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n-client";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/components/client/Toast";
 import { PROPERTY_TYPES, COMPOUND_ZONES } from "@/lib/seed";

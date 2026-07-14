@@ -9,7 +9,7 @@ import {
   Building2, Map, Sparkles, Calculator, ConciergeBell,
   User, Shield, Menu, X, Globe,
 } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n-client";
 import { useAuth } from "@/components/client/AuthModal";
 
 export function Navbar() {

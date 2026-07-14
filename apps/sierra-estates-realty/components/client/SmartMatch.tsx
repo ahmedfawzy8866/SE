@@ -5,7 +5,7 @@
  */
 import { useState } from "react";
 import { Sparkles, Loader2, ArrowRight, ArrowLeft, RotateCcw, Trophy } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n-client";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/components/client/Toast";
 import Image from "next/image";

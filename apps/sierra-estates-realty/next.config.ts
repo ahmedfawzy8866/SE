@@ -1,7 +1,23 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["firebase-admin"],
+  serverExternalPackages: ["firebase-admin", "sharp", "axios"],
+  webpack(config, { isServer }) {
+    if (isServer) {
+      // sharp and its @img/* platform sub-packages are native Node add-ons
+      // and must never be bundled by webpack.
+      config.externals = [
+        ...(Array.isArray(config.externals) ? config.externals : config.externals ? [config.externals] : []),
+        ({ request }: { request?: string }, callback: (err?: Error | null, result?: string) => void) => {
+          if (request && (request === 'sharp' || request.startsWith('@img/'))) {
+            return callback(null, `commonjs ${request}`);
+          }
+          callback();
+        },
+      ];
+    }
+    return config;
+  },
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,

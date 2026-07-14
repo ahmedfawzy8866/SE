@@ -6,7 +6,7 @@
  */
 import { useEffect, useState } from "react";
 import { Loader2, Building2, SlidersHorizontal } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n-client";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/components/client/Toast";
 import { PropertyCard } from "./PropertyCard";

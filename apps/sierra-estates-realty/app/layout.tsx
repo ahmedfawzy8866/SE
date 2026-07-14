@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
-import { I18nProvider } from "@/lib/i18n";
+import { I18nProvider } from "@/lib/i18n-client";
 import { ToastProvider } from "@/components/client/Toast";
 import "./globals.css";
 

@@ -7,7 +7,7 @@
  */
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Sparkles, Building2 } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n-client";
 import { SearchBar } from "./SearchBar";
 import type { SearchFilters } from "./SearchBar";
 

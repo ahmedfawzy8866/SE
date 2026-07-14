@@ -6,7 +6,7 @@
  */
 import { useState } from "react";
 import { Calculator, TrendingUp, Calendar, Wallet } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n-client";
 import { fmtUSD, fmtYield, fmtPaybackYears } from "@/lib/format";
 
 export function ROICalculator() {
