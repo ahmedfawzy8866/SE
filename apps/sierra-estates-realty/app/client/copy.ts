@@ -7,7 +7,7 @@ export type CopyKey = keyof typeof EN;
 
 export const EN = {
   brandSub: 'Future of Real Estate',
-  navHome: 'Home', navProps: 'Properties', navCpds: 'Compounds', navAgents: 'Agents', navContact: 'Contact', navAI: 'AI Tools',
+  navHome: 'Home', navProps: 'Properties', navCpds: 'Compounds', navMap: 'Map', navAgents: 'Agents', navContact: 'Contact', navAI: 'AI Tools',
   addListing: 'Add Listing', signIn: 'Sign In', langBtn: 'العربية',
   addr: 'Banafseg 2, Villa 402, New Cairo',
   heroSub: '21 compounds · 1,200+ units · AI-curated for you.',
@@ -61,6 +61,8 @@ export const EN = {
   inqNameReq: 'Please enter your name.',
   partEye: 'Trusted developer partners',
   fDiscover: 'Discover',
+  mapEye: 'Live market map', mapTit: 'Where the signals are', mapSub: 'Real-time demand and yield across New Cairo compounds — marker size = live demand, colour = expected yield.',
+  mapLegend: 'Marker size = live demand · colour = expected yield', mapYield: 'Yield', mapPrice: 'Avg', mapAi: 'AI', mapDemand: 'live',
   aiEye: 'AI · 7 tools online', aiTit: 'First AI real-estate ecosystem in the Middle East', aiSub: 'Live AI tools for every step of your property journey.',
   ai1t: 'AI Engine 3.0', ai1s: 'Real-time AVM pricing, ROI signals & Q2 2026 market data.',
   ai2t: 'Smart Match', ai2s: 'AI pairs your criteria to the perfect listing.',
@@ -79,7 +81,7 @@ export const EN = {
 
 export const AR: Record<CopyKey, string> = {
   brandSub: 'مستقبل العقارات',
-  navHome: 'الرئيسية', navProps: 'العقارات', navCpds: 'الكمبوندات', navAgents: 'المستشارون', navContact: 'تواصل', navAI: 'أدوات الذكاء',
+  navHome: 'الرئيسية', navProps: 'العقارات', navCpds: 'الكمبوندات', navMap: 'الخريطة', navAgents: 'المستشارون', navContact: 'تواصل', navAI: 'أدوات الذكاء',
   addListing: 'أضف عقارك', signIn: 'دخول', langBtn: 'English',
   addr: 'البنفسج 2، فيلا 402، القاهرة الجديدة',
   heroSub: '21 كمبوند · +1200 وحدة · منتقاة لك بالذكاء الاصطناعي.',
@@ -133,6 +135,8 @@ export const AR: Record<CopyKey, string> = {
   inqNameReq: 'من فضلك أدخل اسمك.',
   partEye: 'شركاء التطوير الموثوقون',
   fDiscover: 'اكتشف',
+  mapEye: 'خريطة السوق الحية', mapTit: 'أين تتحرك الإشارات', mapSub: 'الطلب والعائد لحظياً عبر كمبوندات القاهرة الجديدة — حجم النقطة = الطلب الحي، اللون = العائد المتوقع.',
+  mapLegend: 'حجم النقطة = الطلب الحي · اللون = العائد المتوقع', mapYield: 'العائد', mapPrice: 'متوسط', mapAi: 'ذكاء', mapDemand: 'وحدة',
   aiEye: 'ذكاء اصطناعي · 7 أدوات تعمل', aiTit: 'أول نظام ذكاء عقاري في الشرق الأوسط', aiSub: 'أدوات ذكاء اصطناعي حية لكل خطوة في رحلتك العقارية.',
   ai1t: 'محرك الذكاء 3.0', ai1s: 'تسعير AVM لحظي، مؤشرات عائد، وبيانات سوق 2026.',
   ai2t: 'التوافق الذكي', ai2s: 'يطابق الذكاء معاييرك مع العقار المثالي.',

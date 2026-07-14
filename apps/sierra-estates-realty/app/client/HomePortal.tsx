@@ -7,6 +7,7 @@
  * concierge → POST /api/chat (via <SierraConcierge/>). framer-motion entrances.
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useReducedMotion } from 'framer-motion';
 import {
   Nav, Topbar, Footer, Reveal, SierraConcierge, useT,
@@ -16,7 +17,18 @@ import PropertiesSection from './PropertiesSection';
 import CompoundsSection from './CompoundsSection';
 import TourSection from './TourSection';
 import PropertyDetail from './PropertyDetail';
-import { SLIDES } from './portalData';
+import { SLIDES, COMPOUNDS } from './portalData';
+import type { MapPoint } from '@/components/Maps/LiveMap';
+
+// Live market map — SSR-safe (Leaflet needs `window`), client-only.
+const LiveMap = dynamic<{
+  mode?: 'dark' | 'light';
+  points?: MapPoint[];
+  labels?: { yield: string; price: string; ai: string; demand: string };
+}>(() => import('@/components/Maps/LiveMap'), {
+  ssr: false,
+  loading: () => <div className="mini-map" style={{ height: 460 }} />,
+});
 import {
   IconMapPin, IconChevronDown, IconSearch, IconBadgeCheck, IconMap,
   IconShield, IconRadar, IconTrendingUp, IconHandshake, IconStar, IconSend, IconPlus,
@@ -97,9 +109,21 @@ export default function HomePortal() {
     { key: 'roi', t: 'ai3t', s: 'ai3s', href: '#compounds' },
     { key: 'price', t: 'ai4t', s: 'ai4s', href: '#compounds' },
     { key: 'dream', t: 'ai5t', s: 'ai5s', href: '#properties' },
-    { key: 'imap', t: 'ai6t', s: 'ai6s', href: '#compounds' },
+    { key: 'imap', t: 'ai6t', s: 'ai6s', href: '#map' },
     { key: 'tour', t: 'ai7t', s: 'ai7s', href: '#tour' },
   ];
+
+  // Live-market-map markers: real New Cairo compounds (coords + yield + AI).
+  const mapPoints: MapPoint[] = useMemo(
+    () => COMPOUNDS.map((c) => ({
+      name: c.n,
+      coord: c.c,
+      yieldPct: parseInt(String(c.g).replace(/[^0-9-]/g, ''), 10) || 0,
+      priceM: c.priceM,
+      ai: c.ai,
+    })),
+    [],
+  );
 
   return (
     <ClientPageProvider
@@ -165,6 +189,29 @@ export default function HomePortal() {
 
       {/* COMPOUND INTELLIGENCE (migrated CompoundsPortal) */}
       <CompoundsSection />
+
+      {/* LIVE MARKET MAP (maps kit) */}
+      <section className="block well" id="map">
+        <div className="wrap">
+          <Reveal className="sec-head">
+            <div>
+              <div className="eyebrow">{t('mapEye')}</div>
+              <h2>{t('mapTit')}</h2>
+              <p>{t('mapSub')}</p>
+            </div>
+          </Reveal>
+          <Reveal>
+            <div style={{ height: 460, borderRadius: 16, overflow: 'hidden', border: '1px solid var(--line)' }}>
+              <LiveMap
+                mode="light"
+                points={mapPoints}
+                labels={{ yield: t('mapYield'), price: t('mapPrice'), ai: t('mapAi'), demand: t('mapDemand') }}
+              />
+            </div>
+            <p className="sub" style={{ marginTop: 12, fontSize: 13, color: 'var(--muted)' }}>{t('mapLegend')}</p>
+          </Reveal>
+        </div>
+      </section>
 
       {/* VIRTUAL TOUR (migrated VirtualTourPortal) */}
       <TourSection />
