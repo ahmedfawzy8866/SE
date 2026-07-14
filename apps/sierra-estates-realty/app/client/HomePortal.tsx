@@ -8,6 +8,10 @@
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { SmartMatch } from '@/components/client/SmartMatch';
+import { ROICalculator } from '@/components/client/ROICalculator';
+import { ValuationTeaser } from '@sierra-estates/ui';
+import VirtualTourPortal from './VirtualTourPortal';
 import { useReducedMotion } from 'framer-motion';
 import {
   Nav, Topbar, Footer, PropertyCard, Reveal, SierraConcierge, useT,
@@ -69,7 +73,19 @@ export default function HomePortal() {
   const [listings, setListings] = useState<Listing[]>(FALLBACK_LISTINGS);
   const [slide, setSlide] = useState(0);
   const [tab, setTab] = useState(0);
+  const [isTourOpen, setIsTourOpen] = useState(false);
   const reduce = useReducedMotion();
+
+  useEffect(() => {
+    if (isTourOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isTourOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -116,6 +132,7 @@ export default function HomePortal() {
         <div>
           {SLIDES.map((s, i) => (
             <div key={i} className={`slide${i === slide ? ' on' : ''}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={s.img} alt="" />
             </div>
           ))}
@@ -193,6 +210,7 @@ export default function HomePortal() {
               return (
                 <Reveal key={n} delay={i * 0.08}>
                   <Link className="comp" href="/compounds" style={{ height: 250, display: 'block' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={COMPOUND_IMGS[n]} alt={c.n} loading="lazy" />
                     <div className="co-scrim" />
                     <div className="co-count">AI {c.ai.toFixed(1)} · {c.g}</div>
@@ -215,17 +233,21 @@ export default function HomePortal() {
               <p>{t('tourSub')}</p>
             </div>
           </Reveal>
-          <Reveal>
-            <Link href="/virtual-tour" style={{ display: 'block', position: 'relative', height: 440, borderRadius: 16, overflow: 'hidden', border: '1px solid var(--line)' }}>
+           <Reveal>
+            <button
+              onClick={() => setIsTourOpen(true)}
+              style={{ display: 'block', width: '100%', position: 'relative', height: 440, borderRadius: 16, overflow: 'hidden', border: '1px solid var(--line)', cursor: 'pointer', padding: 0 }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1600&q=85" alt="Virtual tour" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               <span style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(0,20,38,.15),rgba(0,20,38,.82))' }} />
               <span style={{ position: 'absolute', top: 18, insetInlineStart: 18, background: 'rgba(0,174,255,.92)', color: '#fff', fontFamily: 'var(--hz-mono)', fontWeight: 700, fontSize: 12, letterSpacing: '.08em', padding: '7px 13px', borderRadius: 999, display: 'inline-flex', alignItems: 'center', gap: 6 }}><IconRotate3d size={14} /> 360°</span>
               <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 78, height: 78, borderRadius: '50%', background: 'rgba(255,255,255,.92)', color: 'var(--navy)', display: 'grid', placeItems: 'center', boxShadow: '0 10px 40px rgba(0,0,0,.35)' }}><IconPlay size={30} /></span>
-              <span style={{ position: 'absolute', insetInlineStart: 24, bottom: 22 }}>
+              <span style={{ position: 'absolute', insetInlineStart: 24, bottom: 22, textAlign: 'start' }}>
                 <b style={{ display: 'block', color: '#fff', fontSize: 24, fontWeight: 700 }}>{t('ai7t')}</b>
                 <span style={{ color: '#8fe1ff', fontFamily: 'var(--hz-mono)', fontSize: 13 }}>{t('tourNote')}</span>
               </span>
-            </Link>
+            </button>
           </Reveal>
         </div>
       </section>
@@ -319,17 +341,53 @@ export default function HomePortal() {
           <div className="ai-grid">
             {aiTools.map((tool, i) => (
               <Reveal key={tool.key} delay={(i % 4) * 0.06}>
-                <Link className="ai-card" href={tool.href}>
-                  <span className="ai-ic"><IconSparkles size={30} /></span>
-                  <h4>{t(tool.t)}</h4>
-                  <p>{t(tool.s)}</p>
-                  {tool.live && <span className="live-tag">{t('aiLive')}</span>}
-                </Link>
+                {tool.key === 'tour' ? (
+                  <button
+                    className="ai-card w-full text-left cursor-pointer"
+                    onClick={() => setIsTourOpen(true)}
+                    type="button"
+                  >
+                    <span className="ai-ic"><IconSparkles size={30} /></span>
+                    <h4>{t(tool.t)}</h4>
+                    <p>{t(tool.s)}</p>
+                    {tool.live && <span className="live-tag">{t('aiLive')}</span>}
+                  </button>
+                ) : (
+                  <Link className="ai-card" href={tool.href}>
+                    <span className="ai-ic"><IconSparkles size={30} /></span>
+                    <h4>{t(tool.t)}</h4>
+                    <p>{t(tool.s)}</p>
+                    {tool.live && <span className="live-tag">{t('aiLive')}</span>}
+                  </Link>
+                )}
               </Reveal>
             ))}
           </div>
         </div>
       </section>
+
+      {/* Interactive AI Tools */}
+      <div className="interactive-ai-tools bg-navy-950/10 border-t border-cream/5">
+        <SmartMatch />
+        <ROICalculator />
+        <ValuationTeaser isArabic={isAr} />
+      </div>
+
+      {/* 3D Virtual Tour Modal Overlay */}
+      {isTourOpen && (
+        <div className="fixed inset-0 z-[999] bg-[#07111e] flex flex-col">
+          <button
+            onClick={() => setIsTourOpen(false)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-[#071730]/92 border border-[#C9A24D]/45 text-[#E9C176] text-2xl cursor-pointer flex items-center justify-center z-50 hover:bg-[#C9A24D]/20 transition-all font-mono"
+            aria-label="Close Tour"
+          >
+            ×
+          </button>
+          <div className="w-full h-full">
+            <VirtualTourPortal />
+          </div>
+        </div>
+      )}
 
       {/* CTA */}
       <section className="block" id="contact" style={{ paddingTop: 0 }}>
@@ -370,8 +428,8 @@ function InquiryForm() {
   const [form, setForm] = useState({ name: '', phone: '', email: '', zone: '', type: '', budget: '', });
   const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'err' | 'name'>('idle');
 
-  const zones = useMemo(() => [t('z1'), t('z2'), t('z3'), t('z4')], [t, locale]);
-  const types = useMemo(() => [t('lVilla'), t('lApt'), t('lTwin'), t('lPent')], [t, locale]);
+  const zones = useMemo(() => [t('z1'), t('z2'), t('z3'), t('z4')], [t]);
+  const types = useMemo(() => [t('lVilla'), t('lApt'), t('lTwin'), t('lPent')], [t]);
   const intents = [t('inqBuy'), t('inqRent'), t('inqSell')];
 
   function set<K extends keyof typeof form>(k: K, v: string) { setForm((f) => ({ ...f, [k]: v })); }

@@ -62,17 +62,13 @@ Old public frontend (`app/page.tsx`, `app/clients/`, `app/listings/page.tsx`, `D
 
 ## 5. Rebuild plan — what still needs doing (no logic lost)
 
-### 5a. Client site (public pages) — **built; refinement ongoing**
+### 5a. Client site (public pages) — **not yet built**
 - Source design: the **houzez-portal** bundle (home hero-slider, compounds, properties, property
   detail, virtual tour; EN/AR) — the designer's static kit. Data is placeholder in its `data.js`
   (`window.HZDATA`).
-- Built as **native Next.js pages** (no iframe): `/` (`ClientHome.tsx`), `/properties`,
-  `/compounds`, `/property/[id]`, `/virtual-tour` (the `app/client/*` portal tree). Listings
-  hydrate from Firestore `properties` with the static entries as fallback
-  (`app/client/portalData.ts`).
-- SEO layer added (July 2026): `app/sitemap.ts`, `app/robots.ts`, per-page `metadata`,
-  `metadataBase` in `app/layout.tsx`, RealEstateAgent JSON-LD on `/`. Conventions captured in
-  the `client-pages` project skill (`.claude/skills/client-pages/SKILL.md`).
+- Rebuild as **native Next.js server pages** (NOT an iframe — the old iframe home was invisible to
+  Google). Wire listings to Firestore `properties`/`houyez_listings` with the static entries as
+  fallback. Add `app/sitemap.ts` + `app/robots.ts` + per-page `metadata`.
 - Seed data + Firestore helpers already exist: `lib/houyez/firestore.ts`,
   `data/houyez-properties.ts`, `POST /api/houyez/seed` (now fail-closed in prod).
 

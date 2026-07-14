@@ -5,7 +5,7 @@
  */
 
 import { adminDb, isAdminInitialized } from '@/lib/server/firebase-admin';
-import { CollectionReference, DocumentData, Query, type QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import { CollectionReference, DocumentData, Query } from 'firebase-admin/firestore';
 
 // Type alias for Firebase Admin query constraints
 export type QueryConstraint = any;
@@ -46,7 +46,7 @@ export class FirestoreRepository<T extends DocumentData> implements Repository<T
         query = query.where(constraint) as Query<T>;
       }
       const snapshot = await query.get();
-      return snapshot.docs.map((doc: QueryDocumentSnapshot<T>) => ({ id: doc.id, ...doc.data() } as T));
+      return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as T));
     } catch (error) {
       console.error(`[Repository] Error finding all in ${this.collectionName}:`, error);
       throw error;

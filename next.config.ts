@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
     'firebase-admin',
   ],
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   compress: true,
   images: {

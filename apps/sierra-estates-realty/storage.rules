@@ -1,53 +1,12 @@
 rules_version = '2';
-
-// ============================================================================
-// Sierra Estates — Storage Security Rules (CANONICAL — deployed via the root
-// firebase.json, which points here; kept next to firestore.rules on purpose)
-//
-// Mirrors the Firestore staff model: a "staff" user has a users/{uid} doc with
-// role ∈ {admin, manager, agent}. Server-side uploads (e.g.
-// lib/services/StorageService.ts → properties/{docId}/…) use the Admin SDK
-// and BYPASS these rules; the rules govern client-SDK access only.
-//
-// Paths in use today:
-//   properties/{docId}/…  property media, written server-side (Admin SDK),
-//                         displayed on the public site
-//   assets/{sbrCode}/…    portfolio visuals, read via client getDownloadURL
-//                         (lib/integrations/portfolio-asset-registry.ts)
-//   media/…               general media uploads
-// ============================================================================
-
 service firebase.storage {
   match /b/{bucket}/o {
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isStaff() {
-      return isSignedIn()
-        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
-        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['admin', 'manager', 'agent'];
-    }
-
-    // --- Public catalog media: anyone may read (the public site renders these
-    //     images without auth); only staff may write ---
-    match /properties/{allPaths=**} {
-      allow read: if true;
-      allow write: if isStaff();
-    }
-    match /assets/{allPaths=**} {
-      allow read: if true;
-      allow write: if isStaff();
-    }
     match /media/{allPaths=**} {
-      allow read: if true;
-      allow write: if isStaff();
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null;
     }
-
-    // --- Everything else — staff only (mirrors the Firestore catch-all) ---
     match /{allPaths=**} {
-      allow read, write: if isStaff();
+      allow read, write: if false;
     }
   }
 }

@@ -1,2 +1,4 @@
+tsconfig.tsbuildinfo
+/public/agents
 .vercel
-.env*
+eslint-results.json

@@ -25,14 +25,15 @@ export default function PropertiesPortal() {
     return () => { cancelled = true; };
   }, []);
 
-  const matchType = (p: Listing) => {
-    if (fType === 'all') return true;
-    if (fType === 'Town') return p.type === 'Twin House' || p.type === 'Townhouse';
-    if (fType === 'Pent') return p.type === 'Penthouse' || p.type === 'Duplex';
-    return p.type === fType;
-  };
   const list = useMemo(
-    () => listings.filter((p) => matchType(p) && (fMode === 'all' || p.mode === fMode)).sort((a, b) => b.ai - a.ai),
+    () => listings.filter((p) => {
+      if (fType !== 'all') {
+        if (fType === 'Town' && p.type !== 'Twin House' && p.type !== 'Townhouse') return false;
+        if (fType === 'Pent' && p.type !== 'Penthouse' && p.type !== 'Duplex') return false;
+        if (fType !== 'Town' && fType !== 'Pent' && p.type !== fType) return false;
+      }
+      return fMode === 'all' || p.mode === fMode;
+    }).sort((a, b) => b.ai - a.ai),
     [listings, fType, fMode],
   );
 

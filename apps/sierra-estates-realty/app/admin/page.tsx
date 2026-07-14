@@ -14,18 +14,11 @@
  *    6. Reports          — 4 analytics panels
  *    7. Audit logs       — Immutable action history
  *    8. Settings         — Site config (admin-only)
- *
- *  Auth gate: if not signed in, renders <AdminSignIn/> instead.
- *  The session cookie is checked via GET /api/auth (in AuthProvider).
- *  Role checks happen client-side (hide tabs) AND server-side (API
- *  endpoints enforce requireRole()).
  */
 "use client";
 import { useState } from "react";
-import { Menu, Loader2 } from "lucide-react";
-import { AuthProvider, useAuth } from "@/components/client/AuthModal";
+import { Menu } from "lucide-react";
 import { Sidebar } from "@/components/admin/Sidebar";
-import { AdminSignIn } from "@/components/admin/AdminSignIn";
 import { AdminDashboard } from "@/components/admin/Dashboard";
 import { ListingsManager } from "@/components/admin/ListingsManager";
 import { InquiriesPipeline } from "@/components/admin/InquiriesPipeline";
@@ -36,21 +29,9 @@ import { AuditLogs } from "@/components/admin/AuditLogs";
 import { SettingsView } from "@/components/admin/Settings";
 import type { AdminTab } from "@/components/admin/types";
 
-function AdminShell() {
-  const { me, loading } = useAuth();
+export default function AdminPage() {
   const [tab, setTab] = useState<AdminTab>("dashboard");
   const [mobileSidebar, setMobileSidebar] = useState(false);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-bg">
-        <Loader2 className="h-8 w-8 animate-spin text-gold-500" />
-      </div>
-    );
-  }
-
-  // Gate: not signed in → sign-in screen.
-  if (!me?.signedIn) return <AdminSignIn />;
 
   return (
     <div className="min-h-screen bg-bg flex">
@@ -82,13 +63,5 @@ function AdminShell() {
         </main>
       </div>
     </div>
-  );
-}
-
-export default function AdminPage() {
-  return (
-    <AuthProvider>
-      <AdminShell />
-    </AuthProvider>
   );
 }

@@ -105,6 +105,7 @@ export default function PropertyDetail({ id }: { id: string }) {
           <Reveal className="gallery">
             {gallery.map((src, i) => (
               <div className="g" key={i}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={src} alt="" loading="lazy" />
                 {i === 4 && <span className="more">+12</span>}
               </div>

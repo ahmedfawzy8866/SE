@@ -15,7 +15,7 @@ import { X, Shield, Loader2, Mail, Lock } from "lucide-react";
 import { useI18n } from "@/lib/i18n-client";
 import { useToast } from "@/components/client/Toast";
 import { api } from "@/lib/api-client";
-import { firebaseEnabled, getFirebaseAuth } from "@/lib/firebase";
+import { isFirebaseClientConfigured as firebaseEnabled, auth } from "@/lib/firebase";
 import { DEMO_ADMIN } from "@/lib/auth";
 
 interface Me { signedIn: boolean; role?: string; name?: string; email?: string; uid?: string; }
@@ -77,7 +77,6 @@ function AuthModal({ onClose, onSignedIn }: { onClose: () => void; onSignedIn: (
     try {
       if (firebaseEnabled) {
         // Production: client-side Firebase sign-in, mint session cookie.
-        const auth = getFirebaseAuth();
         if (!auth) throw new Error("Firebase not initialized");
         const { signInWithEmailAndPassword, getIdToken } = await import("firebase/auth");
         const cred = await signInWithEmailAndPassword(auth, email, password);

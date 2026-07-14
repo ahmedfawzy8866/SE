@@ -1,79 +1,182 @@
-/**
- * GET  /api/listings?mode=sale&compound=&type=&beds=&maxUsd=&q=
- *   → Listing[] (public, filters applied)
- * POST /api/listings  (admin only)
- *   → { id }
- */
-import { NextResponse } from "next/server";
-import { SEED_LISTINGS } from "@/lib/seed";
-import { getAdminDb } from "@/lib/firebase-admin";
-import { requireRole } from "@/lib/auth";
-import type { Listing } from "@/lib/types";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { COLLECTIONS } from '@/lib/models/schema';
+import { applyRateLimit, publicEndpointLimiter } from '@/lib/server/rate-limit';
+import { logger } from '@/lib/logger';
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+const listingsQuerySchema = z.object({
+  id: z.string().min(1, 'id must not be empty').optional(),
+  limit: z.coerce
+    .number()
+    .int('limit must be an integer')
+    .positive('limit must be positive')
+    .max(100, 'limit must not exceed 100')
+    .optional(),
+});
 
-async function loadListings(): Promise<Listing[]> {
-  const db = await getAdminDb();
-  if (db) {
-    try {
-      const snap = await db.collection("listings").get();
-      if (!snap.empty) {
-        return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Listing[];
-      }
-    } catch (err) {
-      console.warn("[listings] Firestore read failed, using seed:", err);
-    }
-  }
-  return SEED_LISTINGS;
+const API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? '';
+const PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'sierra-estates';
+
+interface FirestoreValue {
+  [key: string]: any;
 }
 
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const mode = url.searchParams.get("mode") || "";
-  const compound = url.searchParams.get("compound") || "";
-  const type = url.searchParams.get("type") || "";
-  const beds = url.searchParams.get("beds");
-  const maxUsd = url.searchParams.get("maxUsd");
-  const q = (url.searchParams.get("q") || "").toLowerCase().trim();
+interface FirestoreDocument {
+  name?: string;
+  fields?: { [key: string]: FirestoreValue };
+}
 
-  let items = await loadListings();
-  items = items.filter((l) => l.status !== "archived");
-  if (mode) items = items.filter((l) => l.mode === mode);
-  if (compound) items = items.filter((l) => l.compound === compound);
-  if (type) items = items.filter((l) => l.type === type);
-  if (beds) items = items.filter((l) => l.beds >= Number(beds));
-  if (maxUsd) items = items.filter((l) => l.usd <= Number(maxUsd));
-  if (q) {
-    items = items.filter(
-      (l) =>
-        l.code.toLowerCase().includes(q) ||
-        l.compound.toLowerCase().includes(q) ||
-        l.zone.toLowerCase().includes(q) ||
-        (l.agent || "").toLowerCase().includes(q)
+/**
+ * Extract value from Firestore document field
+ */
+function extractValue(field: FirestoreValue): any {
+  if (!field) return undefined;
+  if (field.stringValue) return field.stringValue;
+  if (field.integerValue) return parseInt(field.integerValue, 10);
+  if (field.doubleValue) return field.doubleValue;
+  if (field.booleanValue) return field.booleanValue;
+  if (field.arrayValue?.values) {
+    return field.arrayValue.values.map(extractValue);
+  }
+  if (field.mapValue?.fields) {
+    const obj: any = {};
+    for (const [key, val] of Object.entries(field.mapValue.fields)) {
+      obj[key] = extractValue(val as FirestoreValue);
+    }
+    return obj;
+  }
+  return undefined;
+}
+
+/**
+ * Query Firestore via REST API
+ */
+async function queryFirestoreRest(
+  collectionName: string,
+  limit?: number,
+  docId?: string
+): Promise<{ doc?: FirestoreDocument; docs: FirestoreDocument[] } | null> {
+  try {
+    const url = new URL(
+      `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collectionName}`
+    );
+
+    if (docId) {
+      url.pathname += `/${docId}`;
+    } else if (limit) {
+      url.searchParams.append('pageSize', limit.toString());
+    }
+    url.searchParams.append('key', API_KEY);
+
+    const response = await fetch(url.toString(), { method: 'GET' });
+
+    if (!response.ok) {
+      logger.error(`[FIRESTORE_REST] ${response.status}: ${await response.text()}`);
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (docId) {
+      // Single document response
+      return { doc: data, docs: [] };
+    } else {
+      // Collection query response
+      return { docs: data.documents || [] };
+    }
+  } catch (error: any) {
+    logger.error('[FIRESTORE_REST_ERROR]', error?.message || error);
+    return null;
+  }
+}
+
+/**
+ * Transform Firestore document to listing object
+ */
+function transformToListing(doc: FirestoreDocument): any {
+  if (!doc || !doc.fields) return null;
+
+  const fields = doc.fields;
+  const id = doc.name?.split('/').pop() || '';
+
+  return {
+    id,
+    title: extractValue(fields.title) || 'Untitled Property',
+    titleAr: extractValue(fields.titleAr) || undefined,
+    price: extractValue(fields.price) || 0,
+    compound: extractValue(fields.compound) || extractValue(fields.location) || extractValue(fields.city) || '',
+    beds: extractValue(fields.bedrooms) || 0,
+    baths: extractValue(fields.bathrooms) || 0,
+    area: extractValue(fields.area) || 0,
+    image: (extractValue(fields.images)?.[0]) || undefined,
+    images: extractValue(fields.images) || [],
+    description: extractValue(fields.description) || undefined,
+    propertyType: extractValue(fields.propertyType) || extractValue(fields.type) || 'apartment',
+    status: extractValue(fields.status) || 'available',
+    amenities: extractValue(fields.amenities) || [],
+    purpose: extractValue(fields.monthlyRent) ? 'for-rent' : 'for-sale',
+    pfReferenceNumber: extractValue(fields.pfReferenceNumber) || null,
+    publishToClient: extractValue(fields.publishToClient) || false,
+  };
+}
+
+export async function GET(request: Request) {
+  if (!API_KEY) {
+    return NextResponse.json(
+      { error: 'Server misconfigured: NEXT_PUBLIC_FIREBASE_API_KEY is not set', listings: [] },
+      { status: 503 }
     );
   }
-  // Sort: featured first, then by AI score
-  items.sort((a, b) => {
-    if (!!b.featured !== !!a.featured) return b.featured ? 1 : -1;
-    return b.aiScore - a.aiScore;
-  });
-  return NextResponse.json(items);
-}
+  const rateLimitResponse = await applyRateLimit(request, publicEndpointLimiter);
+  if (rateLimitResponse) return rateLimitResponse;
 
-export async function POST(req: Request) {
-  await requireRole(req, "manager");
-  const body = await req.json().catch(() => ({}));
-  const db = await getAdminDb();
-  if (db) {
-    const ref = await db.collection("listings").add({
-      ...body,
-      status: body.status ?? "available",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  try {
+    const { searchParams } = new URL(request.url);
+
+    const parseResult = listingsQuerySchema.safeParse({
+      id: searchParams.get('id') ?? undefined,
+      limit: searchParams.get('limit') ?? undefined,
     });
-    return NextResponse.json({ id: ref.id });
+
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { success: false, error: 'Validation failed', details: parseResult.error.errors },
+        { status: 400 }
+      );
+    }
+
+    const { id, limit } = parseResult.data;
+
+    if (id) {
+      const result = await queryFirestoreRest(COLLECTIONS.units, undefined, id);
+      if (!result?.doc) {
+        return NextResponse.json({ success: false, error: 'Listing not found' }, { status: 404 });
+      }
+      const listing = transformToListing(result.doc);
+      return NextResponse.json({ success: true, listing });
+    }
+
+    const limitParam = limit ?? 12;
+    const result = await queryFirestoreRest(COLLECTIONS.units, limitParam);
+
+    if (!result) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to fetch listings from database' },
+        { status: 500 }
+      );
+    }
+
+    let listings = (result.docs || []).map(transformToListing).filter(Boolean);
+    
+    // Only show published listings to the client
+    listings = listings.filter((l: any) => l.publishToClient === true);
+
+    return NextResponse.json({ success: true, listings, count: listings.length });
+  } catch (error: any) {
+    logger.error('[LISTINGS_ERROR] Failed to fetch listings:', error?.message || error);
+    return NextResponse.json(
+      { success: false, error: error?.message || 'Internal Server Error' },
+      { status: 500 }
+    );
   }
-  // Sandbox: pretend-create
-  return NextResponse.json({ id: `local-${Date.now()}` });
 }

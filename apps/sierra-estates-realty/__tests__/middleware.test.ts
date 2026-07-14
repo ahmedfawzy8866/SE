@@ -1,82 +1,100 @@
 /**
- * Tests: Admin Host Routing Proxy (proxy.ts)
+ * Tests: Edge Proxy (proxy.ts)
  *
- * The middleware splits one codebase across two domains: when ADMIN_HOST is
- * set, /admin/* requests on the public domain are 307-redirected to the admin
- * host. Without ADMIN_HOST the middleware is inert (single-deploy topology).
+ * The admin / public host-split logic was REMOVED — the admin console is now
+ * a separate Vite SPA at apps/admin-dashboard/, deployed as its own Vercel
+ * project at admin.sierra-estates.net. This app (realty) no longer has an
+ * /admin route.
+ *
+ * The proxy now handles only:
+ *   1. CORS preflight for /api routes
+ *   2. Shared-secret gate on /api/orchestrate
  */
 import { NextRequest } from 'next/server';
 import { config, proxy as middleware } from '../proxy';
 
-const ADMIN_HOST = 'admin.sierra-estates.net';
-const ORIGINAL_ADMIN_HOST = process.env.ADMIN_HOST;
+const ORIGINAL_SBR = process.env.SBR_SECRET_KEY;
 
-function request(url: string): NextRequest {
-  return new NextRequest(url);
+function request(url: string, init?: RequestInit): NextRequest {
+  return new NextRequest(url, init);
 }
 
 afterEach(() => {
-  if (ORIGINAL_ADMIN_HOST === undefined) {
-    delete process.env.ADMIN_HOST;
+  if (ORIGINAL_SBR === undefined) {
+    delete process.env.SBR_SECRET_KEY;
   } else {
-    process.env.ADMIN_HOST = ORIGINAL_ADMIN_HOST;
+    process.env.SBR_SECRET_KEY = ORIGINAL_SBR;
   }
 });
 
-describe('middleware — ADMIN_HOST unset (single-deploy topology)', () => {
-  beforeEach(() => {
-    delete process.env.ADMIN_HOST;
+describe('proxy config', () => {
+  it('matches only /api routes (admin route removed)', () => {
+    expect(config.matcher).toEqual(['/api/:path*']);
   });
+});
 
-  describe('middleware config', () => {
-    it('matches admin routes and API routes', () => {
-      expect(config.matcher).toEqual(['/api/:path*', '/admin/:path*']);
-    });
-  });
-
-  it('passes /admin requests through untouched', () => {
-    const res = middleware(request('https://sierra-estates.net/admin/leads'));
-    expect(res.status).toBe(200);
-    expect(res.headers.get('location')).toBeNull();
-  });
-
-  it('passes public routes through untouched', () => {
+describe('proxy — public routes (no /admin handling)', () => {
+  it('passes through non-api routes untouched (no /admin redirect anymore)', () => {
     const res = middleware(request('https://sierra-estates.net/listings'));
     expect(res.status).toBe(200);
     expect(res.headers.get('location')).toBeNull();
   });
+
+  it('passes through /admin paths as a normal 404 (admin no longer in this app)', () => {
+    // /admin is not in the matcher, so the proxy doesn't even run for it.
+    // Next.js will return its default 404 — the admin lives at admin.sierra-estates.net now.
+    const res = middleware(request('https://sierra-estates.net/admin'));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('location')).toBeNull();
+  });
 });
 
-describe('middleware — ADMIN_HOST set (host-split topology)', () => {
-  beforeEach(() => {
-    process.env.ADMIN_HOST = ADMIN_HOST;
-  });
-
-  it('307-redirects public-domain /admin requests to the admin host', () => {
-    const res = middleware(request('https://sierra-estates.net/admin'));
-    expect(res.status).toBe(307);
-    expect(res.headers.get('location')).toBe(`https://${ADMIN_HOST}/admin`);
-  });
-
-  it('preserves the path and query string on redirect', () => {
+describe('proxy — CORS preflight', () => {
+  it('answers OPTIONS /api with 204', () => {
     const res = middleware(
-      request('https://sierra-estates.net/admin/intelligence-os?tab=agents'),
+      request('https://sierra-estates.net/api/listings', { method: 'OPTIONS' }),
     );
-    expect(res.status).toBe(307);
-    expect(res.headers.get('location')).toBe(
-      `https://${ADMIN_HOST}/admin/intelligence-os?tab=agents`,
-    );
+    expect(res.status).toBe(204);
+  });
+});
+
+describe('proxy — /api/orchestrate shared-secret gate', () => {
+  beforeEach(() => {
+    process.env.SBR_SECRET_KEY = 'test-secret';
   });
 
-  it('serves /admin normally on the admin host itself', () => {
-    const res = middleware(request(`https://${ADMIN_HOST}/admin/leads`));
-    expect(res.status).toBe(200);
-    expect(res.headers.get('location')).toBeNull();
+  it('blocks /api/orchestrate without X-SBR-SECRET-KEY', () => {
+    const res = middleware(
+      request('https://sierra-estates.net/api/orchestrate', { method: 'POST' }),
+    );
+    expect(res.status).toBe(401);
   });
 
-  it('leaves non-admin public routes alone', () => {
-    const res = middleware(request('https://sierra-estates.net/about'));
+  it('blocks /api/orchestrate with wrong X-SBR-SECRET-KEY', () => {
+    const res = middleware(
+      request('https://sierra-estates.net/api/orchestrate', {
+        method: 'POST',
+        headers: { 'X-SBR-SECRET-KEY': 'wrong' },
+      }),
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it('allows /api/orchestrate with correct X-SBR-SECRET-KEY', () => {
+    const res = middleware(
+      request('https://sierra-estates.net/api/orchestrate', {
+        method: 'POST',
+        headers: { 'X-SBR-SECRET-KEY': 'test-secret' },
+      }),
+    );
     expect(res.status).toBe(200);
-    expect(res.headers.get('location')).toBeNull();
+  });
+
+  it('allows /api/orchestrate when SBR_SECRET_KEY is unset (local dev)', () => {
+    delete process.env.SBR_SECRET_KEY;
+    const res = middleware(
+      request('https://sierra-estates.net/api/orchestrate', { method: 'POST' }),
+    );
+    expect(res.status).toBe(200);
   });
 });

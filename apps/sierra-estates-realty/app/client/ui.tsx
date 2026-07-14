@@ -65,6 +65,7 @@ export function PropertyCard({ p, index = 0 }: { p: Listing; index?: number }) {
     >
       <div className="photo">
         <Link href={`/property/${p.id}`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={p.img} alt={`${p.type} in ${p.cmp}`} loading="lazy" />
         </Link>
         <div className="badges">
@@ -199,11 +200,18 @@ type ChatMsg = { role: 'bot' | 'user'; text: string };
 
 function makeSessionId() {
   try {
-    if (typeof window !== 'undefined' && window.crypto && 'randomUUID' in window.crypto) {
-      return `web-${window.crypto.randomUUID()}`;
+    if (typeof crypto !== 'undefined') {
+      const webCrypto = crypto as unknown as Crypto;
+      if ('randomUUID' in (webCrypto as object)) return `web-${webCrypto.randomUUID()}`;
+      if ('getRandomValues' in (webCrypto as object)) {
+        const bytes = new Uint8Array(16);
+        webCrypto.getRandomValues(bytes);
+        const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+        return `web-${Date.now()}-${hex}`;
+      }
     }
   } catch { /* noop */ }
-  return `web-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `web-${Date.now()}`;
 }
 
 export function SierraConcierge() {
@@ -219,7 +227,7 @@ export function SierraConcierge() {
   useEffect(() => { if (!sessionId.current) sessionId.current = makeSessionId(); }, []);
   useEffect(() => {
     setMsgs((m) => (m.length === 1 && m[0].role === 'bot' ? [{ role: 'bot', text: t('chatGreeting') }] : m));
-  }, [open]);
+  }, [open, t]);
   useEffect(() => { bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight }); }, [msgs, busy]);
 
   async function send(e: React.FormEvent) {
