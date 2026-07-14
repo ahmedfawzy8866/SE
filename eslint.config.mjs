@@ -25,7 +25,7 @@ export default [
       parser: (await import('typescript-eslint')).parser,
       parserOptions: {
         tsconfigRootDir: import.meta.dirname,
-        project: ['./tsconfig.json'],
+        project: ['./tsconfig.json', './tsconfig.app.json'],
       },
     },
     rules: {

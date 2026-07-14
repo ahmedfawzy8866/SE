@@ -32,7 +32,7 @@
 .seg-tabs button.on{background:var(--pri);color:#fff;box-shadow:0 3px 10px rgba(0,0,0,.12);}
 [data-theme="dark"] .seg-tabs button.on{color:#0d0d0f;}
 .fb-sel{position:relative;}
-.fb-sel select{appearance:none;-webkit-appearance:none;font-family:var(--font);font-size:13.5px;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 38px 11px 14px;cursor:pointer;transition:.18s;}
+.fb-sel select{-webkit-appearance:none;appearance:none;font-family:var(--font);font-size:13.5px;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 38px 11px 14px;cursor:pointer;transition:.18s;}
 .fb-sel select:hover{border-color:var(--pri);}
 .fb-sel::after{content:"";position:absolute;inset-inline-end:14px;top:50%;width:8px;height:8px;border-inline-end:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-70%) rotate(45deg);pointer-events:none;}
 .fb-count{margin-inline-start:auto;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap;}
@@ -48,6 +48,7 @@
   .fb-sel{flex:1 1 46%;}
   .fb-count{width:100%;margin:2px 0 0;text-align:center;}
 }
+.pt-32{padding-top:32px;}
 </style>
 </head>
 <body>
@@ -62,7 +63,7 @@
   </div>
 </header>
 
-<section class="block" style="padding-top:32px;" data-screen-label="Listings">
+<section class="block pt-32" data-screen-label="Listings">
   <div class="wrap">
     <div class="filter-bar" id="pf-bar">
       <div class="seg-tabs" id="pf-mode">
@@ -72,21 +73,21 @@
         <button type="button" data-mode="new">New</button>
       </div>
       <div class="fb-sel">
-        <select id="pf-type">
+        <select id="pf-type" title="Filter by property type">
           <option value="">Any type</option>
           <option>Villa</option><option>Apartment</option><option>Penthouse</option>
           <option>Twin House</option><option>Duplex</option>
         </select>
       </div>
       <div class="fb-sel">
-        <select id="pf-beds">
+        <select id="pf-beds" title="Filter by number of beds">
           <option value="0">Any beds</option>
           <option value="1">1+ beds</option><option value="2">2+ beds</option>
           <option value="3">3+ beds</option><option value="4">4+ beds</option><option value="5">5+ beds</option>
         </select>
       </div>
       <div class="fb-sel">
-        <select id="pf-sort">
+        <select id="pf-sort" title="Sort properties by">
           <option value="ai">Top AI score</option>
           <option value="asc">Price: low to high</option>
           <option value="desc">Price: high to low</option>
