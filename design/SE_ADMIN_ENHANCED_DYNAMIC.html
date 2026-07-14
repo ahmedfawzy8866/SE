@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SE Admin - Enhanced Dynamic Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #e0e6ed;
+            min-height: 100vh;
+        }
+        .container { display: flex; height: 100vh; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0d1117 0%, #1a1f2e 100%);
+            border-right: 1px solid #2d3748;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2d3748;
+        }
+        .brand-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #00d4ff;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .brand-subtitle {
+            font-size: 11px;
+            color: #8b92a1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-section { margin-bottom: 25px; }
+        .nav-section-title {
+            font-size: 11px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 12px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            color: #c3cad5;
+        }
+        .nav-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            transform: translateX(4px);
+        }
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #0f1419;
+        }
+
+        /* ALERT BANNER */
+        .alert-banner {
+            background: linear-gradient(90deg, #7c2d12 0%, #5a1f0f 100%);
+            border-bottom: 2px solid #ea580c;
+            padding: 12px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            justify-content: space-between;
+        }
+        .alert-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        .alert-icon {
+            font-size: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .alert-text {
+            font-size: 13px;
+            color: #fecaca;
+        }
+        .alert-close {
+            cursor: pointer;
+            color: #fecaca;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+        .alert-close:hover {
+            color: #fff;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(90deg, #0d0f15 0%, #1a1f2e 100%);
+            border-bottom: 1px solid #2d3748;
+            padding: 16px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            width: 300px;
+            color: #8b92a1;
+            font-size: 13px;
+        }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .header-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #c3cad5;
+            transition: all 0.2s;
+        }
+        .header-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        /* PAGE CONTENT */
+        .page-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 20px;
+        }
+
+        .main-area { display: flex; flex-direction: column; gap: 20px; }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        .page-description {
+            font-size: 13px;
+            color: #8b92a1;
+            margin-bottom: 20px;
+        }
+
+        /* SECTION */
+        .section {
+            background: linear-gradient(135deg, #1a1f2e 0%, #13171f 100%);
+            border: 1px solid #2d3748;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+        .section:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.1);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* WORKFLOW STATUS */
+        .workflow-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .workflow-card {
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+        .workflow-card:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+        .workflow-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #c3cad5;
+            margin-bottom: 8px;
+        }
+        .workflow-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+        .status-dot.running { background: #10b981; }
+        .status-dot.idle { background: #6b7280; }
+        .status-dot.error { background: #ef4444; }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .status-text { color: #8b92a1; }
+
+        /* AGENT FLOW */
+        .agent-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .agent-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .agent-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+        .agent-icon { font-size: 16px; }
+        .agent-info { flex: 1; }
+        .agent-name { font-size: 12px; font-weight: 600; color: #c3cad5; }
+        .agent-status { font-size: 11px; color: #8b92a1; }
+        .agent-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* NOTIFICATIONS PANEL */
+        .notifications-panel {
+            background: linear-gradient(135deg, #1a1f2e 0%, #13171f 100%);
+            border: 1px solid #2d3748;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: fit-content;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .notifications-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notification-badge {
+            background: #ef4444;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .notification-item {
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-left: 3px solid;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .notification-item.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+            color: #fecaca;
+        }
+
+        .notification-item.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: #f59e0b;
+            color: #fcd34d;
+        }
+
+        .notification-item.success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+            color: #a7f3d0;
+        }
+
+        .notification-item.info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+            color: #bfdbfe;
+        }
+
+        .notification-time {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        /* KPI CARDS */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .kpi-card {
+            background: linear-gradient(135deg, #1a1f2e 0%, #13171f 100%);
+            border: 1px solid #2d3748;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .kpi-label {
+            font-size: 11px;
+            color: #8b92a1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .kpi-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 4px;
+        }
+        .kpi-change {
+            font-size: 12px;
+            color: #10b981;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-title">SIERRA ESTATES</div>
+                <div class="brand-subtitle">Intelligence OS</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">MAIN</div>
+                <div class="nav-item active">📊 Dashboard</div>
+                <div class="nav-item">🤖 Agents & Bots</div>
+                <div class="nav-item">⚙️ Workflows</div>
+                <div class="nav-item">👥 CRM · Leads</div>
+                <div class="nav-item">🏢 Listings Hub</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">AI AGENTS</div>
+                <div class="nav-item">✍️ The Curator</div>
+                <div class="nav-item">📝 The Scribe</div>
+                <div class="nav-item">🎯 Stage-9 Closer</div>
+                <div class="nav-item">💬 OpenClaw</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">OPERATIONS</div>
+                <div class="nav-item">📱 Nexus-AI</div>
+                <div class="nav-item">🔄 Data Sync</div>
+                <div class="nav-item">⚡ Automation</div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- ALERT BANNER -->
+            <div class="alert-banner">
+                <div class="alert-content">
+                    <div class="alert-icon">⚠️</div>
+                    <div class="alert-text">
+                        <strong>3 Agents Idle</strong> — Stage-9 Closer offline since 14:32. Action Required.
+                    </div>
+                </div>
+                <div class="alert-close">✕</div>
+            </div>
+
+            <!-- HEADER -->
+            <div class="header">
+                <div class="search-bar">🔍 Search workflows, agents, leads...</div>
+                <div class="header-right">
+                    <button class="header-btn">🔔 Alerts (5)</button>
+                    <button class="header-btn">🌙 Dark</button>
+                    <button class="header-btn">EN</button>
+                </div>
+            </div>
+
+            <!-- PAGE CONTENT -->
+            <div class="page-content">
+                <div class="main-area">
+                    <div>
+                        <div class="page-title">Live Operations Dashboard</div>
+                        <div class="page-description">Real-time agent flows, workflow status, and system health</div>
+                    </div>
+
+                    <!-- WORKFLOWS SECTION -->
+                    <div class="section">
+                        <div class="section-title">
+                            ⚙️ Active Workflows
+                            <span style="margin-left: auto; font-size: 12px; color: #10b981; font-weight: normal;">5/8 Running</span>
+                        </div>
+                        <div class="workflow-grid">
+                            <div class="workflow-card">
+                                <div class="workflow-name">Lead Intake Pipeline</div>
+                                <div class="workflow-status">
+                                    <div class="status-dot running"></div>
+                                    <span class="status-text">Running (2.3s)</span>
+                                </div>
+                            </div>
+                            <div class="workflow-card">
+                                <div class="workflow-name">Property Matching</div>
+                                <div class="workflow-status">
+                                    <div class="status-dot running"></div>
+                                    <span class="status-text">Running (5.1s)</span>
+                                </div>
+                            </div>
+                            <div class="workflow-card">
+                                <div class="workflow-name">WhatsApp Sync</div>
+                                <div class="workflow-status">
+                                    <div class="status-dot idle"></div>
+                                    <span class="status-text">Idle (awaiting)</span>
+                                </div>
+                            </div>
+                            <div class="workflow-card">
+                                <div class="workflow-name">Viewing Schedule</div>
+                                <div class="workflow-status">
+                                    <div class="status-dot error"></div>
+                                    <span class="status-text" style="color: #fecaca;">Error</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AGENT FLOW SECTION -->
+                    <div class="section">
+                        <div class="section-title">
+                            🤖 Agent Flow & Status
+                            <span style="margin-left: auto; font-size: 12px; color: #10b981; font-weight: normal;">6 Active</span>
+                        </div>
+                        <div class="agent-flow">
+                            <div class="agent-item">
+                                <div class="agent-icon">✍️</div>
+                                <div class="agent-info">
+                                    <div class="agent-name">The Curator</div>
+                                    <div class="agent-status">Processing 12 leads · Last: 2m ago</div>
+                                </div>
+                                <div class="agent-badge">ACTIVE</div>
+                            </div>
+                            <div class="agent-item">
+                                <div class="agent-icon">📝</div>
+                                <div class="agent-info">
+                                    <div class="agent-name">The Scribe</div>
+                                    <div class="agent-status">Writing descriptions · 8 completed</div>
+                                </div>
+                                <div class="agent-badge">ACTIVE</div>
+                            </div>
+                            <div class="agent-item">
+                                <div class="agent-icon">🎯</div>
+                                <div class="agent-info">
+                                    <div class="agent-name">Stage-9 Closer</div>
+                                    <div class="agent-status">Offline since 14:32</div>
+                                </div>
+                                <div style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">OFFLINE</div>
+                            </div>
+                            <div class="agent-item">
+                                <div class="agent-icon">💬</div>
+                                <div class="agent-info">
+                                    <div class="agent-name">OpenClaw Terminal</div>
+                                    <div class="agent-status">Ready · Waiting for input</div>
+                                </div>
+                                <div class="agent-badge">IDLE</div>
+                            </div>
+                            <div class="agent-item">
+                                <div class="agent-icon">📱</div>
+                                <div class="agent-info">
+                                    <div class="agent-name">Nexus-AI Ingestion</div>
+                                    <div class="agent-status">Syncing · Last batch: 847 records</div>
+                                </div>
+                                <div class="agent-badge">ACTIVE</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI SECTION -->
+                    <div class="section">
+                        <div class="section-title">📊 System Metrics</div>
+                        <div class="kpi-grid">
+                            <div class="kpi-card">
+                                <div class="kpi-label">Active Leads</div>
+                                <div class="kpi-value">247</div>
+                                <div class="kpi-change">↑ 12% this week</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Deals This Month</div>
+                                <div class="kpi-value">18</div>
+                                <div class="kpi-change">↑ 8% vs last month</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT PANEL: NOTIFICATIONS -->
+                <div class="notifications-panel">
+                    <div class="notifications-title">
+                        🔔 Alerts & Notifications
+                        <div class="notification-badge">8</div>
+                    </div>
+
+                    <div class="notification-item error">
+                        <strong>❌ Agent Error</strong><br>
+                        Stage-9 Closer crashed. Restarting...
+                        <div class="notification-time">2 min ago</div>
+                    </div>
+
+                    <div class="notification-item warning">
+                        <strong>⚠️ Workflow Slow</strong><br>
+                        Property Matching taking 45s (avg: 5s)
+                        <div class="notification-time">5 min ago</div>
+                    </div>
+
+                    <div class="notification-item error">
+                        <strong>❌ Integration Error</strong><br>
+                        WhatsApp API rate limit exceeded
+                        <div class="notification-time">8 min ago</div>
+                    </div>
+
+                    <div class="notification-item info">
+                        <strong>ℹ️ Request Pending</strong><br>
+                        Lead #4521 waiting for Curator assignment
+                        <div class="notification-time">12 min ago</div>
+                    </div>
+
+                    <div class="notification-item success">
+                        <strong>✓ Viewing Scheduled</strong><br>
+                        Lead Ahmed approved viewing for tomorrow 2PM
+                        <div class="notification-time">15 min ago</div>
+                    </div>
+
+                    <div class="notification-item warning">
+                        <strong>⚠️ Sync Delay</strong><br>
+                        Data sync 3 min behind schedule
+                        <div class="notification-time">18 min ago</div>
+                    </div>
+
+                    <div class="notification-item success">
+                        <strong>✓ Listing Published</strong><br>
+                        Property #892 went live (2BR, $450K)
+                        <div class="notification-time">22 min ago</div>
+                    </div>
+
+                    <div class="notification-item info">
+                        <strong>ℹ️ System Update</strong><br>
+                        Background job: lead scoring ran 847 records
+                        <div class="notification-time">25 min ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

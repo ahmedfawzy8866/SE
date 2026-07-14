@@ -4,7 +4,7 @@ All API credentials are stored as **GitHub Secrets** (encrypted) instead of .env
 
 ## How to Add Secrets
 
-1. Go to: https://github.com/ahmedfawzy8866/Sierra-Estates-Final
+1. Go to: https://github.com/ahmedfawzy8866/SE
 2. Settings → Secrets and variables → Actions
 3. Click "New repository secret"
 4. Add each secret below
@@ -183,7 +183,7 @@ After adding all secrets:
 
 ```bash
 # 1. Go to repository secrets page
-https://github.com/ahmedfawzy8866/Sierra-Estates-Final/settings/secrets/actions
+https://github.com/ahmedfawzy8866/SE/settings/secrets/actions
 
 # 2. Verify all 13 secrets are present:
 ✅ BROKER_INBOX_SHEET_ID

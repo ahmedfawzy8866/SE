@@ -55,6 +55,9 @@
 [data-theme="dark"] .nav-icon .dot{color:#0d0d0f;}
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
+:focus-visible{outline:2px solid var(--pri);outline-offset:2px;border-radius:4px;}
+.skip-link{position:absolute;top:-48px;inset-inline-start:16px;z-index:1000;background:var(--navy);color:#fff;font-weight:700;font-size:14px;padding:10px 18px;border-radius:0 0 8px 8px;transition:top .2s;}
+.skip-link:focus{top:0;}
 html{scroll-behavior:smooth;}
 body{font-family:var(--font);color:var(--text);background:var(--white);font-size:15px;line-height:1.6;transition:background .4s;}
 [dir="rtl"] body{letter-spacing:0!important;}
@@ -150,6 +153,8 @@ footer .brand .mark.logo{width:44px;height:44px;}
 .btn-ghost:hover{border-color:var(--pri);color:var(--pri);}
 .btn-navy{background:var(--navy);color:#fff;}
 .btn-navy:hover{background:#013a63;}
+[data-theme="dark"] .btn-navy{background:#c8961a;color:#0d0d0f;}
+[data-theme="dark"] .btn-navy:hover{background:#e9c176;}
 
 /* ── section shells ─────────────────────── */
 section.block{padding:78px 0;background:var(--white);}
@@ -178,7 +183,7 @@ section.block.well{background:var(--bg);}
 .pcard .photo img{width:100%;height:100%;object-fit:cover;transition:transform .6s var(--silk);}
 .pcard:hover .photo img{transform:scale(1.06);}
 .pcard .badges{position:absolute;top:14px;inset-inline-start:14px;display:flex;gap:8px;z-index:3;}
-.pcard .heart{position:absolute;top:12px;inset-inline-end:12px;z-index:3;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;color:var(--navy);cursor:pointer;transition:.18s;}
+.pcard .heart{position:absolute;top:12px;inset-inline-end:12px;z-index:3;width:38px;height:38px;border:none;padding:0;font:inherit;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;color:var(--navy);cursor:pointer;transition:.18s;}
 .pcard .heart:hover{background:#fff;color:var(--red);transform:scale(1.1);}
 .pcard .heart.on{color:var(--red);}
 .pcard .price-float{position:absolute;inset-inline-start:14px;bottom:14px;z-index:3;background:rgba(0,43,75,.9);backdrop-filter:blur(6px);color:#fff;padding:8px 13px;border-radius:8px;font-family:var(--mono);font-weight:700;font-size:15px;white-space:nowrap;}

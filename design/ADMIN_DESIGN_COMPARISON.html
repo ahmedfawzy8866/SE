@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Page Design Comparison</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f1419; color: #fff; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 40px 20px; }
+        h1 { text-align: center; margin-bottom: 40px; font-size: 32px; }
+        .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
+        .admin-design { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 12px; overflow: hidden; }
+        .admin-header { background: #0d0f15; padding: 20px; border-bottom: 1px solid #2d3748; }
+        .admin-title { font-size: 20px; font-weight: 600; margin-bottom: 5px; }
+        .admin-subtitle { font-size: 12px; color: #8b92a1; }
+        .admin-content { padding: 20px; }
+        .mockup { background: #13171f; border: 1px dashed #3d4556; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .feature { margin: 10px 0; padding: 10px; background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 13px; }
+        .verdict { background: #1f2937; border-left: 4px solid #10b981; padding: 15px; border-radius: 8px; margin-top: 20px; }
+        .verdict-title { font-weight: 600; color: #10b981; margin-bottom: 8px; }
+        .stats { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-top: 15px; }
+        .stat-box { background: rgba(59, 130, 246, 0.05); padding: 12px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .stat-label { font-size: 11px; color: #8b92a1; text-transform: uppercase; }
+        .stat-value { font-size: 18px; font-weight: 600; margin-top: 5px; }
+        .section-title { font-size: 14px; font-weight: 600; color: #3b82f6; margin-top: 15px; margin-bottom: 10px; text-transform: uppercase; }
+        @media (max-width: 1024px) {
+            .comparison { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Admin Page Design Comparison</h1>
+
+        <div class="comparison">
+            <!-- SE Admin -->
+            <div class="admin-design">
+                <div class="admin-header">
+                    <div class="admin-title">SE Repo Admin</div>
+                    <div class="admin-subtitle">H:\SE\apps\admin (Vite React App)</div>
+                </div>
+                <div class="admin-content">
+                    <div class="mockup">
+                        <div style="font-size: 12px; line-height: 1.6; color: #a0a9b8;">
+                            ┌─────────────────────────────┐<br>
+                            │ [☰] SIERRA ESTATES    [🔍] │ ← Modern Header<br>
+                            ├─────────────────────────────┤<br>
+                            │ [Overview]                  │<br>
+                            │ [Agents & Bots]             │<br>
+                            │ [Workflows]  ← 26+ Pages    │<br>
+                            │ [CRM · Leads]               │<br>
+                            │ [Listings Hub]              │<br>
+                            │ [The Curator]               │<br>
+                            │ [The Scribe]                │<br>
+                            │ [Stage-9 Closer]            │<br>
+                            │ [... more pages ...]        │<br>
+                            └─────────────────────────────┘
+                        </div>
+                    </div>
+
+                    <div class="section-title">Visual Design</div>
+                    <div class="feature">✓ Modern dark/light theme toggle</div>
+                    <div class="feature">✓ Sleek sidebar with Lucide icons</div>
+                    <div class="feature">✓ MegaDashboard unified view</div>
+                    <div class="feature">✓ Voice search with mic icon</div>
+                    <div class="feature">✓ Global search bar (CMD+K)</div>
+                    <div class="feature">✓ Responsive grid layout</div>
+
+                    <div class="section-title">Architecture</div>
+                    <div class="feature">✓ 26+ Modular pages/components</div>
+                    <div class="feature">✓ Component-based structure</div>
+                    <div class="feature">✓ Full EN/AR bilingual + RTL</div>
+                    <div class="feature">✓ React Router navigation</div>
+                    <div class="feature">✓ Motion/React animations</div>
+                    <div class="feature">✓ Firestore real-time sync</div>
+
+                    <div class="section-title">Features</div>
+                    <div class="feature">✓ Voice search (speech recognition)</div>
+                    <div class="feature">✓ Admin health monitor</div>
+                    <div class="feature">✓ Global progress tracker</div>
+                    <div class="feature">✓ Search telemetry logging</div>
+                    <div class="feature">✓ Notification center</div>
+                    <div class="feature">✓ Theme persistence (localStorage)</div>
+
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-label">Pages</div>
+                            <div class="stat-value">26+</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Languages</div>
+                            <div class="stat-value">EN/AR</div>
+                        </div>
+                    </div>
+
+                    <div class="verdict">
+                        <div class="verdict-title">✓ VERDICT</div>
+                        Modern, modular, feature-rich. Professionally built with latest React patterns. Excellent UX with voice search, dark mode, and bilingual support.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sierra-Estates-Final Admin -->
+            <div class="admin-design">
+                <div class="admin-header">
+                    <div class="admin-title">Sierra-Estates-Final Admin</div>
+                    <div class="admin-subtitle">apps/sierra-estates-realty/app/admin</div>
+                </div>
+                <div class="admin-content">
+                    <div class="mockup">
+                        <div style="font-size: 12px; line-height: 1.6; color: #a0a9b8;">
+                            ┌─────────────────────────────┐<br>
+                            │ Sierra Estates 3.0 Console │ ← Single File<br>
+                            ├─────────────────────────────┤<br>
+                            │ 📊 KPI Cards (8)            │<br>
+                            │ 🤖 Agents (6)               │<br>
+                            │ ⚙️ Workflows (8)             │<br>
+                            │ 👥 CRM Leads                │<br>
+                            │ 🏢 Compounds (8)            │<br>
+                            │ 📱 Terminal (OpenClaw)      │<br>
+                            │ 📡 Data Ingestion (Nexus)   │<br>
+                            │ 📊 Reports                  │<br>
+                            └─────────────────────────────┘
+                        </div>
+                    </div>
+
+                    <div class="section-title">Visual Design</div>
+                    <div class="feature">✓ Dark theme (default)</div>
+                    <div class="feature">✓ KPI cards with metrics</div>
+                    <div class="feature">✓ Inline agent/workflow display</div>
+                    <div class="feature">✓ Compact sidebar</div>
+                    <div class="feature">✓ Agent status indicators</div>
+                    <div class="feature">✓ Full bilingual EN/AR</div>
+
+                    <div class="section-title">Architecture</div>
+                    <div class="feature">✓ 1,400 lines in single AdminPortal.tsx</div>
+                    <div class="feature">✓ Monolithic component design</div>
+                    <div class="feature">✓ Tightly coupled features</div>
+                    <div class="feature">✓ Direct Firebase integration</div>
+                    <div class="feature">✓ On-page role checks</div>
+                    <div class="feature">✓ Hardcoded admin emails</div>
+
+                    <div class="section-title">Features</div>
+                    <div class="feature">✓ 6 AI Agents on dashboard</div>
+                    <div class="feature">✓ 8 Workflows visualization</div>
+                    <div class="feature">✓ Full CRM (leads, pipeline)</div>
+                    <div class="feature">✓ Compound metrics (8 compounds)</div>
+                    <div class="feature">✓ OpenClaw terminal</div>
+                    <div class="feature">✓ Live data ingestion (Nexus-AI)</div>
+
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-label">Code Size</div>
+                            <div class="stat-value">1,400 LOC</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Structure</div>
+                            <div class="stat-value">Monolithic</div>
+                        </div>
+                    </div>
+
+                    <div class="verdict">
+                        <div class="verdict-title">✓ VERDICT</div>
+                        Comprehensive feature set. All agents/workflows visible at once. Dense information layout. Good for power users but harder to maintain.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Decision Matrix -->
+        <div style="background: #1a1f2e; border: 1px solid #2d3748; border-radius: 12px; padding: 30px; margin-top: 40px;">
+            <h2 style="margin-bottom: 20px; font-size: 20px;">🎯 Which to Keep?</h2>
+
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <tr style="border-bottom: 1px solid #2d3748;">
+                    <th style="text-align: left; padding: 12px; color: #8b92a1;">Criteria</th>
+                    <th style="text-align: center; padding: 12px; color: #3b82f6;">SE Admin</th>
+                    <th style="text-align: center; padding: 12px; color: #10b981;">Sierra Admin</th>
+                </tr>
+                <tr style="border-bottom: 1px solid #2d3748;">
+                    <td style="padding: 12px;">User Experience</td>
+                    <td style="text-align: center; padding: 12px;">⭐⭐⭐⭐⭐</td>
+                    <td style="text-align: center; padding: 12px;">⭐⭐⭐⭐</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #2d3748;">
+                    <td style="padding: 12px;">Maintainability</td>
+                    <td style="text-align: center; padding: 12px;">⭐⭐⭐⭐⭐</td>
+                    <td style="text-align: center; padding: 12px;">⭐⭐⭐</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #2d3748;">
+                    <td style="padding: 12px;">Feature Completeness</td>
+                    <td style="text-align: center; padding: 12px;">⭐⭐⭐⭐</td>
+                    <td style="text-align: center; padding: 12px;">⭐⭐⭐⭐⭐</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #2d3748;">
+                    <td style="padding: 12px;">Modern Architecture</td>
+                    <td style="text-align: center; padding: 12px;">⭐⭐⭐⭐⭐</td>
+                    <td style="text-align: center; padding: 12px;">⭐⭐⭐</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px;">Scalability</td>
+                    <td style="text-align: center; padding: 12px;">⭐⭐⭐⭐⭐</td>
+                    <td style="text-align: center; padding: 12px;">⭐⭐⭐</td>
+                </tr>
+            </table>
+
+            <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin-top: 30px;">
+                <div style="font-weight: 600; color: #10b981; margin-bottom: 10px; font-size: 16px;">✓ RECOMMENDATION</div>
+                <div style="line-height: 1.6; color: #c3cad5;">
+                    <strong>Keep SE Admin UI + Merge features from Sierra Admin</strong><br><br>
+                    SE admin has superior modern architecture, modular design, and better UX (voice search, dark mode, responsive).
+                    Sierra admin has all the agent/workflow logic and CRM features implemented.
+                    Merge the features into SE's architecture for best result.
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
