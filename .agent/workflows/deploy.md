@@ -39,8 +39,9 @@ $ARGUMENTS
 ---
 
 ## Deployment Rules:
-- You MUST adhere strictly to `.agent/rules/deployment.md` for all deployments.
-- No Yolo-Deploy: Never deploy without a successful local `pnpm turbo build` and `pnpm lint`.
+- **No Yolo-Deploy**: Never deploy without a successful local build.
+- **Rollback Ready**: Always have a plan to return to the previous version.
+- **Zero Downtime**: Prioritize strategies that don't break the user experience.
 
 ---
 
