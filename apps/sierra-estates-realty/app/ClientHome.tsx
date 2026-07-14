@@ -151,8 +151,8 @@ function SpecIcon({ d }: { d: string }) {
 /* ── Property card (ports design-system PropertyCard.jsx to the tokens) ─── */
 function PropertyCard({ item, isAr: _isAr }: { item: Listing; isAr: boolean }) {
   const [saved, setSaved] = useState(false);
-  // Firestore docs have string ids and a real detail page; fallback items go to the index.
-  const href = typeof item.id === 'string' ? `/property/${item.id}` : '/properties';
+  // Firestore docs have string ids and a real detail view; fallback items go to the index.
+  const href = typeof item.id === 'string' ? `/?view=property&id=${item.id}` : '/?view=properties';
   return (
     <Link href={href} className="se-pcard" style={{ textDecoration: 'none' }}>
       <div className="se-pcard__media">
@@ -279,7 +279,7 @@ export default function ClientHome() {
           </Link>
           <div className="nav-right">
             <div className="nav-links">
-              <Link href="/properties" className="nav-link">{t.navListings}</Link>
+              <Link href="/?view=properties" className="nav-link">{t.navListings}</Link>
               <a href="#map" className="nav-link">{t.navMap}</a>
               <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="nav-link">{t.navContact}</a>
             </div>
@@ -298,7 +298,7 @@ export default function ClientHome() {
         </nav>
         {menuOpen && (
           <div className="nav-mobile">
-            <Link href="/properties" className="nav-link" onClick={() => setMenuOpen(false)}>{t.navListings}</Link>
+            <Link href="/?view=properties" className="nav-link" onClick={() => setMenuOpen(false)}>{t.navListings}</Link>
             <a href="#map" className="nav-link" onClick={() => setMenuOpen(false)}>{t.navMap}</a>
             <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="nav-link" onClick={() => setMenuOpen(false)}>{t.navContact}</a>
             <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="btn-gold" onClick={() => setMenuOpen(false)}>{t.navCta}</a>
@@ -322,7 +322,7 @@ export default function ClientHome() {
             </h1>
             <p className="sb-body-lg" style={{ maxWidth: 580, margin: '26px auto 38px', color: 'var(--tx-m)' }}>{t.sub}</p>
             <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link href="/properties" className="btn-gold btn-lg">{t.ctaBrowse}</Link>
+              <Link href="/?view=properties" className="btn-gold btn-lg">{t.ctaBrowse}</Link>
               <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="btn-wa btn-lg">{t.ctaWhatsapp}</a>
             </div>
           </motion.div>
@@ -349,7 +349,7 @@ export default function ClientHome() {
               <div className="sb-eyebrow" style={{ marginBottom: 12 }}>{t.featEyebrow}</div>
               <h2 className="sb-display-l" style={{ margin: 0 }}>{isAr ? t.featTitle : <>Featured <span className="gold-static">Properties</span></>}</h2>
             </div>
-            <Link href="/properties" style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: 'var(--gold-lt)' }}>{t.viewAll}</Link>
+            <Link href="/?view=properties" style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: 'var(--gold-lt)' }}>{t.viewAll}</Link>
           </div>
         </Reveal>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: 22 }}>
@@ -393,7 +393,7 @@ export default function ClientHome() {
           <PanoViewer
             src={PANO_SRC}
             alt={t.tourTitle}
-            shareUrl={typeof window !== 'undefined' ? `${window.location.origin}/virtual-tour` : '/virtual-tour'}
+            shareUrl={typeof window !== 'undefined' ? `${window.location.origin}/?view=tour` : '/?view=tour'}
             labels={{ badge: t.tourBadge, hint: t.tourHint, copy: t.tourCopy, copied: t.tourCopied }}
           />
         </Reveal>

@@ -98,7 +98,7 @@ export default function CompoundsPortal() {
                       <b style={{ fontFamily: 'var(--hz-mono)', fontSize: 16, color: up ? 'var(--green)' : 'var(--ink)' }}>{val as string}</b>
                     </div>
                   ))}
-                  <Link href="/properties" className="btn btn-pri" style={{ marginTop: 18 }}><IconArrowRight size={16} /> {t('viewAll')}</Link>
+                  <Link href="/?view=properties" className="btn btn-pri" style={{ marginTop: 18 }}><IconArrowRight size={16} /> {t('viewAll')}</Link>
                 </div>
               ) : (
                 <div className="hint" style={{ margin: 'auto 0', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, color: 'var(--muted)' }}>
