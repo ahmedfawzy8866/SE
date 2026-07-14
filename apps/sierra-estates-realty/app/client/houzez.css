@@ -471,3 +471,18 @@
   .hz .p-head .price{text-align:start;}
   .hz .grid-cpds{grid-template-columns:1fr;}
 }
+
+/* ── Property-detail modal (single unified client page) ─────────────────────
+   Scoped to the .hz token system; the overlay itself carries .hz so the
+   light/blue design tokens apply inside the modal too. */
+.hz.pd-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,20,38,.55);backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;overflow-y:auto;animation:hz-fade .2s ease;}
+.pd-panel{position:relative;background:var(--bg);border-radius:18px;max-width:1120px;width:100%;margin:auto;box-shadow:0 30px 90px rgba(0,0,0,.45);}
+.pd-close{position:absolute;top:14px;inset-inline-end:14px;z-index:3;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow-s);transition:background .18s,color .18s,border-color .18s;}
+.pd-close:hover{background:var(--pri);color:#fff;border-color:var(--pri);}
+@keyframes hz-fade{from{opacity:0}to{opacity:1}}
+@media(max-width:680px){.hz.pd-overlay{padding:0;}.pd-panel{border-radius:0;min-height:100vh;}}
+
+/* Property cards open the detail modal via <button> (was <Link>) — reset styles. */
+.hz .pcard .photo .pcard-open{display:block;width:100%;height:100%;padding:0;border:0;background:none;cursor:pointer;}
+.hz .pcard h3 .pcard-title{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:start;cursor:pointer;}
+.hz .pcard h3 .pcard-title:hover{color:var(--pri);}

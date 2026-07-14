@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
-import ClientHome from './ClientHome';
+import HomePortal from './client/HomePortal';
 import { SiteConfig } from '@/lib/config';
+import './client/houzez.css';
 
 export const metadata: Metadata = {
   title: 'Sierra Estates — Luxury Real Estate in New Cairo',
@@ -42,7 +43,7 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
       />
-      <ClientHome />
+      <HomePortal />
     </>
   );
 }

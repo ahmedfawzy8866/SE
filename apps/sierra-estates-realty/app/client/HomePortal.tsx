@@ -7,18 +7,32 @@
  * concierge → POST /api/chat (via <SierraConcierge/>). framer-motion entrances.
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useReducedMotion } from 'framer-motion';
 import {
-  Nav, Topbar, Footer, PropertyCard, Reveal, SierraConcierge, useT,
+  Nav, Topbar, Footer, Reveal, SierraConcierge, useT,
 } from './ui';
+import { ClientPageProvider } from './ClientPageContext';
+import PropertiesSection from './PropertiesSection';
+import CompoundsSection from './CompoundsSection';
+import TourSection from './TourSection';
+import PropertyDetail from './PropertyDetail';
+import { SLIDES, COMPOUNDS } from './portalData';
+import type { MapPoint } from '@/components/Maps/LiveMap';
+
+// Live market map — SSR-safe (Leaflet needs `window`), client-only.
+const LiveMap = dynamic<{
+  mode?: 'dark' | 'light';
+  points?: MapPoint[];
+  labels?: { yield: string; price: string; ai: string; demand: string };
+}>(() => import('@/components/Maps/LiveMap'), {
+  ssr: false,
+  loading: () => <div className="mini-map" style={{ height: 460 }} />,
+});
 import {
-  SLIDES, COMPOUNDS, COMPOUND_IMGS, FALLBACK_LISTINGS, fetchListings, Listing,
-} from './portalData';
-import {
-  IconMapPin, IconChevronDown, IconSearch, IconArrowRight, IconBadgeCheck, IconMap,
+  IconMapPin, IconChevronDown, IconSearch, IconBadgeCheck, IconMap,
   IconShield, IconRadar, IconTrendingUp, IconHandshake, IconStar, IconSend, IconPlus,
-  IconPhone, IconRotate3d, IconPlay, IconSparkles,
+  IconPhone, IconSparkles,
 } from './icons';
 
 const WHATSAPP = 'https://wa.me/201092048333';
@@ -66,16 +80,11 @@ function Stat({ value, dec, prefix, suffix, label }: { value: number; dec?: numb
 export default function HomePortal() {
   const { t, locale } = useT();
   const isAr = locale === 'ar';
-  const [listings, setListings] = useState<Listing[]>(FALLBACK_LISTINGS);
   const [slide, setSlide] = useState(0);
   const [tab, setTab] = useState(0);
+  // Single-page property-detail modal: which property id (if any) is open.
+  const [openId, setOpenId] = useState<string | null>(null);
   const reduce = useReducedMotion();
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchListings(12).then((live) => { if (!cancelled && live.length) setListings(live); });
-    return () => { cancelled = true; };
-  }, []);
 
   // hero auto-advance
   useEffect(() => {
@@ -84,35 +93,51 @@ export default function HomePortal() {
     return () => clearInterval(id);
   }, [reduce]);
 
-  const featured = listings.slice(0, 6);
   const heroMain = isAr ? SLIDES[slide].mainAr : SLIDES[slide].main;
   const heroPre = isAr ? SLIDES[slide].preAr : SLIDES[slide].pre;
   const heroWords = heroMain.split(' ');
   const heroHl = heroWords.splice(-3).join(' ');
 
-  const compoundPicks = ['Hyde Park New Cairo', 'Mivida', 'Mountain View iCity', 'Eastown (SODIC)'];
   const ticker = isAr
     ? ['ماونتن فيو +24%', 'أب تاون كايرو +31%', 'ميفيدا إيجار من $1,700/شهر', 'هايد بارك AI 9.8', 'فيليت عائد 8.1%', 'تاج سيتي طلب متزايد']
     : ['Mountain View iCity +24%', 'Uptown Cairo +31%', 'Mivida rentals from $1,700/mo', 'Hyde Park AI score 9.8', 'Villette yield 8.1%', 'Taj City demand rising'];
   const tickerRow = [...ticker, ...ticker];
 
   const aiTools: { key: string; t: any; s: any; live?: boolean; href: string }[] = [
-    { key: 'engine', t: 'ai1t', s: 'ai1s', live: true, href: '/compounds' },
-    { key: 'match', t: 'ai2t', s: 'ai2s', href: '/properties' },
-    { key: 'roi', t: 'ai3t', s: 'ai3s', href: '/compounds' },
-    { key: 'price', t: 'ai4t', s: 'ai4s', href: '/compounds' },
-    { key: 'dream', t: 'ai5t', s: 'ai5s', href: '/properties' },
-    { key: 'imap', t: 'ai6t', s: 'ai6s', href: '/compounds' },
-    { key: 'tour', t: 'ai7t', s: 'ai7s', href: '/virtual-tour' },
+    { key: 'engine', t: 'ai1t', s: 'ai1s', live: true, href: '#compounds' },
+    { key: 'match', t: 'ai2t', s: 'ai2s', href: '#properties' },
+    { key: 'roi', t: 'ai3t', s: 'ai3s', href: '#compounds' },
+    { key: 'price', t: 'ai4t', s: 'ai4s', href: '#compounds' },
+    { key: 'dream', t: 'ai5t', s: 'ai5s', href: '#properties' },
+    { key: 'imap', t: 'ai6t', s: 'ai6s', href: '#map' },
+    { key: 'tour', t: 'ai7t', s: 'ai7s', href: '#tour' },
   ];
 
+  // Live-market-map markers: real New Cairo compounds (coords + yield + AI).
+  const mapPoints: MapPoint[] = useMemo(
+    () => COMPOUNDS.map((c) => ({
+      name: c.n,
+      coord: c.c,
+      yieldPct: parseInt(String(c.g).replace(/[^0-9-]/g, ''), 10) || 0,
+      priceM: c.priceM,
+      ai: c.ai,
+    })),
+    [],
+  );
+
   return (
+    <ClientPageProvider
+      value={{
+        openProperty: (id) => setOpenId(id),
+        scrollTo: (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }),
+      }}
+    >
     <div className="hz" dir={isAr ? 'rtl' : 'ltr'}>
       <Topbar />
       <Nav active="home" />
 
       {/* HERO */}
-      <header className="hero">
+      <header className="hero" id="top">
         <div>
           {SLIDES.map((s, i) => (
             <div key={i} className={`slide${i === slide ? ' on' : ''}`}>
@@ -151,7 +176,7 @@ export default function HomePortal() {
             <div className="field"><label>{t('fType')}</label><div className="val"><span>{t('vType')}</span> <IconChevronDown className="i chev" size={16} /></div></div>
             <div className="field"><label>{t('fBeds')}</label><div className="val"><span>{t('vBeds')}</span> <IconChevronDown className="i chev" size={16} /></div></div>
             <div className="field"><label>{t('fPrice')}</label><div className="val"><span>{t('vPrice')}</span> <IconChevronDown className="i chev" size={16} /></div></div>
-            <div className="field searchbtn"><Link href="/properties" className="btn btn-pri"><IconSearch size={16} /> <span>{t('search')}</span></Link></div>
+            <div className="field searchbtn"><a href="#properties" className="btn btn-pri"><IconSearch size={16} /> <span>{t('search')}</span></a></div>
           </div>
         </Reveal>
       </div>
@@ -159,76 +184,37 @@ export default function HomePortal() {
       {/* TICKER */}
       <div className="ticker"><div className="row">{tickerRow.map((s, i) => <span key={i}>{s}</span>)}</div></div>
 
-      {/* FEATURED */}
-      <section className="block" id="properties">
-        <div className="wrap">
-          <Reveal className="sec-head">
-            <div>
-              <div className="eyebrow">{t('eyeList')}</div>
-              <h2>{t('featTit')}</h2>
-              <p>{t('featSub')}</p>
-            </div>
-            <Link href="/properties" className="sec-link"><span>{t('viewAll')}</span> <IconArrowRight size={16} /></Link>
-          </Reveal>
-          <div className="grid-props">
-            {featured.map((p, i) => <PropertyCard key={p.id} p={p} index={i} />)}
-          </div>
-        </div>
-      </section>
+      {/* FEATURED / FULL PROPERTIES (migrated PropertiesPortal) */}
+      <PropertiesSection />
 
-      {/* COMPOUNDS */}
-      <section className="block well" id="compounds">
-        <div className="wrap">
-          <Reveal className="sec-head">
-            <div>
-              <div className="eyebrow">{t('eyeCpd')}</div>
-              <h2>{t('cpdTit')}</h2>
-              <p>{t('cpdSub')}</p>
-            </div>
-            <Link href="/compounds" className="sec-link"><span>{t('allCpds')}</span> <IconArrowRight size={16} /></Link>
-          </Reveal>
-          <div className="grid-comp">
-            {compoundPicks.map((n, i) => {
-              const c = COMPOUNDS.find((x) => x.n === n)!;
-              return (
-                <Reveal key={n} delay={i * 0.08}>
-                  <Link className="comp" href="/compounds" style={{ height: 250, display: 'block' }}>
-                    <img src={COMPOUND_IMGS[n]} alt={c.n} loading="lazy" />
-                    <div className="co-scrim" />
-                    <div className="co-count">AI {c.ai.toFixed(1)} · {c.g}</div>
-                    <div className="co-body"><h4>{c.n}</h4><span>{c.z} · EGP {c.priceM}M avg</span></div>
-                  </Link>
-                </Reveal>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+      {/* COMPOUND INTELLIGENCE (migrated CompoundsPortal) */}
+      <CompoundsSection />
 
-      {/* VIRTUAL TOUR (deferred → links to placeholder page) */}
-      <section className="block well" id="tour">
+      {/* LIVE MARKET MAP (maps kit) */}
+      <section className="block well" id="map">
         <div className="wrap">
           <Reveal className="sec-head">
             <div>
-              <div className="eyebrow">{t('eyeTour')}</div>
-              <h2>{t('tourTit')}</h2>
-              <p>{t('tourSub')}</p>
+              <div className="eyebrow">{t('mapEye')}</div>
+              <h2>{t('mapTit')}</h2>
+              <p>{t('mapSub')}</p>
             </div>
           </Reveal>
           <Reveal>
-            <Link href="/virtual-tour" style={{ display: 'block', position: 'relative', height: 440, borderRadius: 16, overflow: 'hidden', border: '1px solid var(--line)' }}>
-              <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1600&q=85" alt="Virtual tour" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              <span style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(0,20,38,.15),rgba(0,20,38,.82))' }} />
-              <span style={{ position: 'absolute', top: 18, insetInlineStart: 18, background: 'rgba(0,174,255,.92)', color: '#fff', fontFamily: 'var(--hz-mono)', fontWeight: 700, fontSize: 12, letterSpacing: '.08em', padding: '7px 13px', borderRadius: 999, display: 'inline-flex', alignItems: 'center', gap: 6 }}><IconRotate3d size={14} /> 360°</span>
-              <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 78, height: 78, borderRadius: '50%', background: 'rgba(255,255,255,.92)', color: 'var(--navy)', display: 'grid', placeItems: 'center', boxShadow: '0 10px 40px rgba(0,0,0,.35)' }}><IconPlay size={30} /></span>
-              <span style={{ position: 'absolute', insetInlineStart: 24, bottom: 22 }}>
-                <b style={{ display: 'block', color: '#fff', fontSize: 24, fontWeight: 700 }}>{t('ai7t')}</b>
-                <span style={{ color: '#8fe1ff', fontFamily: 'var(--hz-mono)', fontSize: 13 }}>{t('tourNote')}</span>
-              </span>
-            </Link>
+            <div style={{ height: 460, borderRadius: 16, overflow: 'hidden', border: '1px solid var(--line)' }}>
+              <LiveMap
+                mode="light"
+                points={mapPoints}
+                labels={{ yield: t('mapYield'), price: t('mapPrice'), ai: t('mapAi'), demand: t('mapDemand') }}
+              />
+            </div>
+            <p className="sub" style={{ marginTop: 12, fontSize: 13, color: 'var(--muted)' }}>{t('mapLegend')}</p>
           </Reveal>
         </div>
       </section>
+
+      {/* VIRTUAL TOUR (migrated VirtualTourPortal) */}
+      <TourSection />
 
       {/* STATS */}
       <section className="stats">
@@ -319,12 +305,12 @@ export default function HomePortal() {
           <div className="ai-grid">
             {aiTools.map((tool, i) => (
               <Reveal key={tool.key} delay={(i % 4) * 0.06}>
-                <Link className="ai-card" href={tool.href}>
+                <a className="ai-card" href={tool.href}>
                   <span className="ai-ic"><IconSparkles size={30} /></span>
                   <h4>{t(tool.t)}</h4>
                   <p>{t(tool.s)}</p>
                   {tool.live && <span className="live-tag">{t('aiLive')}</span>}
-                </Link>
+                </a>
               </Reveal>
             ))}
           </div>
@@ -360,6 +346,8 @@ export default function HomePortal() {
       <Footer />
       <SierraConcierge />
     </div>
+    {openId && <PropertyDetail id={openId} onClose={() => setOpenId(null)} />}
+    </ClientPageProvider>
   );
 }
 
