@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { execSync } from 'child_process';
 import readline from 'readline';
 import fs from 'fs';
@@ -48,7 +49,7 @@ async function run() {
       try {
         execSync('firebase deploy --only firestore:rules,storage', { stdio: 'inherit' });
         console.log('✅ Security rules deployed successfully.');
-      } catch (err) {
+      } catch {
         console.error('❌ Failed to deploy security rules. Make sure you are logged in using `firebase login`.');
       }
     }

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Sierra Estates — Bulk Bot Agent Activator
  * --------------------------------------------------
@@ -94,7 +95,7 @@ async function discoverCollection(db) {
         console.log(`  ✓ Found collection: "${name}" (${(await db.collection(name).count().get()).data().count} docs)`);
         return name;
       }
-    } catch (e) {
+    } catch {
       // ignore — try next
     }
   }
