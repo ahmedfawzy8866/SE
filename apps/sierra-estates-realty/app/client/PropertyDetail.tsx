@@ -1,20 +1,19 @@
 'use client';
 /**
- * Sierra Estates — Property detail (port of property.html).
- * Reads the single property from Firestore `properties/{id}` (client SDK);
- * falls back to the local kit listing when Firestore is empty/unconfigured.
- * Schedule / Call CTAs post a real lead via /api/leads; WhatsApp deep-links.
- * Mini-map is a live Leaflet map (CARTO light tiles + blue dot marker),
- * ported from property.html — dynamically imported, ssr:false.
+ * Sierra Estates — Property detail, rendered as an overlay modal on the single
+ * unified client page (migrated from the old /property/[id] route). Reads the
+ * property from Firestore `properties/{id}` (client SDK); falls back to the
+ * local kit listing when Firestore is empty/unconfigured. Schedule / Call CTAs
+ * deep-link to WhatsApp. Mini-map is a live Leaflet map (ssr:false). The
+ * "similar" cards reuse the same modal via ClientPageContext.
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Nav, Topbar, Footer, PropertyCard, Reveal, SierraConcierge, useT } from './ui';
+import { PropertyCard, Reveal, useT } from './ui';
 import { FALLBACK_LISTINGS, INTERIORS, Listing, priceLabel, compoundCoords } from './portalData';
-import { IconMapPin, IconBed, IconBath, IconScaling, IconSparkles, IconLayout, IconListChecks, IconMap, IconCalendar, IconMessageCircle, IconPhone, IconArrowRight, IconCheckCircle } from './icons';
+import { IconMapPin, IconBed, IconBath, IconScaling, IconSparkles, IconLayout, IconListChecks, IconMap, IconCalendar, IconMessageCircle, IconPhone, IconCheckCircle, IconX } from './icons';
 
 const PropertyMiniMap = dynamic(() => import('./maps').then((m) => m.PropertyMiniMap), {
   ssr: false,
@@ -41,7 +40,7 @@ function mapOne(id: string, p: Record<string, unknown>): Listing {
   };
 }
 
-export default function PropertyDetail({ id }: { id: string }) {
+export default function PropertyDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const { t, locale } = useT();
   const isAr = locale === 'ar';
   const fallback = useMemo(
@@ -49,6 +48,8 @@ export default function PropertyDetail({ id }: { id: string }) {
     [id],
   );
   const [p, setP] = useState<Listing>(fallback);
+
+  useEffect(() => { setP(fallback); }, [fallback]);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,6 +61,15 @@ export default function PropertyDetail({ id }: { id: string }) {
     })();
     return () => { cancelled = true; };
   }, [id]);
+
+  // Lock body scroll while the modal is open + close on Escape.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
+  }, [onClose]);
 
   const gallery = [p.img.replace('w=800', 'w=1400'), ...INTERIORS.slice(0, 4)];
   const feats = isAr
@@ -82,92 +92,93 @@ export default function PropertyDetail({ id }: { id: string }) {
   ];
 
   return (
-    <div className="hz" dir={isAr ? 'rtl' : 'ltr'}>
-      <Topbar />
-      <Nav active="props" />
-      <header className="page-hero" style={{ padding: '40px 0 44px' }}>
-        <div className="wrap">
-          <div className="crumbs"><Link href="/">{t('crumbHome')}</Link><span className="sep">/</span><Link href="/properties">{t('navProps')}</Link><span className="sep">/</span><span>{p.code}</span></div>
-        </div>
-      </header>
+    <div
+      className="hz pd-overlay"
+      dir={isAr ? 'rtl' : 'ltr'}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${p.type} in ${p.cmp}`}
+      onClick={onClose}
+    >
+      <div className="pd-panel" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="pd-close" onClick={onClose} aria-label={isAr ? 'إغلاق' : 'Close'}>
+          <IconX size={20} />
+        </button>
 
-      <section className="block" style={{ paddingTop: 44 }}>
-        <div className="wrap">
-          <Reveal className="p-head">
-            <div>
-              <div className="ptype">{p.code} · {p.type}</div>
-              <h1>{p.type} in {p.cmp}</h1>
-              <div className="addr"><IconMapPin size={16} /> <span>{p.cmp}, {p.zone}, New Cairo</span></div>
-            </div>
-            <div className="price"><span>{priceLabel(p)}</span><small>{p.mode === 'rent' ? t('modeRent') : t('modeSale')}</small></div>
-          </Reveal>
-
-          <Reveal className="gallery">
-            {gallery.map((src, i) => (
-              <div className="g" key={i}>
-                <img src={src} alt="" loading="lazy" />
-                {i === 4 && <span className="more">+12</span>}
+        <section className="block" style={{ paddingTop: 28 }}>
+          <div className="wrap">
+            <Reveal className="p-head">
+              <div>
+                <div className="ptype">{p.code} · {p.type}</div>
+                <h1>{p.type} in {p.cmp}</h1>
+                <div className="addr"><IconMapPin size={16} /> <span>{p.cmp}, {p.zone}, New Cairo</span></div>
               </div>
-            ))}
-          </Reveal>
+              <div className="price"><span>{priceLabel(p)}</span><small>{p.mode === 'rent' ? t('modeRent') : t('modeSale')}</small></div>
+            </Reveal>
 
-          <div className="p-cols">
-            <div>
-              <Reveal className="panel">
-                <h3><IconLayout size={18} /> <span>{t('overview')}</span></h3>
-                <div className="spec-row">
-                  {specs.map(([icon, val, label], i) => (
-                    <div className="spec" key={i}>{icon}<b>{val}</b><span>{label}</span></div>
-                  ))}
+            <Reveal className="gallery">
+              {gallery.map((src, i) => (
+                <div className="g" key={i}>
+                  <img src={src} alt="" loading="lazy" />
+                  {i === 4 && <span className="more">+12</span>}
                 </div>
-                <p className="desc" style={{ marginTop: 20 }}>{desc}</p>
-              </Reveal>
-              <Reveal className="panel">
-                <h3><IconListChecks size={18} /> {t('amenities')}</h3>
-                <div className="feats">
-                  {feats.map((f) => <span key={f}><IconCheckCircle size={16} />{f}</span>)}
-                </div>
-              </Reveal>
-              <Reveal className="panel">
-                <h3><IconMap size={18} /> <span>{t('location')}</span></h3>
-                <PropertyMiniMap center={mapCenter} height={260} />
-                <div className="addr" style={{ marginTop: 10 }}><IconMapPin size={14} /> <span>{p.cmp} · {p.zone}, New Cairo, Egypt</span></div>
-              </Reveal>
-            </div>
+              ))}
+            </Reveal>
 
-            <aside>
-              <Reveal className="agent-card">
-                <div className="a-top">
-                  <span className="a-av">{p.agent.split(' ').map((w) => w[0]).join('').slice(0, 2)}</span>
-                  <div>
-                    <div className="a-role">{t('advisor')}</div>
-                    <h4>{p.agent}</h4>
-                    <div className="a-sub">Sierra Estates · New Cairo</div>
+            <div className="p-cols">
+              <div>
+                <Reveal className="panel">
+                  <h3><IconLayout size={18} /> <span>{t('overview')}</span></h3>
+                  <div className="spec-row">
+                    {specs.map(([icon, val, label], i) => (
+                      <div className="spec" key={i}>{icon}<b>{val}</b><span>{label}</span></div>
+                    ))}
                   </div>
-                </div>
-                <a className="btn btn-pri" href={WHATSAPP} target="_blank" rel="noopener noreferrer"><IconCalendar size={16} /> <span>{t('schedule')}</span></a>
-                <a className="btn btn-wa" href={WHATSAPP} target="_blank" rel="noopener noreferrer"><IconMessageCircle size={16} /> <span>{t('wa')}</span></a>
-                <a className="btn btn-ghost" href="tel:+201092048333"><IconPhone size={16} /> <span>{t('call')}</span></a>
-                <div className="ai-banner"><b>AI {p.ai.toFixed(1)}</b><span>{isAr ? 'تقييم سيرا الذكي — مقارنة لحظية مع 25 كمبوند في القاهرة الجديدة.' : 'Sierra AI score — benchmarked against 25 New Cairo compounds in real time.'}</span></div>
-              </Reveal>
-            </aside>
-          </div>
+                  <p className="desc" style={{ marginTop: 20 }}>{desc}</p>
+                </Reveal>
+                <Reveal className="panel">
+                  <h3><IconListChecks size={18} /> {t('amenities')}</h3>
+                  <div className="feats">
+                    {feats.map((f) => <span key={f}><IconCheckCircle size={16} />{f}</span>)}
+                  </div>
+                </Reveal>
+                <Reveal className="panel">
+                  <h3><IconMap size={18} /> <span>{t('location')}</span></h3>
+                  <PropertyMiniMap center={mapCenter} height={260} />
+                  <div className="addr" style={{ marginTop: 10 }}><IconMapPin size={14} /> <span>{p.cmp} · {p.zone}, New Cairo, Egypt</span></div>
+                </Reveal>
+              </div>
 
-          <Reveal className="sec-head" style={{ marginTop: 56 }}>
-            <div>
-              <div className="eyebrow">{t('eyeList')}</div>
-              <h2>{t('similar')}</h2>
+              <aside>
+                <Reveal className="agent-card">
+                  <div className="a-top">
+                    <span className="a-av">{p.agent.split(' ').map((w) => w[0]).join('').slice(0, 2)}</span>
+                    <div>
+                      <div className="a-role">{t('advisor')}</div>
+                      <h4>{p.agent}</h4>
+                      <div className="a-sub">Sierra Estates · New Cairo</div>
+                    </div>
+                  </div>
+                  <a className="btn btn-pri" href={WHATSAPP} target="_blank" rel="noopener noreferrer"><IconCalendar size={16} /> <span>{t('schedule')}</span></a>
+                  <a className="btn btn-wa" href={WHATSAPP} target="_blank" rel="noopener noreferrer"><IconMessageCircle size={16} /> <span>{t('wa')}</span></a>
+                  <a className="btn btn-ghost" href="tel:+201092048333"><IconPhone size={16} /> <span>{t('call')}</span></a>
+                  <div className="ai-banner"><b>AI {p.ai.toFixed(1)}</b><span>{isAr ? 'تقييم سيرا الذكي — مقارنة لحظية مع 25 كمبوند في القاهرة الجديدة.' : 'Sierra AI score — benchmarked against 25 New Cairo compounds in real time.'}</span></div>
+                </Reveal>
+              </aside>
             </div>
-            <Link href="/properties" className="sec-link"><span>{t('viewAll')}</span> <IconArrowRight size={16} /></Link>
-          </Reveal>
-          <div className="grid-props">
-            {similar.map((s, i) => <PropertyCard key={s.id} p={s} index={i} />)}
-          </div>
-        </div>
-      </section>
 
-      <Footer />
-      <SierraConcierge />
+            <Reveal className="sec-head" style={{ marginTop: 56 }}>
+              <div>
+                <div className="eyebrow">{t('eyeList')}</div>
+                <h2>{t('similar')}</h2>
+              </div>
+            </Reveal>
+            <div className="grid-props">
+              {similar.map((s, i) => <PropertyCard key={s.id} p={s} index={i} />)}
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

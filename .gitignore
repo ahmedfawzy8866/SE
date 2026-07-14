@@ -34,6 +34,8 @@ build/
 .next/
 .nuxt/
 .cache/
+coverage/
+*.tsbuildinfo
 
 # ─── IDE ────────────────────────────────────────────────────────────────────
 .vscode/

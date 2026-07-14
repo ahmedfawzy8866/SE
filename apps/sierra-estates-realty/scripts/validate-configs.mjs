@@ -32,8 +32,19 @@ function validateJavaScript(filePath) {
 
 console.log('Validating config files...\n');
 
+// The root vercel.json only exists in the alternate topology where the
+// Vercel Root Directory is the repo root — validate it when present, but a
+// missing file is fine (this app's own vercel.json is the live config).
+function validateOptionalJSON(filePath) {
+  if (!fs.existsSync(filePath)) {
+    console.log(`- ${path.relative(root, filePath)} (absent, skipped)`);
+    return;
+  }
+  validateJSON(filePath);
+}
+
 validateJSON(path.join(root, 'tsconfig.json'));
-validateJSON(path.join(root, '../../vercel.json'));
+validateOptionalJSON(path.join(root, '../../vercel.json'));
 validateJSON(path.join(root, '../../turbo.json'));
 validateJSON(path.join(root, 'package.json'));
 

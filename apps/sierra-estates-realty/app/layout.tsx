@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://sierra-estates.net'),
   title: 'Sierra Estates - Luxury Real Estate New Cairo',
   description: 'Discover premium properties in New Cairo with Sierra Estates',
 };
