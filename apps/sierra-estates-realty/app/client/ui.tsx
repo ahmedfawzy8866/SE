@@ -64,7 +64,7 @@ export function PropertyCard({ p, index = 0 }: { p: Listing; index?: number }) {
       data-mode={p.mode}
     >
       <div className="photo">
-        <Link href={`/property/${p.id}`}>
+        <Link href={`/?view=property&id=${p.id}`}>
           <img src={p.img} alt={`${p.type} in ${p.cmp}`} loading="lazy" />
         </Link>
         <div className="badges">
@@ -77,7 +77,7 @@ export function PropertyCard({ p, index = 0 }: { p: Listing; index?: number }) {
       </div>
       <div className="body">
         <div className="ptype">{p.code} · {p.type}</div>
-        <h3><Link href={`/property/${p.id}`}>{p.type} in {p.cmp}</Link></h3>
+        <h3><Link href={`/?view=property&id=${p.id}`}>{p.type} in {p.cmp}</Link></h3>
         <div className="addr"><IconMapPin size={15} /> {p.cmp}, {p.zone}</div>
         <div className="specs">
           <div><IconBed size={17} /><b>{p.beds}</b><span>{t('beds')}</span></div>
@@ -137,8 +137,8 @@ export function Nav({ active }: { active?: 'home' | 'props' | 'cpds' }) {
         </Link>
         <div className="menu">
           <Link href="/" className={active === 'home' ? 'active' : ''}>{t('navHome')}</Link>
-          <Link href="/properties" className={active === 'props' ? 'active' : ''}>{t('navProps')}</Link>
-          <Link href="/compounds" className={active === 'cpds' ? 'active' : ''}>{t('navCpds')}</Link>
+          <Link href="/?view=properties" className={active === 'props' ? 'active' : ''}>{t('navProps')}</Link>
+          <Link href="/?view=compounds" className={active === 'cpds' ? 'active' : ''}>{t('navCpds')}</Link>
           <Link href="/#ai">{t('navAI')}</Link>
           <Link href="/#contact">{t('navContact')}</Link>
         </div>
@@ -166,16 +166,16 @@ export function Footer() {
             <div className="news"><input placeholder={t('footNews')} /><button type="button" aria-label="subscribe"><IconArrowRight size={16} /></button></div>
           </div>
           <div className="fcol"><h5>{t('fExplore')}</h5>
-            <Link href="/properties">{t('fBuy')}</Link><Link href="/properties">{t('fRent')}</Link>
-            <Link href="/properties">{t('fNew')}</Link><Link href="/compounds">{t('fCpds')}</Link>
+            <Link href="/?view=properties">{t('fBuy')}</Link><Link href="/?view=properties">{t('fRent')}</Link>
+            <Link href="/?view=properties">{t('fNew')}</Link><Link href="/?view=compounds">{t('fCpds')}</Link>
             <a href={WHATSAPP}>{t('fAgent')}</a></div>
           <div className="fcol"><h5>{t('fCompany')}</h5>
             <a href="/#contact">{t('fAbout')}</a><a href="/#contact">{t('fBrokers')}</a>
             <a href="/#contact">{t('fJournal')}</a><a href="/#contact">{t('fCareers')}</a>
             <a href="/#contact">{t('fContact')}</a></div>
           <div className="fcol"><h5>{t('fDiscover')}</h5>
-            <Link href="/compounds">{t('z1')}</Link><Link href="/compounds">{t('z2')}</Link>
-            <Link href="/compounds">{t('z3')}</Link><Link href="/compounds">{t('z4')}</Link></div>
+            <Link href="/?view=compounds">{t('z1')}</Link><Link href="/?view=compounds">{t('z2')}</Link>
+            <Link href="/?view=compounds">{t('z3')}</Link><Link href="/?view=compounds">{t('z4')}</Link></div>
           <div className="fcol"><h5>{t('fTouch')}</h5>
             <div className="contact-line"><IconMapPin size={18} /><span>{t('fAddr')}</span></div>
             <div className="contact-line"><IconPhone size={18} /><span>{PHONE}</span></div>

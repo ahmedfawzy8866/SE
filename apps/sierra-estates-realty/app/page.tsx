@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import ClientHome from './ClientHome';
+import { Suspense } from 'react';
+import ClientApp from './ClientApp';
 import { SiteConfig } from '@/lib/config';
 
 export const metadata: Metadata = {
@@ -42,7 +43,9 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
       />
-      <ClientHome />
+      <Suspense fallback={null}>
+        <ClientApp />
+      </Suspense>
     </>
   );
 }

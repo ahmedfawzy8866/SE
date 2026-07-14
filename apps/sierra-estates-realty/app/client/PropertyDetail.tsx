@@ -87,7 +87,7 @@ export default function PropertyDetail({ id }: { id: string }) {
       <Nav active="props" />
       <header className="page-hero" style={{ padding: '40px 0 44px' }}>
         <div className="wrap">
-          <div className="crumbs"><Link href="/">{t('crumbHome')}</Link><span className="sep">/</span><Link href="/properties">{t('navProps')}</Link><span className="sep">/</span><span>{p.code}</span></div>
+          <div className="crumbs"><Link href="/">{t('crumbHome')}</Link><span className="sep">/</span><Link href="/?view=properties">{t('navProps')}</Link><span className="sep">/</span><span>{p.code}</span></div>
         </div>
       </header>
 
@@ -158,7 +158,7 @@ export default function PropertyDetail({ id }: { id: string }) {
               <div className="eyebrow">{t('eyeList')}</div>
               <h2>{t('similar')}</h2>
             </div>
-            <Link href="/properties" className="sec-link"><span>{t('viewAll')}</span> <IconArrowRight size={16} /></Link>
+            <Link href="/?view=properties" className="sec-link"><span>{t('viewAll')}</span> <IconArrowRight size={16} /></Link>
           </Reveal>
           <div className="grid-props">
             {similar.map((s, i) => <PropertyCard key={s.id} p={s} index={i} />)}

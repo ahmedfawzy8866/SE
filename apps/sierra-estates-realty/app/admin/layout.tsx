@@ -1,40 +1,37 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db, isFirebaseClientConfigured } from '@/lib/firebase';
+import AdminLogin from './AdminLogin';
 
 /**
- * Auth guard only — no chrome. The portal (AdminPortal.tsx) brings its own
- * sidebar/topbar. Staff-gating matches the previous admin layout and the
- * Firestore rules: users/{uid}.role must be 'admin' or 'manager'.
+ * Auth gate for the single admin page. No chrome — the portal (AdminPortal.tsx)
+ * brings its own sidebar/topbar. Staff-gating matches the Firestore rules:
+ * users/{uid}.role must be 'admin' or 'manager'.
+ *
+ * There is no separate `/admin/login` route: when there is no authenticated
+ * staff session this gate renders <AdminLogin /> inline, and swaps in the
+ * portal once a valid session appears.
  */
+type Status = 'loading' | 'authed' | 'unauthed';
+
 export default function AdminLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const isLoginPage = pathname === '/admin/login';
-  const [isAuth, setIsAuth] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [status, setStatus] = useState<Status>('loading');
 
   useEffect(() => {
     if (!isFirebaseClientConfigured) {
-      // No Firebase config (local dev without .env.local): keep the guard
-      // closed rather than open.
-      if (!isLoginPage) router.replace('/admin/login');
-      setIsLoading(false);
+      // No Firebase config (local dev without .env.local): keep the gate closed.
+      setStatus('unauthed');
       return;
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        setIsAuth(false);
-        // The login page renders without the guard — don't redirect it to itself
-        if (!isLoginPage) router.replace('/admin/login');
-        setIsLoading(false);
+        setStatus('unauthed');
         return;
       }
 
@@ -43,24 +40,22 @@ export default function AdminLayout({
         const role = userDoc.data()?.role;
 
         if (role === 'admin' || role === 'manager') {
-          setIsAuth(true);
+          setStatus('authed');
         } else {
-          router.replace('/admin/login');
+          // Signed in but not staff — drop the session and show the login form.
+          await signOut(auth).catch(() => {});
+          setStatus('unauthed');
         }
       } catch (error) {
         console.error('Error checking admin role:', error);
-        router.replace('/admin/login');
-      } finally {
-        setIsLoading(false);
+        setStatus('unauthed');
       }
     });
 
     return () => unsubscribe();
-  }, [router, isLoginPage]);
+  }, []);
 
-  if (isLoginPage) return <>{children}</>;
-
-  if (isLoading) {
+  if (status === 'loading') {
     return (
       <div
         style={{
@@ -80,7 +75,7 @@ export default function AdminLayout({
     );
   }
 
-  if (!isAuth) return null;
+  if (status === 'unauthed') return <AdminLogin />;
 
   return <>{children}</>;
 }
