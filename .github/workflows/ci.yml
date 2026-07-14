@@ -8,14 +8,13 @@ on:
 
 jobs:
   build-and-test:
-    name: Type-check + Lint + Build
+    name: Root app · Type-check + Lint + Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      # pnpm version comes from the root package.json "packageManager" field
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - uses: actions/setup-node@v4
         with:
@@ -31,12 +30,55 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Test
+        run: pnpm test:ci
+
       - name: Build
         run: pnpm build
         env:
           # Placeholder Firebase config so the build doesn't crash on
           # getFirestore() during static generation. Real values are set
           # as Vercel env vars in production.
+          NEXT_PUBLIC_FIREBASE_API_KEY: dummy
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: dummy.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: dummy
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: dummy.appspot.com
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '000000000000'
+          NEXT_PUBLIC_FIREBASE_APP_ID: '1:000000000000:web:dummy'
+
+  # Gates the app that actually deploys to production (deploy-vercel.yml →
+  # apps/sierra-estates-realty) plus the workspace packages it consumes.
+  monorepo:
+    name: Realty app + packages · Type-check + Lint + Test + Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install deps (workspace)
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check workspace packages
+        run: pnpm --filter "./packages/*" run type-check
+
+      - name: Type-check realty app
+        run: pnpm --filter sierra-estates-realty type-check
+
+      - name: Lint realty app
+        run: pnpm --filter sierra-estates-realty lint
+
+      - name: Test realty app
+        run: pnpm --filter sierra-estates-realty test:ci
+
+      - name: Build realty app
+        run: pnpm --filter sierra-estates-realty build
+        env:
           NEXT_PUBLIC_FIREBASE_API_KEY: dummy
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: dummy.firebaseapp.com
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: dummy

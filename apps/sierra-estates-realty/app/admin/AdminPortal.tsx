@@ -10,6 +10,56 @@
  * Styling lives in ./admin-portal.css (extracted from the same bundle).
  */
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import {
+  Bot, Zap, Settings, AlertCircle, CheckCircle2, Clock,
+  Plus, Search, Trash2, Phone, Eye, X, Check,
+  Building2, MapPin, BedDouble, Loader2,
+  MessageCircle, Send, User, Headphones, Tag,
+  AlertTriangle, RefreshCw, Database, ShieldCheck, HardDrive,
+} from 'lucide-react';
+import {
+  subscribeAllExchange,
+  subscribeAgentTasks,
+  subscribeWorkflowRuns,
+  sendAdminSignal,
+} from '@sierra-estates/exchange';
+import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+import { db, auth } from '@/lib/firebase';
+import {
+  FunnelChart, Funnel, Tooltip as RechartsTooltip, LabelList,
+  ResponsiveContainer, Cell as RechartsCell, Treemap,
+} from 'recharts';
+import type { Agent as SEAgentType } from '@sierra-estates/types';
+import DBEditorPage from './pages/DBEditorPage';
+import PageEditorPage from './pages/PageEditorPage';
+import BotsControlPage from './pages/BotsControlPage';
+import FollowupsPage from './pages/FollowupsPage';
+import EasyListingPage from './pages/EasyListingPage';
+import SearchInsightsPage from './pages/SearchInsightsPage';
+import {
+  fetchListings as adminFetchListings,
+  createListingWithOwner as adminCreateListingWithOwner,
+  updateListing as adminUpdateListing,
+  deleteListingAndOwner as adminDeleteListingAndOwner,
+  fetchOwnerByListingId as adminFetchOwnerByListingId,
+  fetchRequests as adminFetchRequests,
+  fetchRequestById as adminFetchRequestById,
+  escalateToAgent as adminEscalateToAgent,
+  closeRequest as adminCloseRequest,
+  appendChatMessage as adminAppendChatMessage,
+  type Listing as AdminListing,
+  type ListingInput as AdminListingInput,
+  type Owner as AdminOwner,
+  type ListingStatus as AdminListingStatus,
+  type PropertyType as AdminPropertyType,
+  type FinishingLevel as AdminFinishingLevel,
+  type DeliveryStatus as AdminDeliveryStatus,
+  type ListingMode as AdminListingMode,
+  type Request as AdminRequest,
+  type RequestStatus as AdminRequestStatus,
+  type ChatMessage as AdminChatMessage,
+} from '@sierra-estates/admin-data';
 import './admin-portal.css';
 
 
@@ -136,10 +186,25 @@ const NAV_ITEMS = (T) => [
   {id:'automations',label:T('lang')==='ar'?'الأتمتة':'Automations',icon:'🪄',section:T('main'),badge:'3',badgeCls:'nb-green'},
   {id:'openclaw',label:T('openclaw'),icon:'⚙️',section:T('main')},
   {id:'nexus',label:T('nexus'),icon:'📡',section:T('main'),badge:'LIVE',badgeCls:'nb-green'},
+  {id:'nexus-exchange',label:T('lang')==='ar'?'مركز التبادل':'Exchange Hub',icon:'🔀',section:T('main'),badge:'LIVE',badgeCls:'nb-green'},
   {id:'leads',label:T('leads'),icon:'👥',section:T('operations'),badge:'23',badgeCls:'nb-red'},
   {id:'pipeline',label:T('lang')==='ar'?'الصفقات':'Pipeline',icon:'💼',section:T('operations')},
   {id:'tasks',label:T('lang')==='ar'?'المهام':'Tasks',icon:'✅',section:T('operations'),badge:'5',badgeCls:'nb-blue'},
   {id:'listings',label:T('listings'),icon:'🏘️',section:T('operations')},
+  {id:'listings-manager',label:T('lang')==='ar'?'إدارة الوحدات':'Listings Manager',icon:'📝',section:T('operations')},
+  {id:'requests',label:T('lang')==='ar'?'الطلبات':'Requests',icon:'🎫',section:T('operations')},
+  {id:'leads-funnel',label:T('lang')==='ar'?'قمع المبيعات':'Leads Funnel',icon:'📉',section:T('analytics')},
+  {id:'data-sync',label:T('lang')==='ar'?'مزامنة البيانات':'Data Sync',icon:'🔄',section:T('system')},
+  {id:'agent-leaderboard',label:T('lang')==='ar'?'ترتيب الوكلاء':'Agent Leaderboard',icon:'🏆',section:T('analytics')},
+  {id:'price-heatmap',label:T('lang')==='ar'?'خريطة الأسعار':'Price Heatmap',icon:'🗺️',section:T('analytics')},
+  {id:'automation-tools',label:T('lang')==='ar'?'أدوات الأتمتة':'Automation Tools',icon:'🧰',section:T('system')},
+  {id:'system-health',label:T('lang')==='ar'?'صحة النظام':'System Health',icon:'💚',section:T('system')},
+  {id:'bots-control',label:T('lang')==='ar'?'التحكم بالبوتات':'Bots Control',icon:'🕹️',section:T('main')},
+  {id:'followups',label:T('lang')==='ar'?'المتابعات':'Follow-ups',icon:'🔔',section:T('operations')},
+  {id:'page-editor',label:T('lang')==='ar'?'محرر الصفحات':'Page Editor',icon:'📄',section:T('system')},
+  {id:'db-editor',label:T('lang')==='ar'?'محرر قاعدة البيانات':'DB Editor',icon:'🗄️',section:T('system')},
+  {id:'easy-listing',label:T('lang')==='ar'?'إدراج سريع':'Easy Listing',icon:'📤',section:T('operations')},
+  {id:'search-insights',label:T('lang')==='ar'?'تحليلات البحث':'Search Insights',icon:'🔍',section:T('analytics')},
   {id:'curator',label:T('curator'),icon:'🎨',section:T('operations')},
   {id:'scribe',label:T('scribe'),icon:'✍️',section:T('operations')},
   {id:'closer',label:T('closer'),icon:'💼',section:T('operations')},
@@ -855,6 +920,1711 @@ function NexusAIPage({ T }) {
   );
 }
 
+/* ── NEXUS EXCHANGE HUB ───────────────────────────────────────────────── */
+/* Ported from SE's apps/admin Vite SPA (NexusExchangePage.tsx); data layer
+   is the shared @sierra-estates/exchange package (Firestore /exchange
+   collection — the message bus between Admin UI, agents, and workflows). */
+function NexusExchangeStatusBadge({ status }) {
+  const colors = {
+    pending: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
+    running: 'bg-blue-500/10 text-blue-500 border-blue-500/20 animate-pulse',
+    done: 'bg-green-500/10 text-green-500 border-green-500/20',
+    error: 'bg-red-500/10 text-red-500 border-red-500/20',
+    cancelled: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+  };
+  return (
+    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono border uppercase tracking-widest ${colors[status] ?? colors.pending}`}>
+      {status}
+    </span>
+  );
+}
+
+function NexusExchangeTypeBadge({ type }) {
+  const icons = {
+    agent_task: <Bot className="w-3 h-3 text-blue-400" />,
+    workflow_run: <Zap className="w-3 h-3 text-[#C9A24D]" />,
+    admin_signal: <Settings className="w-3 h-3 text-slate-400" />,
+    crm_event: <CheckCircle2 className="w-3 h-3 text-green-400" />,
+    error: <AlertCircle className="w-3 h-3 text-red-400" />,
+  };
+  return (
+    <span className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-mono">
+      {icons[type] ?? <Clock className="w-3 h-3 text-slate-500" />}
+      {type.replace('_', ' ')}
+    </span>
+  );
+}
+
+function NexusExchangeProgressBar({ progress, stepName }) {
+  if (progress === undefined) return null;
+  return (
+    <div className="mt-2">
+      <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-mono uppercase tracking-widest">
+        <span>{stepName ?? 'Processing…'}</span>
+        <span>{progress}%</span>
+      </div>
+      <div className="h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-gradient-to-r from-[#C9A24D] to-[#E5C66A] rounded-full transition-all duration-500"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function NexusExchangeRow({ record }) {
+  const [expanded, setExpanded] = useState(false);
+  const ts = record.createdAt?.toDate?.()?.toLocaleTimeString() ?? '—';
+
+  return (
+    <div
+      className="border border-slate-200 dark:border-slate-800/60 rounded-xl p-4 bg-white dark:bg-slate-900/40 hover:border-[#C9A24D]/40 transition-colors cursor-pointer group"
+      onClick={() => setExpanded(!expanded)}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <NexusExchangeTypeBadge type={record.type} />
+          <div className="w-px h-3 bg-slate-300 dark:bg-slate-700" />
+          <span className="text-slate-400 dark:text-slate-500 text-xs font-mono truncate">#{record.id.slice(0, 8)}</span>
+        </div>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <span className="text-slate-400 dark:text-slate-500 text-[10px] font-mono">{ts}</span>
+          <NexusExchangeStatusBadge status={record.status} />
+        </div>
+      </div>
+
+      <NexusExchangeProgressBar progress={record.progress} stepName={record.stepName} />
+
+      {expanded && (
+        <div className="mt-4 p-3 bg-slate-50 dark:bg-black/40 rounded-lg text-xs font-mono text-slate-600 dark:text-slate-400 overflow-auto max-h-40 border border-slate-200 dark:border-white/5">
+          <pre>{JSON.stringify({ payload: record.payload, result: record.result, error: record.error }, null, 2)}</pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NexusExchangePage({ T }) {
+  const isAr = T('lang') === 'ar';
+  const [tab, setTab] = useState('all');
+  const [allRecords, setAllRecords] = useState([]);
+  const [agentRecords, setAgentRecords] = useState([]);
+  const [workflowRecords, setWorkflowRecords] = useState([]);
+
+  const [signalPayload, setSignalPayload] = useState('');
+  const [agentId, setAgentId] = useState('');
+  const [sending, setSending] = useState(false);
+  const [lastSignalId, setLastSignalId] = useState(null);
+
+  useEffect(() => {
+    const unsub1 = subscribeAllExchange(setAllRecords);
+    const unsub2 = subscribeAgentTasks(setAgentRecords);
+    const unsub3 = subscribeWorkflowRuns(setWorkflowRecords);
+    return () => { unsub1(); unsub2(); unsub3(); };
+  }, []);
+
+  const visibleRecords =
+    tab === 'agents' ? agentRecords :
+    tab === 'workflows' ? workflowRecords :
+    tab === 'signals' ? allRecords.filter(r => r.type === 'admin_signal') :
+    allRecords;
+
+  const stats = {
+    total: allRecords.length,
+    running: allRecords.filter(r => r.status === 'running').length,
+    done: allRecords.filter(r => r.status === 'done').length,
+    error: allRecords.filter(r => r.status === 'error').length,
+  };
+
+  const handleSendSignal = useCallback(async () => {
+    if (!signalPayload.trim()) return;
+    setSending(true);
+    try {
+      const id = await sendAdminSignal({
+        action: signalPayload.trim(),
+        targetAgentId: agentId.trim() || undefined,
+      });
+      setLastSignalId(id);
+      setSignalPayload('');
+      setAgentId('');
+      setTimeout(() => setLastSignalId(null), 5000);
+    } catch (err) {
+      console.error('[Nexus] Failed to send signal:', err);
+    } finally {
+      setSending(false);
+    }
+  }, [signalPayload, agentId]);
+
+  return (
+    <div className="space-y-6" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: isAr ? 'الإجمالي' : 'Total', value: stats.total, color: 'text-slate-800 dark:text-white' },
+          { label: isAr ? 'قيد التشغيل' : 'Running', value: stats.running, color: 'text-blue-500' },
+          { label: isAr ? 'مكتمل' : 'Done', value: stats.done, color: 'text-green-500' },
+          { label: isAr ? 'أخطاء' : 'Errors', value: stats.error, color: 'text-red-500' },
+        ].map(({ label, value, color }) => (
+          <div key={label} className="bg-white dark:bg-[#0A1628] border border-slate-200 dark:border-slate-800/80 rounded-xl p-5 shadow-sm">
+            <div className={`text-3xl font-playfair tracking-tight ${color}`}>{value}</div>
+            <div className="text-slate-500 dark:text-slate-400 text-[10px] font-mono uppercase tracking-widest mt-2">{label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white dark:bg-[#0A1628] border border-slate-200 dark:border-[#C9A24D]/30 rounded-xl p-6 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#C9A24D] to-[#E5C66A]" />
+        <h2 className="text-[11px] font-mono font-bold text-[#C9A24D] uppercase tracking-widest mb-4">
+          {isAr ? 'إرسال إشارة للوكلاء' : 'Dispatch Admin Signal'}
+        </h2>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input
+            type="text"
+            value={agentId}
+            onChange={e => setAgentId(e.target.value)}
+            placeholder={isAr ? 'معرف الوكيل (اختياري)' : 'Target Agent ID (optional)'}
+            className="bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2.5 text-sm text-slate-800 dark:text-white w-full sm:w-56 focus:outline-none focus:border-[#C9A24D]/50 focus:ring-1 focus:ring-[#C9A24D]/50 transition-all font-mono"
+          />
+          <input
+            type="text"
+            value={signalPayload}
+            onChange={e => setSignalPayload(e.target.value)}
+            placeholder={isAr ? 'الإجراء (مثال: start_closer)' : 'Action payload (e.g. start_closer)'}
+            className="flex-1 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-[#C9A24D]/50 focus:ring-1 focus:ring-[#C9A24D]/50 transition-all font-mono"
+            onKeyDown={e => e.key === 'Enter' && handleSendSignal()}
+          />
+          <button
+            onClick={handleSendSignal}
+            disabled={sending || !signalPayload.trim()}
+            className="px-6 py-2.5 bg-[#C9A24D] text-[#05080f] font-bold text-sm rounded-lg hover:bg-[#B8973B] disabled:opacity-40 transition-colors shadow-md"
+          >
+            {sending ? '…' : (isAr ? 'إرسال' : 'Dispatch')}
+          </button>
+        </div>
+        {lastSignalId && (
+          <p className="text-green-500 text-[10px] mt-3 font-mono tracking-wide">
+            ✅ {isAr ? 'تم الإرسال بنجاح' : 'Signal dispatched'} — ID: {lastSignalId}
+          </p>
+        )}
+      </div>
+
+      <div className="flex gap-2 mb-4">
+        {[
+          { id: 'all', label: 'All Records', labelAr: 'الكل' },
+          { id: 'agents', label: 'Agents', labelAr: 'الوكلاء' },
+          { id: 'workflows', label: 'Workflows', labelAr: 'سير العمل' },
+          { id: 'signals', label: 'Signals', labelAr: 'الإشارات' },
+        ].map(({ id, label, labelAr }) => (
+          <button
+            key={id}
+            onClick={() => setTab(id)}
+            className={`px-4 py-2 rounded-full text-xs font-mono uppercase tracking-widest transition-colors ${
+              tab === id
+                ? 'bg-slate-800 dark:bg-white text-white dark:text-[#05080f] shadow-sm'
+                : 'text-slate-500 hover:text-slate-800 dark:hover:text-white bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800'
+            }`}
+          >
+            {isAr ? labelAr : label}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        {visibleRecords.length === 0 ? (
+          <div className="text-center py-20 bg-white/50 dark:bg-slate-900/20 border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl">
+            <div className="text-slate-400 mb-3"><Bot className="w-8 h-8 mx-auto opacity-50" /></div>
+            <div className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              {isAr ? 'لا توجد سجلات بعد' : 'No exchange records found'}
+            </div>
+            <div className="text-[10px] font-mono mt-2 text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+              {isAr ? 'في انتظار الإشارات' : 'Awaiting telemetry...'}
+            </div>
+          </div>
+        ) : (
+          visibleRecords.map(record => (
+            <NexusExchangeRow key={record.id} record={record} />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── LISTINGS MANAGER (ported from SE's Vite admin) ──────────────────────
+   Full CRUD over the listings/owners collections (@sierra-estates/admin-data)
+   — atomic create/delete with owner PII, separate from the read-only
+   Listings Hub tab above which reads the client-facing units/properties
+   collections. Two different data models on purpose (see report). */
+const LISTING_STATUS_COLORS: Record<string, string> = {
+  draft: 'bg-gray-100 text-gray-700 border-gray-300',
+  active: 'bg-green-100 text-green-700 border-green-300',
+  sold: 'bg-blue-100 text-blue-700 border-blue-300',
+};
+const LISTING_PROPERTY_TYPES: AdminPropertyType[] = [
+  'apartment', 'villa', 'townhouse', 'twin_house', 'penthouse', 'duplex', 'studio',
+];
+const LISTING_FINISHING_LEVELS: AdminFinishingLevel[] = [
+  'core_shell', 'semi', 'fully_finished', 'ultra_lux',
+];
+const LISTING_DELIVERY_STATUSES: AdminDeliveryStatus[] = [
+  'ready', 'under_construction', 'off_plan',
+];
+
+function ListingsManagerPage() {
+  const [listings, setListings] = useState<AdminListing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<AdminListingStatus | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [ownerCache, setOwnerCache] = useState<Record<string, AdminOwner | null>>({});
+  const [revealedOwners, setRevealedOwners] = useState<Set<string>>(new Set());
+
+  const loadListings = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await adminFetchListings({
+        status: filterStatus === 'all' ? undefined : filterStatus,
+        limitCount: 200,
+      });
+      setListings(data);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load listings');
+    } finally {
+      setLoading(false);
+    }
+  }, [filterStatus]);
+
+  useEffect(() => { loadListings(); }, [loadListings]);
+
+  const handleRevealOwner = async (listingId: string) => {
+    if (revealedOwners.has(listingId)) {
+      setRevealedOwners(prev => {
+        const next = new Set(prev);
+        next.delete(listingId);
+        return next;
+      });
+      return;
+    }
+    if (!ownerCache[listingId]) {
+      try {
+        const owner = await adminFetchOwnerByListingId(listingId);
+        setOwnerCache(prev => ({ ...prev, [listingId]: owner }));
+      } catch (err) {
+        console.error('Failed to fetch owner:', err);
+      }
+    }
+    setRevealedOwners(prev => new Set(prev).add(listingId));
+  };
+
+  const handleStatusChange = async (id: string, status: AdminListingStatus) => {
+    try {
+      await adminUpdateListing(id, { status });
+      setListings(prev => prev.map(l => l.id === id ? { ...l, status } : l));
+    } catch (err: any) {
+      setError(`Failed to update status: ${err.message}`);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this listing AND its owner record? This cannot be undone.')) return;
+    try {
+      await adminDeleteListingAndOwner(id);
+      setListings(prev => prev.filter(l => l.id !== id));
+    } catch (err: any) {
+      setError(`Failed to delete: ${err.message}`);
+    }
+  };
+
+  const filtered = listings.filter(l => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return l.compound_name.toLowerCase().includes(q) ||
+           l.location_sector.toLowerCase().includes(q) ||
+           l.property_type.toLowerCase().includes(q);
+  });
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Listings Manager</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {filtered.length} listing{filtered.length !== 1 ? 's' : ''} ·
+            Atomic create/delete with owner PII
+          </p>
+        </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm"
+        >
+          <Plus size={18} /> New Listing
+        </button>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-700">
+          <AlertCircle size={16} /> {error}
+          <button onClick={() => setError(null)} className="ml-auto"><X size={14} /></button>
+        </div>
+      )}
+
+      <div className="flex gap-3 mb-4">
+        <div className="flex-1 relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by compound, sector, or type..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <select
+          value={filterStatus}
+          onChange={e => setFilterStatus(e.target.value as any)}
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+        >
+          <option value="all">All Status</option>
+          <option value="draft">Draft</option>
+          <option value="active">Active</option>
+          <option value="sold">Sold</option>
+        </select>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-12 text-gray-400">
+          <Loader2 className="animate-spin mr-2" size={20} /> Loading listings...
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          <Building2 size={40} className="mx-auto mb-3 opacity-50" />
+          <p>No listings found. Create one to get started.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto bg-white rounded-xl border border-gray-200">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-600 text-xs uppercase">
+              <tr>
+                <th className="text-left px-4 py-3 font-semibold">Compound</th>
+                <th className="text-left px-4 py-3 font-semibold">Type</th>
+                <th className="text-left px-4 py-3 font-semibold">Beds</th>
+                <th className="text-left px-4 py-3 font-semibold">Area</th>
+                <th className="text-left px-4 py-3 font-semibold">Price (EGP)</th>
+                <th className="text-left px-4 py-3 font-semibold">Mode</th>
+                <th className="text-left px-4 py-3 font-semibold">Status</th>
+                <th className="text-left px-4 py-3 font-semibold">Owner</th>
+                <th className="text-right px-4 py-3 font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filtered.map(listing => (
+                <tr key={listing.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-gray-900">{listing.compound_name}</div>
+                    <div className="text-xs text-gray-500 flex items-center gap-1">
+                      <MapPin size={10} /> {listing.location_sector}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 capitalize">{listing.property_type.replace('_', ' ')}</td>
+                  <td className="px-4 py-3">{listing.bedrooms}</td>
+                  <td className="px-4 py-3">{listing.area_sqm} m²</td>
+                  <td className="px-4 py-3 font-mono font-medium">
+                    {listing.price_egp.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                      listing.mode === 'sale' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'
+                    }`}>
+                      {listing.mode}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
+                      value={listing.status}
+                      onChange={e => handleStatusChange(listing.id, e.target.value as AdminListingStatus)}
+                      className={`px-2 py-1 rounded border text-xs font-medium cursor-pointer ${LISTING_STATUS_COLORS[listing.status]}`}
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="active">Active</option>
+                      <option value="sold">Sold</option>
+                    </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    {revealedOwners.has(listing.id) ? (
+                      ownerCache[listing.id] ? (
+                        <div className="text-xs">
+                          <div className="font-medium text-gray-900">{ownerCache[listing.id]!.owner_name}</div>
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <Phone size={10} /> {ownerCache[listing.id]!.phone_number}
+                          </div>
+                          <div className="text-gray-400">{ownerCache[listing.id]!.source_type}</div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">No owner</span>
+                      )
+                    ) : (
+                      <button
+                        onClick={() => handleRevealOwner(listing.id)}
+                        className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                      >
+                        <Eye size={12} /> Reveal
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => handleDelete(listing.id)}
+                      className="text-red-500 hover:text-red-700 p-1"
+                      title="Delete listing + owner"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {showCreateModal && (
+        <CreateListingModal
+          onClose={() => setShowCreateModal(false)}
+          onCreated={() => {
+            setShowCreateModal(false);
+            loadListings();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function CreateListingModal({ onClose, onCreated }: {
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [compoundName, setCompoundName] = useState('');
+  const [locationSector, setLocationSector] = useState('');
+  const [propertyType, setPropertyType] = useState<AdminPropertyType>('apartment');
+  const [bedrooms, setBedrooms] = useState(3);
+  const [bathrooms, setBathrooms] = useState(2);
+  const [areaSqm, setAreaSqm] = useState(180);
+  const [priceEgp, setPriceEgp] = useState(10000000);
+  const [mode, setMode] = useState<AdminListingMode>('sale');
+  const [finishing, setFinishing] = useState<AdminFinishingLevel>('fully_finished');
+  const [deliveryStatus, setDeliveryStatus] = useState<AdminDeliveryStatus>('ready');
+  const [paymentPlan, setPaymentPlan] = useState('');
+  const [virtualTourUrl, setVirtualTourUrl] = useState('');
+  const [status, setStatus] = useState<AdminListingStatus>('draft');
+
+  const [ownerName, setOwnerName] = useState('');
+  const [ownerPhone, setOwnerPhone] = useState('');
+  const [ownerEmail, setOwnerEmail] = useState('');
+  const [sourceType, setSourceType] = useState<'direct' | 'broker'>('direct');
+  const [brokerName, setBrokerName] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!compoundName.trim() || !ownerName.trim() || !ownerPhone.trim()) {
+      setError('Compound name, owner name, and owner phone are required.');
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const listingInput: AdminListingInput = {
+        status,
+        property_type: propertyType,
+        compound_name: compoundName.trim(),
+        location_sector: locationSector.trim(),
+        price_egp: Number(priceEgp),
+        area_sqm: Number(areaSqm),
+        bedrooms: Number(bedrooms),
+        bathrooms: Number(bathrooms),
+        finishing,
+        mode,
+        delivery_status: deliveryStatus,
+        payment_plan: paymentPlan.trim() || undefined,
+        virtual_tour_url: virtualTourUrl.trim() || undefined,
+      };
+      const ownerInput = {
+        owner_name: ownerName.trim(),
+        phone_number: ownerPhone.trim(),
+        email: ownerEmail.trim() || undefined,
+        source_type: sourceType,
+        broker_name: sourceType === 'broker' ? brokerName.trim() : undefined,
+      };
+
+      await adminCreateListingWithOwner({ listing: listingInput, owner: ownerInput });
+      onCreated();
+    } catch (err: any) {
+      setError(err.message || 'Failed to create listing');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold">Create Listing + Owner</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-700">
+              <AlertCircle size={16} /> {error}
+            </div>
+          )}
+
+          <div>
+            <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+              <Building2 size={16} /> Listing Details (Public)
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              <ListingField label="Compound Name" required>
+                <input type="text" value={compoundName} onChange={e => setCompoundName(e.target.value)}
+                  className="input" placeholder="e.g. Mivida" required />
+              </ListingField>
+              <ListingField label="Location Sector">
+                <input type="text" value={locationSector} onChange={e => setLocationSector(e.target.value)}
+                  className="input" placeholder="e.g. 5th Settlement" />
+              </ListingField>
+              <ListingField label="Property Type">
+                <select value={propertyType} onChange={e => setPropertyType(e.target.value as AdminPropertyType)} className="input">
+                  {LISTING_PROPERTY_TYPES.map(t => <option key={t} value={t}>{t.replace('_', ' ')}</option>)}
+                </select>
+              </ListingField>
+              <ListingField label="Mode">
+                <select value={mode} onChange={e => setMode(e.target.value as AdminListingMode)} className="input">
+                  <option value="sale">Sale</option>
+                  <option value="rent">Rent</option>
+                </select>
+              </ListingField>
+              <ListingField label="Bedrooms">
+                <input type="number" min="0" max="10" value={bedrooms} onChange={e => setBedrooms(+e.target.value)} className="input" />
+              </ListingField>
+              <ListingField label="Bathrooms">
+                <input type="number" min="0" max="10" value={bathrooms} onChange={e => setBathrooms(+e.target.value)} className="input" />
+              </ListingField>
+              <ListingField label="Area (m²)">
+                <input type="number" min="0" value={areaSqm} onChange={e => setAreaSqm(+e.target.value)} className="input" />
+              </ListingField>
+              <ListingField label="Price (EGP)">
+                <input type="number" min="0" value={priceEgp} onChange={e => setPriceEgp(+e.target.value)} className="input" />
+              </ListingField>
+              <ListingField label="Finishing">
+                <select value={finishing} onChange={e => setFinishing(e.target.value as AdminFinishingLevel)} className="input">
+                  {LISTING_FINISHING_LEVELS.map(f => <option key={f} value={f}>{f.replace('_', ' ')}</option>)}
+                </select>
+              </ListingField>
+              <ListingField label="Delivery">
+                <select value={deliveryStatus} onChange={e => setDeliveryStatus(e.target.value as AdminDeliveryStatus)} className="input">
+                  {LISTING_DELIVERY_STATUSES.map(d => <option key={d} value={d}>{d.replace('_', ' ')}</option>)}
+                </select>
+              </ListingField>
+              <ListingField label="Status">
+                <select value={status} onChange={e => setStatus(e.target.value as AdminListingStatus)} className="input">
+                  <option value="draft">Draft</option>
+                  <option value="active">Active (public)</option>
+                  <option value="sold">Sold</option>
+                </select>
+              </ListingField>
+              <ListingField label="Payment Plan (optional)">
+                <input type="text" value={paymentPlan} onChange={e => setPaymentPlan(e.target.value)}
+                  className="input" placeholder="e.g. 10% down, 5 years" />
+              </ListingField>
+              <div className="col-span-2">
+                <ListingField label="Virtual Tour URL (optional)">
+                  <input type="url" value={virtualTourUrl} onChange={e => setVirtualTourUrl(e.target.value)}
+                    className="input" placeholder="https://listing3d.com/..." />
+                </ListingField>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+              <Phone size={16} /> Owner Details (Private PII — admin only)
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              <ListingField label="Owner Name" required>
+                <input type="text" value={ownerName} onChange={e => setOwnerName(e.target.value)}
+                  className="input" placeholder="Full name" required />
+              </ListingField>
+              <ListingField label="Phone Number" required>
+                <input type="tel" value={ownerPhone} onChange={e => setOwnerPhone(e.target.value)}
+                  className="input" placeholder="+20XXXXXXXXXX" required dir="ltr" />
+              </ListingField>
+              <ListingField label="Email (optional)">
+                <input type="email" value={ownerEmail} onChange={e => setOwnerEmail(e.target.value)}
+                  className="input" placeholder="owner@example.com" dir="ltr" />
+              </ListingField>
+              <ListingField label="Source">
+                <select value={sourceType} onChange={e => setSourceType(e.target.value as 'direct' | 'broker')} className="input">
+                  <option value="direct">Direct Owner</option>
+                  <option value="broker">Broker</option>
+                </select>
+              </ListingField>
+              {sourceType === 'broker' && (
+                <div className="col-span-2">
+                  <ListingField label="Broker Name">
+                    <input type="text" value={brokerName} onChange={e => setBrokerName(e.target.value)}
+                      className="input" placeholder="Broker / agency name" />
+                  </ListingField>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2 border-t">
+            <button type="button" onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+              Cancel
+            </button>
+            <button type="submit" disabled={saving}
+              className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium">
+              {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+              {saving ? 'Creating...' : 'Create Listing + Owner'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ListingField({ label, required, children }: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="text-xs font-medium text-gray-600 mb-1 block">
+        {label} {required && <span className="text-red-500">*</span>}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+/* ── REQUESTS / TICKETS (ported from SE's Vite admin) ────────────────────
+   Workflow ticket view over the requests/clients collections
+   (@sierra-estates/admin-data): bot→agent handoff, chat history, close. */
+const REQUEST_STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
+  bot_handling: { label: 'Bot Handling', color: 'bg-yellow-100 text-yellow-700 border-yellow-300', icon: Bot },
+  ready_for_agent: { label: 'Ready for Agent', color: 'bg-blue-100 text-blue-700 border-blue-300', icon: Headphones },
+  closed: { label: 'Closed', color: 'bg-gray-100 text-gray-600 border-gray-300', icon: CheckCircle2 },
+};
+
+function RequestsTicketPage() {
+  const [requests, setRequests] = useState<AdminRequest[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<AdminRequest | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<AdminRequestStatus | 'open'>('open');
+
+  const loadRequests = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await adminFetchRequests({
+        status: filterStatus === 'open' ? undefined : filterStatus,
+        limitCount: 50,
+      });
+      const filteredData = filterStatus === 'open'
+        ? data.filter(r => r.status === 'bot_handling' || r.status === 'ready_for_agent')
+        : data;
+      setRequests(filteredData);
+      if (filteredData.length > 0 && !selectedId) {
+        setSelectedId(filteredData[0].id);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to load requests');
+    } finally {
+      setLoading(false);
+    }
+  }, [filterStatus, selectedId]);
+
+  useEffect(() => { loadRequests(); }, [loadRequests]);
+
+  useEffect(() => {
+    if (!selectedId) {
+      setSelectedRequest(null);
+      return;
+    }
+    adminFetchRequestById(selectedId).then(req => {
+      setSelectedRequest(req);
+    }).catch(err => setError(err.message));
+  }, [selectedId]);
+
+  return (
+    <div className="flex h-[calc(100vh-2rem)] bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
+      <div className="w-96 border-r border-gray-200 bg-white flex flex-col">
+        <div className="p-4 border-b">
+          <h1 className="text-lg font-bold text-gray-900 mb-3">Requests</h1>
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+            {(['open', 'bot_handling', 'ready_for_agent', 'closed'] as const).map(s => (
+              <button
+                key={s}
+                onClick={() => setFilterStatus(s)}
+                className={`flex-1 px-2 py-1 rounded text-xs font-medium transition ${
+                  filterStatus === s ? 'bg-white shadow text-gray-900' : 'text-gray-500'
+                }`}
+              >
+                {s === 'open' ? 'Open' : REQUEST_STATUS_CONFIG[s].label.split(' ')[0]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-8 text-gray-400">
+              <Loader2 className="animate-spin mr-2" size={18} /> Loading...
+            </div>
+          ) : requests.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 text-sm">
+              <MessageCircle size={32} className="mx-auto mb-2 opacity-50" />
+              No requests
+            </div>
+          ) : (
+            requests.map(req => {
+              const cfg = REQUEST_STATUS_CONFIG[req.status];
+              const Icon = cfg.icon;
+              const lastMsg = req.bot_chat_history[req.bot_chat_history.length - 1];
+              return (
+                <button
+                  key={req.id}
+                  onClick={() => setSelectedId(req.id)}
+                  className={`w-full text-left p-3 border-b hover:bg-gray-50 transition ${
+                    selectedId === req.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon size={14} className={cfg.color.split(' ')[1]} />
+                    <span className="text-xs font-medium text-gray-500">{cfg.label}</span>
+                    <span className="text-xs text-gray-400 ml-auto">{req.matched_listings.length} matches</span>
+                  </div>
+                  <div className="text-sm font-medium text-gray-900 truncate">
+                    {req.client_id.substring(0, 8)}...
+                  </div>
+                  {lastMsg && (
+                    <div className="text-xs text-gray-500 truncate mt-0.5">{lastMsg.text}</div>
+                  )}
+                </button>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col">
+        {error && (
+          <div className="p-3 bg-red-50 border-b border-red-200 flex items-center gap-2 text-sm text-red-700">
+            <AlertCircle size={16} /> {error}
+            <button onClick={() => setError(null)} className="ml-auto"><X size={14} /></button>
+          </div>
+        )}
+        {!selectedRequest ? (
+          <div className="flex-1 flex items-center justify-center text-gray-400">
+            <div className="text-center">
+              <MessageCircle size={48} className="mx-auto mb-3 opacity-40" />
+              <p>Select a request to view conversation</p>
+            </div>
+          </div>
+        ) : (
+          <RequestTicketDetail
+            request={selectedRequest}
+            onUpdate={() => {
+              adminFetchRequestById(selectedRequest.id).then(setSelectedRequest);
+              loadRequests();
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RequestTicketDetail({ request, onUpdate }: {
+  request: AdminRequest;
+  onUpdate: () => void;
+}) {
+  const [agentReply, setAgentReply] = useState('');
+  const [sending, setSending] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [request.bot_chat_history.length]);
+
+  const cfg = REQUEST_STATUS_CONFIG[request.status];
+  const StatusIcon = cfg.icon;
+
+  const handleSendReply = async () => {
+    if (!agentReply.trim()) return;
+    setSending(true);
+    try {
+      const message: AdminChatMessage = {
+        sender: 'agent',
+        text: agentReply.trim(),
+        timestamp: new Date().toISOString(),
+      };
+      await adminAppendChatMessage(request.id, message);
+      setAgentReply('');
+      onUpdate();
+    } catch (err: any) {
+      console.error('Failed to send reply:', err);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleEscalate = async () => {
+    setActionLoading(true);
+    try {
+      // TODO: replace with the real agent uid from the admin auth context.
+      await adminEscalateToAgent(request.id, 'current-agent-uid');
+      onUpdate();
+    } catch (err: any) {
+      console.error('Escalate failed:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleClose = async () => {
+    if (!confirm('Close this request?')) return;
+    setActionLoading(true);
+    try {
+      await adminCloseRequest(request.id);
+      onUpdate();
+    } catch (err: any) {
+      console.error('Close failed:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex-1 flex flex-col">
+      <div className="px-6 py-4 bg-white border-b flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <StatusIcon size={16} className={cfg.color.split(' ')[1]} />
+            <span className={`px-2 py-0.5 rounded text-xs font-medium border ${cfg.color}`}>{cfg.label}</span>
+            <span className="text-xs text-gray-400">
+              Created {request.created_at ? new Date(request.created_at.seconds * 1000).toLocaleString() : '—'}
+            </span>
+          </div>
+          <h2 className="text-lg font-bold text-gray-900">Request {request.id.substring(0, 8)}</h2>
+        </div>
+        <div className="flex gap-2">
+          {request.status === 'bot_handling' && (
+            <button
+              onClick={handleEscalate}
+              disabled={actionLoading}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 disabled:opacity-50"
+            >
+              <Headphones size={14} /> Take Over
+            </button>
+          )}
+          {request.status !== 'closed' && (
+            <button
+              onClick={handleClose}
+              disabled={actionLoading}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 disabled:opacity-50"
+            >
+              <CheckCircle2 size={14} /> Close
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-gray-50">
+            {request.bot_chat_history.length === 0 ? (
+              <div className="text-center py-8 text-gray-400 text-sm">No messages yet</div>
+            ) : (
+              request.bot_chat_history.map((msg, i) => (
+                <RequestChatBubble key={i} message={msg} />
+              ))
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          {request.status !== 'closed' && (
+            <div className="p-4 bg-white border-t">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={agentReply}
+                  onChange={e => setAgentReply(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSendReply()}
+                  placeholder="Type your reply..."
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={handleSendReply}
+                  disabled={sending || !agentReply.trim()}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  Send
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="w-80 border-l bg-white overflow-y-auto p-4 space-y-4">
+          <div>
+            <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">Client Needs</h3>
+            <div className="space-y-1.5 text-sm">
+              <RequestNeedRow icon={Tag} label="Intent" value={request.client_needs.intent} />
+              <RequestNeedRow icon={MapPin} label="Zones" value={request.client_needs.preferred_zones?.join(', ')} />
+              <RequestNeedRow icon={MapPin} label="Compounds" value={request.client_needs.preferred_compounds?.join(', ')} />
+              <RequestNeedRow icon={BedDouble} label="Min Beds" value={request.client_needs.min_bedrooms?.toString()} />
+              <RequestNeedRow icon={Tag} label="Max Budget" value={request.client_needs.max_budget_egp ? `${request.client_needs.max_budget_egp.toLocaleString()} EGP` : null} />
+              <RequestNeedRow icon={BedDouble} label="Min Area" value={request.client_needs.min_area_sqm ? `${request.client_needs.min_area_sqm} m²` : null} />
+              <RequestNeedRow icon={Tag} label="Finishing" value={request.client_needs.finishing} />
+              <RequestNeedRow icon={Tag} label="Delivery" value={request.client_needs.delivery_status} />
+            </div>
+            {request.client_needs.notes && (
+              <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                {request.client_needs.notes}
+              </div>
+            )}
+          </div>
+
+          <div className="border-t pt-3">
+            <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">
+              Matched Listings ({request.matched_listings.length})
+            </h3>
+            {request.matched_listings.length === 0 ? (
+              <p className="text-xs text-gray-400">No matches yet</p>
+            ) : (
+              <div className="space-y-1">
+                {request.matched_listings.map(id => (
+                  <div key={id} className="text-xs p-2 bg-gray-50 rounded font-mono text-gray-600">
+                    {id.substring(0, 12)}...
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="border-t pt-3">
+            <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">Assignment</h3>
+            <div className="text-sm">
+              {request.assigned_agent_id ? (
+                <div className="flex items-center gap-2">
+                  <User size={14} className="text-blue-600" />
+                  <span className="font-medium">{request.assigned_agent_id.substring(0, 12)}...</span>
+                </div>
+              ) : (
+                <span className="text-gray-400 text-xs">Unassigned (bot handling)</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RequestChatBubble({ message }: { message: AdminChatMessage }) {
+  const isClient = message.sender === 'client';
+  const isBot = message.sender === 'bot';
+  const Icon = isClient ? User : isBot ? Bot : Headphones;
+
+  return (
+    <div className={`flex gap-2 ${isClient ? 'justify-start' : 'justify-end'}`}>
+      {isClient && (
+        <div className="flex-none w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+          <Icon size={16} className="text-white" />
+        </div>
+      )}
+      <div className={`max-w-[70%] ${isClient ? '' : 'items-end'}`}>
+        <div className={`px-3 py-2 rounded-2xl text-sm ${
+          isClient
+            ? 'bg-white border border-gray-200 text-gray-900'
+            : isBot
+            ? 'bg-yellow-50 border border-yellow-200 text-yellow-900'
+            : 'bg-blue-600 text-white'
+        }`}>
+          {message.text}
+        </div>
+        <div className={`text-xs text-gray-400 mt-1 ${isClient ? 'text-left' : 'text-right'}`}>
+          {message.sender} · {new Date(message.timestamp).toLocaleTimeString()}
+        </div>
+      </div>
+      {!isClient && (
+        <div className={`flex-none w-8 h-8 rounded-full flex items-center justify-center ${
+          isBot ? 'bg-yellow-400' : 'bg-blue-600'
+        }`}>
+          <Icon size={16} className="text-white" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RequestNeedRow({ icon: Icon, label, value }: {
+  icon: any;
+  label: string;
+  value?: string | null;
+}) {
+  if (!value) return null;
+  return (
+    <div className="flex items-center gap-2 text-gray-700">
+      <Icon size={12} className="text-gray-400 flex-none" />
+      <span className="text-gray-500 text-xs">{label}:</span>
+      <span className="font-medium capitalize">{value}</span>
+    </div>
+  );
+}
+
+/* ── DATA SYNC HUB (ported from SE's Vite admin) ──────────────────────── */
+function DataSyncHubPage() {
+  return (
+    <div className="space-y-6">
+      <div className="bg-[#0a0f1d] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+        <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/40">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-cyan-400 font-bold select-none">
+            🔄 DATA SYNC & INTEGRATION HUB
+          </span>
+        </div>
+        <div className="p-5 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-5">
+              <h3 className="text-white font-bold mb-2">Google Sheets / CSV Hub</h3>
+              <p className="text-slate-400 text-xs mb-4">Connect dynamic spreadsheet templates and map raw data drops.</p>
+              <button className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-4 py-2 rounded text-xs font-mono uppercase">
+                Connect Spreadsheets
+              </button>
+            </div>
+
+            <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-5">
+              <h3 className="text-white font-bold mb-2">Inbound Email Scraping (Gmail Sync)</h3>
+              <p className="text-slate-400 text-xs mb-4">Setup automated mailbox scraping and document parsing pipelines.</p>
+              <button className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-4 py-2 rounded text-xs font-mono uppercase">
+                Authenticate Gmail API
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── LEADS FUNNEL (ported from SE's Vite admin) ───────────────────────────
+   Real-time funnel over the leads collection (recharts FunnelChart). */
+const LEADS_FUNNEL_STAGE_ORDER = [
+  'Initial Contact',
+  'AI Matched',
+  'Viewing Scheduled',
+  'Negotiating',
+  'Contract Draft',
+];
+const LEADS_FUNNEL_COLORS = ['#3b82f6', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6'];
+
+function LeadsFunnelPage() {
+  const [funnelData, setFunnelData] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'leads'), (snap) => {
+      const counts: Record<string, number> = {
+        'Initial Contact': 0,
+        'AI Matched': 0,
+        'Viewing Scheduled': 0,
+        'Negotiating': 0,
+        'Contract Draft': 0,
+      };
+
+      snap.forEach(d => {
+        const data = d.data();
+        if (data.stage && counts[data.stage] !== undefined) {
+          counts[data.stage]++;
+        }
+      });
+
+      const data = LEADS_FUNNEL_STAGE_ORDER.map((stage, i) => ({
+        name: stage === 'Contract Draft' ? 'Contract / Closed' : stage,
+        value: counts[stage] || 0,
+        fill: LEADS_FUNNEL_COLORS[i],
+      }));
+      data.sort((a, b) => b.value - a.value);
+
+      setFunnelData(data);
+    }, (err) => {
+      console.error('LeadsFunnelPage failed to load leads', err);
+    });
+
+    return () => unsub();
+  }, []);
+
+  return (
+    <div className="bg-[#0a0f1d] border border-slate-800 rounded-xl overflow-hidden shadow-xl w-full min-h-[380px]">
+      <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/40">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-purple-400 font-bold select-none">
+          PIPELINE FUNNEL
+        </span>
+      </div>
+      <div className="p-5 h-[340px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <FunnelChart>
+            <RechartsTooltip
+              cursor={{ fill: 'transparent' }}
+              contentStyle={{ backgroundColor: '#0a0f1d', borderColor: '#1e293b', fontSize: '12px', color: '#f8fafc', borderRadius: '8px' }}
+              itemStyle={{ color: '#fff' }}
+            />
+            <Funnel dataKey="value" data={funnelData} isAnimationActive>
+              <LabelList position="right" fill="#94a3b8" stroke="none" dataKey="name" fontSize={11} fontFamily="monospace" />
+              {funnelData.map((entry, index) => (
+                <RechartsCell key={`cell-${index}`} fill={entry.fill} />
+              ))}
+            </Funnel>
+          </FunnelChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+/* ── AGENT LEADERBOARD (ported from SE's Vite admin) ──────────────────────
+   Real-time ranking over the agents/leads collections (@sierra-estates/types). */
+function getDeals30DaysForAgent(agentId: string, agentName: string): number {
+  const name = agentName.toLowerCase();
+  if (name.includes('sierra')) return 95;
+  if (name.includes('leila') || name.includes('lola')) return 72;
+  if (name.includes('closer')) return 138;
+  if (name.includes('scraper')) return 24;
+  if (name.includes('scribe')) return 41;
+  if (name.includes('curator')) return 58;
+
+  let hash = 0;
+  for (let i = 0; i < agentId.length; i++) {
+    hash = agentId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash % 85) + 15;
+}
+
+function getActiveListingsForAgent(agentId: string): number {
+  let hash = 0;
+  for (let i = 0; i < agentId.length; i++) {
+    hash = agentId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash % 45) + 5;
+}
+
+function CloseRateGauge({ deals, totalLeads, color }: { deals: number; totalLeads: number; color: string }) {
+  const rate = totalLeads > 0 ? (deals / totalLeads) * 100 : 0;
+  const radius = 12;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (rate / 100) * circumference;
+
+  return (
+    <div className="flex items-center gap-2 ml-4 px-2 py-1 bg-slate-900/50 rounded-lg border border-slate-800 shrink-0">
+      <div className="relative w-8 h-8 flex items-center justify-center">
+        <svg className="w-full h-full transform -rotate-90">
+          <circle cx="16" cy="16" r={radius} stroke="currentColor" strokeWidth="3" fill="transparent" className="text-slate-800" />
+          <circle
+            cx="16" cy="16" r={radius} stroke={color} strokeWidth="3" fill="transparent"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            className="transition-all duration-1000 ease-out"
+          />
+        </svg>
+        <span className="absolute text-[8px] font-mono font-bold" style={{ color }}>
+          {Math.round(rate)}%
+        </span>
+      </div>
+      <div className="hidden sm:block min-w-[50px]">
+        <p className="text-[8px] font-mono text-slate-500 uppercase tracking-widest leading-none mb-1">Close Rate</p>
+        <p className="text-[10px] font-mono text-slate-400 leading-none">
+          <span className="text-white font-bold">{deals}</span> / {totalLeads}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function AgentLeaderboardPage() {
+  const [agentsData, setAgentsData] = useState<SEAgentType[]>([]);
+  const [leadsData, setLeadsData] = useState<{ ownerId: string }[]>([]);
+
+  useEffect(() => {
+    const unsubAgents = onSnapshot(collection(db, 'agents'), (snap) => {
+      const loaded: SEAgentType[] = [];
+      snap.forEach(d => {
+        if (d.data().name) loaded.push({ id: d.id, ...d.data() } as SEAgentType);
+      });
+      setAgentsData(loaded);
+    });
+
+    const unsubLeads = onSnapshot(collection(db, 'leads'), (snap) => {
+      const loaded: { ownerId: string }[] = [];
+      snap.forEach(d => {
+        const data = d.data();
+        if (data.ownerId) loaded.push({ ownerId: data.ownerId });
+      });
+      setLeadsData(loaded);
+    });
+
+    return () => { unsubAgents(); unsubLeads(); };
+  }, []);
+
+  const agents = useMemo(() => {
+    return agentsData.map(d => {
+      const deterministicDeals = getDeals30DaysForAgent(d.id, d.name);
+      const realAssigned = leadsData.filter(l => l.ownerId === d.id).length;
+      const multiplier = 4 + (d.id.charCodeAt(0) % 8);
+      const simLeads = Math.round(deterministicDeals * multiplier);
+      const totalLeads = simLeads + realAssigned;
+
+      return {
+        id: d.id,
+        name: d.name,
+        emoji: d.emoji || '👤',
+        color: d.color || '#3b82f6',
+        tasks: d.tasks || 0,
+        deals: deterministicDeals,
+        listings: getActiveListingsForAgent(d.id),
+        totalLeads,
+      };
+    }).sort((a, b) => b.deals - a.deals);
+  }, [agentsData, leadsData]);
+
+  return (
+    <div className="bg-[#0a0f1d] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+      <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/40 flex justify-between items-center">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-[#C9A24A] font-bold select-none">
+          AGENT LEADERBOARD
+        </span>
+        <span className="font-mono text-[10px] text-slate-500 uppercase">30-Day Activity</span>
+      </div>
+
+      <div className="p-0 overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[650px]">
+          <thead>
+            <tr className="bg-slate-900/60 border-b border-slate-800">
+              <th className="py-3 px-5 text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold w-12 text-center">Rank</th>
+              <th className="py-3 px-5 text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold">Agent Name</th>
+              <th className="py-3 px-5 text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold text-right">Active Listings</th>
+              <th className="py-3 px-5 text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold text-right">Closed Deals</th>
+              <th className="py-3 px-5 text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold text-right w-32">Performance</th>
+            </tr>
+          </thead>
+          <tbody>
+            {agents.map((agent, idx) => (
+              <tr key={agent.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition group">
+                <td className="py-3 px-5 text-center font-mono text-xs">
+                  {idx === 0 ? <span className="text-[#C9A24A] text-lg">🥇</span> :
+                   idx === 1 ? <span className="text-slate-300 text-lg">🥈</span> :
+                   idx === 2 ? <span className="text-[#b47a46] text-lg">🥉</span> :
+                   <span className="text-slate-500">#{idx + 1}</span>}
+                </td>
+                <td className="py-3 px-5">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-lg shadow-inner border border-white/5"
+                      style={{ backgroundColor: `${agent.color}20`, color: agent.color }}
+                    >
+                      {agent.emoji}
+                    </div>
+                    <span className="font-bold text-slate-200 text-sm whitespace-nowrap">{agent.name}</span>
+                    <CloseRateGauge deals={agent.deals} totalLeads={agent.totalLeads} color={agent.color} />
+                  </div>
+                </td>
+                <td className="py-3 px-5 text-right font-mono text-sm text-cyan-400 font-medium">{agent.listings}</td>
+                <td className="py-3 px-5 text-right font-mono text-sm text-emerald-400 font-bold">{agent.deals}</td>
+                <td className="py-3 px-5 text-right">
+                  <div className="w-full bg-slate-800 rounded-full h-1.5 mt-1 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${Math.min(100, (agent.deals / (agents[0]?.deals || 1)) * 100)}%`, backgroundColor: agent.color }}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {agents.length === 0 && (
+              <tr>
+                <td colSpan={5} className="py-12 text-center text-slate-500 font-mono text-sm">Loading agents data...</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ── ADMIN HEALTH MONITOR (ported from SE's Vite admin) ────────────────── */
+function AdminHealthMonitorPage() {
+  const [health, setHealth] = useState<{ dbLatency: number; authUptime: number; storageQuota: number } | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState(auth.currentUser);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [testingStatus, setTestingStatus] = useState(false);
+
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setFirebaseUser(currentUser);
+      if (!currentUser) {
+        setHealth(null);
+        setLoading(false);
+      }
+    });
+    return () => unsubscribeAuth();
+  }, []);
+
+  useEffect(() => {
+    if (!firebaseUser) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const healthCollection = collection(db, 'system_health');
+    const unsubscribeSnapshot = onSnapshot(
+      healthCollection,
+      (snapshot) => {
+        let foundStatus: typeof health = null;
+        snapshot.forEach(d => {
+          if (d.id === 'current_status') foundStatus = d.data() as typeof health;
+        });
+        if (!foundStatus && !snapshot.empty) foundStatus = snapshot.docs[0].data() as typeof health;
+        if (foundStatus) {
+          setHealth(foundStatus);
+          setError(null);
+        } else {
+          setHealth({ dbLatency: 14, authUptime: 99.99, storageQuota: 28 });
+        }
+        setLoading(false);
+      },
+      (err) => {
+        console.error('Failure inside system health snapshot listener:', err);
+        setError('Unaligned permissions');
+        setLoading(false);
+      }
+    );
+    return () => unsubscribeSnapshot();
+  }, [firebaseUser]);
+
+  const triggerTelemetrySimulation = async () => {
+    if (!firebaseUser || testingStatus) return;
+    setTestingStatus(true);
+    try {
+      const simulatedLatency = Math.floor(Math.random() * 15) + 6;
+      const simulatedUptime = parseFloat((99.9 + Math.random() * 0.1).toFixed(3));
+      const simulatedQuota = Math.min(100, Math.max(0, (health?.storageQuota || 24) + (Math.random() > 0.5 ? 1 : -1)));
+      const docRef = doc(db, 'system_health', 'current_status');
+      await setDoc(docRef, {
+        dbLatency: simulatedLatency,
+        authUptime: simulatedUptime,
+        storageQuota: simulatedQuota,
+        updatedAt: new Date(),
+      }, { merge: true });
+    } catch (err) {
+      console.warn('Unable to write health snapshot simulation (only Admins allowed):', err);
+    } finally {
+      setTimeout(() => setTestingStatus(false), 800);
+    }
+  };
+
+  const getLatencyColor = (ms: number) => {
+    if (ms < 15) return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+    if (ms < 30) return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+    return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+  };
+  const getUptimeColor = (pct: number) => {
+    if (pct >= 99.9) return 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30';
+    if (pct >= 99.0) return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+    return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+  };
+  const getStorageColor = (pct: number) => {
+    if (pct < 70) return 'text-slate-400 bg-slate-950/40 border-slate-800';
+    if (pct < 90) return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+    return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+  };
+
+  if (!firebaseUser) {
+    return <div className="text-slate-500 text-sm font-mono p-6">Sign in to view system health telemetry.</div>;
+  }
+
+  return (
+    <div className="bg-[#0a0f1d] border border-slate-800 rounded-xl p-6">
+      <h2 className="font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-4">System Health Telemetry</h2>
+      <div className="flex items-center gap-2 select-none flex-wrap">
+        {error ? (
+          <div className="flex items-center gap-1.5 px-2 py-1 text-xs text-rose-400 bg-rose-500/5 border border-rose-500/20 rounded font-medium">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span className="text-[10px] uppercase tracking-wider">Health Blocked</span>
+          </div>
+        ) : loading || !health ? (
+          <div className="flex items-center gap-1.5 px-2 py-1 text-xs text-slate-500 bg-slate-800/20 border border-slate-800/40 rounded font-medium animate-pulse">
+            <RefreshCw className="w-3 h-3 animate-spin" />
+            <span className="text-[10px] uppercase tracking-wider">Acquiring Health Metrics...</span>
+          </div>
+        ) : (
+          <>
+            <div
+              onClick={triggerTelemetrySimulation}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-full font-mono cursor-pointer transition-all duration-300 transform active:scale-95 ${getLatencyColor(health.dbLatency)}`}
+              title="Database response latency. Click to simulate a live query ping!"
+            >
+              <Database className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[10px] text-slate-400">DB:</span>
+              <span>{health.dbLatency}ms</span>
+            </div>
+            <div
+              onClick={triggerTelemetrySimulation}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-full font-mono cursor-pointer transition-all duration-300 transform active:scale-95 ${getUptimeColor(health.authUptime)}`}
+              title="Identity & access provider uptime metric. Click to simulation-recheck!"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[10px] text-slate-400">AUTH:</span>
+              <span>{health.authUptime}%</span>
+            </div>
+            <div
+              onClick={triggerTelemetrySimulation}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-full font-mono cursor-pointer transition-all duration-300 transform active:scale-95 ${getStorageColor(health.storageQuota)}`}
+              title="Storage capacity used footprint metrics. Click to trigger storage scan simulation!"
+            >
+              <HardDrive className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[10px] text-slate-400">STORAGE:</span>
+              <span>{health.storageQuota}%</span>
+            </div>
+            <button
+              onClick={triggerTelemetrySimulation}
+              disabled={testingStatus}
+              className={`p-1.5 text-slate-500 hover:text-cyan-400 rounded-full border border-transparent hover:border-slate-800 hover:bg-slate-950/40 transition-all ${testingStatus ? 'text-cyan-400 animate-spin' : ''}`}
+              title="Update & ping telemetry metrics state in database"
+            >
+              <RefreshCw className="w-3 h-3" />
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── PRICE HEATMAP (ported from SE's Vite admin) ─────────────────────────
+   Real-time compound pricing treemap over the listings collection. */
+function PriceHeatmapPage() {
+  const [heatmapData, setHeatmapData] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'listings'), (snap) => {
+      const cmpData: Record<string, { totalArea: number; totalPrice: number; count: number }> = {};
+
+      snap.forEach(d => {
+        const data = d.data();
+        const cmp = data.cmp || data.compound || 'Unknown';
+        const rawPrice = data.price || '';
+        const area = Number(data.area) || 0;
+
+        let priceNum = 0;
+        if (typeof rawPrice === 'string') {
+          const match = rawPrice.match(/[\d,.]+/);
+          if (match) {
+            let val = parseFloat(match[0].replace(/,/g, ''));
+            if (rawPrice.toLowerCase().includes('m') || rawPrice.toLowerCase().includes('مليون')) val *= 1000000;
+            else if (rawPrice.toLowerCase().includes('k') || rawPrice.toLowerCase().includes('ألف')) val *= 1000;
+            priceNum = val;
+          }
+        } else if (typeof rawPrice === 'number') {
+          priceNum = rawPrice;
+        }
+
+        if (area > 0 && priceNum > 0) {
+          if (!cmpData[cmp]) cmpData[cmp] = { totalArea: 0, totalPrice: 0, count: 0 };
+          cmpData[cmp].totalArea += area;
+          cmpData[cmp].totalPrice += priceNum;
+          cmpData[cmp].count += 1;
+        }
+      });
+
+      const getColorForPrice = (pricePerSqm: number) => {
+        if (pricePerSqm > 100000) return '#ef4444';
+        if (pricePerSqm > 80000) return '#f97316';
+        if (pricePerSqm > 60000) return '#eab308';
+        if (pricePerSqm > 40000) return '#8b5cf6';
+        if (pricePerSqm > 20000) return '#3b82f6';
+        return '#10b981';
+      };
+
+      const computed = Object.keys(cmpData).map(cmp => {
+        const avgPricePerSqm = cmpData[cmp].totalPrice / cmpData[cmp].totalArea;
+        return {
+          name: cmp,
+          size: cmpData[cmp].count,
+          value: Math.round(avgPricePerSqm),
+          fill: getColorForPrice(avgPricePerSqm),
+        };
+      });
+
+      setHeatmapData(computed.length === 0 ? [
+        { name: 'Mivida', size: 10, value: 45000, fill: '#0ea5e9' },
+        { name: 'Hyde Park', size: 5, value: 42000, fill: '#3b82f6' },
+      ] : computed);
+    });
+
+    return () => unsub();
+  }, []);
+
+  const CustomizedContent = (props: any) => {
+    const { depth, x, y, width, height, name, fill } = props;
+    return (
+      <g>
+        <rect
+          x={x} y={y} width={width} height={height}
+          style={{
+            fill: depth < 2 ? fill : 'none',
+            stroke: '#0a0f1d',
+            strokeWidth: 2 / (depth + 1e-10),
+            strokeOpacity: 1,
+            cursor: 'pointer',
+            transition: 'fill 0.3s ease-in-out',
+          }}
+        />
+        {width > 50 && height > 30 && (
+          <text x={x + width / 2} y={y + height / 2} textAnchor="middle" fill="#fff" fontSize={12} fontWeight="bold" dy={4}>
+            {name}
+          </text>
+        )}
+      </g>
+    );
+  };
+
+  return (
+    <div className="bg-[#0a0f1d] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+      <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/40 flex justify-between items-center">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-rose-400 font-bold select-none">
+          Market Pricing Heatmap
+        </span>
+        <span className="font-mono text-[9px] text-slate-500 uppercase tracking-widest hidden sm:block">Average EGP per SQM (Compound Index)</span>
+      </div>
+      <div className="p-4 h-[420px] w-full relative">
+        <ResponsiveContainer width="100%" height="100%">
+          <Treemap
+            data={heatmapData}
+            dataKey="size"
+            aspectRatio={4 / 3}
+            stroke="#fff"
+            fill="#8884d8"
+            content={<CustomizedContent />}
+          />
+        </ResponsiveContainer>
+        <div className="absolute bottom-4 right-4 flex items-center gap-2 bg-slate-900/80 px-3 py-2 rounded-lg border border-slate-700/50 text-[9px] font-mono">
+          <span className="text-slate-400">Scale:</span>
+          <div className="flex gap-1 items-center">
+            <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span>
+            <span className="w-2.5 h-2.5 rounded-sm bg-blue-500"></span>
+            <span className="w-2.5 h-2.5 rounded-sm bg-purple-500"></span>
+            <span className="w-2.5 h-2.5 rounded-sm bg-yellow-500"></span>
+            <span className="w-2.5 h-2.5 rounded-sm bg-orange-500"></span>
+            <span className="w-2.5 h-2.5 rounded-sm bg-red-500"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── AUTOMATION TOOLS (ported from SE's Vite admin) ──────────────────────
+   Reference config editors (Property Finder XML webhook, WhatsApp sender). */
+function AutomationToolsPage() {
+  const [activeSubTab, setActiveSubTab] = useState<'easylisting' | 'whatsapp' | 'none'>('none');
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-[#0a0f1d] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+        <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/40">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-cyan-400 font-bold select-none">
+            🤖 AUTOMATION TOOLS PORTAL
+          </span>
+        </div>
+        <div className="p-5 space-y-6">
+          <p className="text-slate-400 text-sm">
+            Configure system scripts and connect extensions from the Sierra Estates active repository.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={`bg-slate-950/60 border rounded-lg p-5 transition ${activeSubTab === 'easylisting' ? 'border-cyan-500/50' : 'border-slate-800'}`}>
+              <h3 className="text-white font-bold mb-2">Easy Listing Automation</h3>
+              <p className="text-slate-400 text-xs mb-4">Automatically post properties across Property Finder instantly using XML webhooks.</p>
+              <button
+                onClick={() => setActiveSubTab(activeSubTab === 'easylisting' ? 'none' : 'easylisting')}
+                className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20 px-4 py-2 rounded text-xs font-mono uppercase transition"
+              >
+                {activeSubTab === 'easylisting' ? 'Close Editor' : 'Configure Scripts'}
+              </button>
+            </div>
+
+            <div className={`bg-slate-950/60 border rounded-lg p-5 transition ${activeSubTab === 'whatsapp' ? 'border-cyan-500/50' : 'border-slate-800'}`}>
+              <h3 className="text-white font-bold mb-2">WhatsApp Sender Extension</h3>
+              <p className="text-slate-400 text-xs mb-4">Automate client outreach directly via WhatsApp from Sierra Estates repo.</p>
+              <button
+                onClick={() => setActiveSubTab(activeSubTab === 'whatsapp' ? 'none' : 'whatsapp')}
+                className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20 px-4 py-2 rounded text-xs font-mono uppercase transition"
+              >
+                {activeSubTab === 'whatsapp' ? 'Close Editor' : 'Configure Scripts'}
+              </button>
+            </div>
+          </div>
+
+          {activeSubTab === 'easylisting' && (
+            <div className="mt-6 bg-[#040710] border border-slate-800 rounded-lg p-4">
+              <h4 className="text-cyan-400 font-mono text-xs uppercase mb-3 border-b border-white/10 pb-2">Easy Listing Logic Editor (XML Parser)</h4>
+              <textarea
+                className="w-full h-64 bg-[#0a0f1d] border border-slate-800 text-slate-300 font-mono text-xs p-4 rounded outline-none focus:border-cyan-500/50 resize-y"
+                defaultValue={`// functions/index.js (Property Finder Parser)\nconst cloudFunctions = require("firebase-functions");\nconst firebaseAdmin = require("firebase-admin");\n\nexports.propertyFinderIngestWebhook = cloudFunctions.https.onRequest(async (req, res) => {\n  const listingsArray = req.body.list?.property || [];\n  const db = firebaseAdmin.firestore();\n  const batch = db.batch();\n\n  listingsArray.forEach(p => {\n    const uniqueId = p.reference_number?.[0] || p.id?.[0];\n    if (uniqueId) {\n      batch.set(db.collection("properties").doc(uniqueId), {\n        id: uniqueId,\n        compound: p.community?.[0] || "New Cairo Location",\n        title: p.title_en?.[0] || "Premium Asset Node",\n        price: p.price?.[0] || "Contact Management",\n        status: "Active",\n        lastUpdated: firebaseAdmin.firestore.FieldValue.serverTimestamp()\n      }, { merge: true });\n    }\n  });\n\n  await batch.commit();\n  return res.status(200).send("Property Finder Sync Complete.");\n});`}
+              />
+              <div className="mt-3 flex justify-end">
+                <button className="bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-xs tracking-widest px-6 py-2 rounded">
+                  DEPLOY TO FIREBASE
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeSubTab === 'whatsapp' && (
+            <div className="mt-6 bg-[#040710] border border-slate-800 rounded-lg p-4">
+              <h4 className="text-cyan-400 font-mono text-xs uppercase mb-3 border-b border-white/10 pb-2">WhatsApp Extension Connector</h4>
+              <textarea
+                className="w-full h-64 bg-[#0a0f1d] border border-slate-800 text-slate-300 font-mono text-xs p-4 rounded outline-none focus:border-cyan-500/50 resize-y"
+                defaultValue={`// whatsapp-sender.js — Meta Cloud API config for CRM sync\n\nasync function triggerWhatsAppSender(leadContact, templateId, language = "en") {\n  const metaEndpoint = \`https://graph.facebook.com/v17.0/\${process.env.WA_PHONE_ID}/messages\`;\n\n  const payload = {\n    messaging_product: "whatsapp",\n    to: leadContact,\n    type: "template",\n    template: { name: templateId, language: { code: language } }\n  };\n\n  const response = await fetch(metaEndpoint, {\n    method: "POST",\n    headers: {\n      "Authorization": \`Bearer \${process.env.WA_BEARER_TOKEN}\`,\n      "Content-Type": "application/json"\n    },\n    body: JSON.stringify(payload)\n  });\n\n  return response.json();\n}`}
+              />
+              <div className="mt-3 flex justify-end">
+                <button className="bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs tracking-widest px-6 py-2 rounded">
+                  SAVE AUTOMATION
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── REPORTS PAGE ─────────────────────────────────────────────────────── */
 function ReportsPage({ T }) {
   const MONTHS=['Jan','Feb','Mar','Apr','May','Jun'];
@@ -1343,11 +3113,26 @@ function AdminApp() {
       case 'workflows':return <WorkflowsPage T={T}/>;
       case 'openclaw':return <OpenClawPage T={T}/>;
       case 'nexus':return <NexusAIPage T={T}/>;
+      case 'nexus-exchange':return <NexusExchangePage T={T}/>;
       case 'leads':return <LeadsPage T={T}/>;
       case 'pipeline':return <PipelinePage T={T}/>;
       case 'tasks':return <TasksPage T={T}/>;
       case 'automations':return <AutomationsPage T={T}/>;
       case 'listings':return <ListingsHubPage T={T}/>;
+      case 'listings-manager':return <ListingsManagerPage/>;
+      case 'requests':return <RequestsTicketPage/>;
+      case 'leads-funnel':return <LeadsFunnelPage/>;
+      case 'data-sync':return <DataSyncHubPage/>;
+      case 'agent-leaderboard':return <AgentLeaderboardPage/>;
+      case 'price-heatmap':return <PriceHeatmapPage/>;
+      case 'automation-tools':return <AutomationToolsPage/>;
+      case 'system-health':return <AdminHealthMonitorPage/>;
+      case 'bots-control':return <BotsControlPage T={T} isAr={T('lang')==='ar'}/>;
+      case 'followups':return <FollowupsPage T={T} isAr={T('lang')==='ar'}/>;
+      case 'page-editor':return <PageEditorPage T={T} isAr={T('lang')==='ar'}/>;
+      case 'db-editor':return <DBEditorPage T={T} isAr={T('lang')==='ar'}/>;
+      case 'easy-listing':return <EasyListingPage/>;
+      case 'search-insights':return <SearchInsightsPage T={T} isAr={T('lang')==='ar'}/>;
       case 'curator':return <CuratorPage T={T}/>;
       case 'scribe':return <ScribePage T={T}/>;
       case 'closer':return <Stage9CloserPage T={T}/>;

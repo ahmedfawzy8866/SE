@@ -1,4 +1,8 @@
-```markdown
+---
+name: Sierra-Estates-Final
+description: Legacy development patterns from the Sierra-Estates-Final codebase: commit conventions, API endpoint and WhatsApp bot workflows, and MVP frontend release process. Use for historical context on those workflows.
+---
+
 # Sierra-Estates-Final Development Patterns
 
 > Auto-generated skill from repository analysis
@@ -202,4 +206,3 @@ const unused = 42; // Remove if not needed
 | /fix-typescript-eslint  | Fix TypeScript, ESLint, or config errors                   |
 | /release-mvp-frontend   | Release or revise the single-file HTML MVP frontend        |
 | /update-docs            | Update documentation, TODO lists, or markdown files        |
-```

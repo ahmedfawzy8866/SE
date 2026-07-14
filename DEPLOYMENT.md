@@ -62,7 +62,7 @@ serverless model can't host anyway.
 | Component | Path | Runtime / Host | How it deploys | Domain / endpoint |
 |---|---|---|---|---|
 | **Public site + Admin + API** | `apps/sierra-estates-realty` | Vercel (Next.js) | **Auto on push to `main`** → `.github/workflows/deploy-vercel.yml` | `sierra-estates.net` (+ `admin.sierra-estates.net`) |
-| **Backend infra** | `firestore.rules`, `storage.rules`, `functions/` | Firebase · project `sierra-blu` | Manual → `firebase deploy --only firestore:rules,storage,functions --project sierra-blu` (or `pnpm deploy:rules` / `pnpm deploy:functions`) | n/a (Firestore/Storage/Auth) |
+| **Backend infra** | `apps/sierra-estates-realty/{firestore,storage}.rules`, `functions/` | Firebase · project `sierra-blu` | Manual → `firebase deploy --only firestore:rules,storage,functions --project sierra-blu` (or `pnpm deploy:rules` / `pnpm deploy:functions`) | n/a (Firestore/Storage/Auth) |
 | **Legacy-admin redirect** | `firebase.json` hosting `sierra-estates-admin` | Firebase Hosting site `admin-sierra-blu` | Manual → `deploy-firebase.yml` | 302 → `sierra-estates.net/admin` |
 | **Python API + bots** | `apps/api` | Cloud Run (FastAPI, :8000) | `gcloud run deploy` (own pipeline) | gated by `PYTHON_API_BASE_URL` |
 | **Intelligence OS** | external (Remix) | Cloud Run · europe-west2 | `gcloud run deploy` (own pipeline) | `NEXT_PUBLIC_INTELLIGENCE_OS_URL` |
