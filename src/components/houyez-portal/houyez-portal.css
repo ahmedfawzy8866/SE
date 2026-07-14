@@ -200,7 +200,7 @@
 .se-portal .pcard .p-img { position: relative; height: 210px; overflow: hidden; }
 .se-portal .pcard .p-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s var(--silk); }
 .se-portal .pcard:hover .p-img img { transform: scale(1.07); }
-.se-portal .pcard .p-code { position: absolute; top: 13px; inset-inline-start: 13px; background: rgba(13, 32, 53, .82); backdrop-filter: blur(6px); color: #fff; font-family: var(--mono); font-weight: 700; font-size: 10.5px; letter-spacing: .04em; padding: 5px 10px; border-radius: 6px; }
+.se-portal .pcard .p-code { position: absolute; top: 13px; inset-inline-start: 13px; background: rgba(13, 32, 53, .82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #fff; font-family: var(--mono); font-weight: 700; font-size: 10.5px; letter-spacing: .04em; padding: 5px 10px; border-radius: 6px; }
 .se-portal .pcard .p-tag { position: absolute; top: 13px; inset-inline-end: 52px; background: var(--pri); color: #fff; font-family: var(--mono); font-weight: 700; font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; padding: 5px 10px; border-radius: 6px; }
 .se-portal[data-theme="dark"] .pcard .p-tag { color: #0d0d0f; }
 .se-portal .pcard .p-heart { position: absolute; top: 11px; inset-inline-end: 11px; width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, .92); border: none; display: grid; place-items: center; cursor: pointer; color: #7688a0; transition: .2s; }
