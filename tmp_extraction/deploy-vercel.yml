@@ -1,0 +1,205 @@
+name: Deploy · Vercel (client + admin)
+
+# Deploys the Sierra Estates web app (apps/sierra-estates-realty) to TWO
+# Vercel projects from the SAME codebase:
+#
+#   1. Client project (CLIENT_VERCEL_PROJECT_ID)  → sierra-estates.net
+#   2. Admin project  (ADMIN_VERCEL_PROJECT_ID)   → admin.sierra-estates.net
+#
+# Both projects point at the same rootDirectory (apps/sierra-estates-realty).
+# The host-split is enforced at runtime by middleware.ts (reading ADMIN_HOST
+# env var). Each Vercel project must have these env vars set in its dashboard:
+#
+#   ADMIN_HOST=admin.sierra-estates.net
+#   CLIENT_HOST=sierra-estates.net
+#   COOKIE_DOMAIN=.sierra-estates.net
+#   NEXT_PUBLIC_CLIENT_URL=https://sierra-estates.net
+#   NEXT_PUBLIC_ADMIN_URL=https://admin.sierra-estates.net
+#   NEXT_PUBLIC_FIREBASE_*  /  FIREBASE_SERVICE_ACCOUNT  /  SESSION_SECRET
+#
+# Required repo secret:    VERCEL_TOKEN
+# Required repo variables: CLIENT_VERCEL_PROJECT_ID, ADMIN_VERCEL_PROJECT_ID
+#
+# ⚠️ The OLD admin project (prj_cJSEzNFE1JOAHzIdjrsJtVaqq7vJ, name
+# `admin-dashboard`) was a SEPARATE codebase in a different repo. The guard
+# job blocks it so this workflow can never overwrite the legacy admin.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy target'
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - preview
+
+concurrency:
+  group: vercel-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VERCEL_ORG_ID: team_k2jaWfzeatcYG6Qpl0ooCxQh
+  VERCEL_CLI_VERSION: '43.3.0'
+  CLIENT_APP_DIR: apps/sierra-estates-realty
+  # Per-project IDs are set as env at the job level (see below).
+
+# The OLD admin project id — guarded so we never deploy to it.
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      client_run: ${{ steps.check.outputs.client_run }}
+      admin_run: ${{ steps.check.outputs.admin_run }}
+    steps:
+      - name: Validate project IDs
+        id: check
+        env:
+          CLIENT_ID: ${{ vars.CLIENT_VERCEL_PROJECT_ID }}
+          ADMIN_ID: ${{ vars.ADMIN_VERCEL_PROJECT_ID }}
+        run: |
+          LEGACY_ADMIN="prj_cJSEzNFE1JOAHzIdjrsJtVaqq7vJ"
+
+          # Client check
+          if [ -z "${CLIENT_ID}" ]; then
+            echo "client_run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Client deploy skipped::CLIENT_VERCEL_PROJECT_ID repo variable is not set."
+          elif [ "${CLIENT_ID}" = "${LEGACY_ADMIN}" ]; then
+            echo "::error title=Refusing to deploy::CLIENT_VERCEL_PROJECT_ID points at the legacy admin-dashboard project."
+            exit 1
+          else
+            echo "client_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Admin check
+          if [ -z "${ADMIN_ID}" ]; then
+            echo "admin_run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Admin deploy skipped::ADMIN_VERCEL_PROJECT_ID repo variable is not set."
+          elif [ "${ADMIN_ID}" = "${LEGACY_ADMIN}" ]; then
+            echo "::error title=Refusing to deploy::ADMIN_VERCEL_PROJECT_ID points at the legacy admin-dashboard project."
+            exit 1
+          elif [ "${ADMIN_ID}" = "${CLIENT_ID}" ]; then
+            echo "::error title=Refusing to deploy::ADMIN_VERCEL_PROJECT_ID is the same as CLIENT_VERCEL_PROJECT_ID. They must be different projects."
+            exit 1
+          else
+            echo "admin_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy-client:
+    needs: guard
+    if: needs.guard.outputs.client_run == 'true'
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_PROJECT_ID: ${{ vars.CLIENT_VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Determine deploy target
+        id: target
+        run: |
+          ENV="${{ github.event.inputs.environment || 'production' }}"
+          echo "name=$ENV" >> "$GITHUB_OUTPUT"
+          if [ "$ENV" = "production" ]; then
+            echo "flag=--prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "flag=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Normalize Vercel project settings
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          code=$(curl -sS -o /tmp/patch.out -w '%{http_code}' -X PATCH \
+            "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}?teamId=${VERCEL_ORG_ID}" \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory":"apps/sierra-estates-realty","framework":"nextjs","buildCommand":null,"installCommand":null,"outputDirectory":null,"devCommand":null}' || echo "000")
+          if [ "$code" = "200" ] || [ "$code" = "204" ]; then
+            echo "✅ Client project settings normalized (HTTP $code)"
+          else
+            echo "::warning::Client project normalize failed (HTTP $code). Continuing deploy."
+            cat /tmp/patch.out || true
+          fi
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@${VERCEL_CLI_VERSION}
+
+      - name: Pull + Build + Deploy (client)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -o pipefail
+          cd "${CLIENT_APP_DIR}"
+          vercel pull --yes --environment=${{ steps.target.outputs.name }} --token="${VERCEL_TOKEN}"
+          vercel build ${{ steps.target.outputs.flag }} --token="${VERCEL_TOKEN}"
+          vercel deploy --prebuilt ${{ steps.target.outputs.flag }} --token="${VERCEL_TOKEN}"
+
+  deploy-admin:
+    needs: guard
+    if: needs.guard.outputs.admin_run == 'true'
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_PROJECT_ID: ${{ vars.ADMIN_VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Determine deploy target
+        id: target
+        run: |
+          ENV="${{ github.event.inputs.environment || 'production' }}"
+          echo "name=$ENV" >> "$GITHUB_OUTPUT"
+          if [ "$ENV" = "production" ]; then
+            echo "flag=--prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "flag=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Normalize Vercel project settings
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          code=$(curl -sS -o /tmp/patch.out -w '%{http_code}' -X PATCH \
+            "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}?teamId=${VERCEL_ORG_ID}" \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory":"apps/sierra-estates-realty","framework":"nextjs","buildCommand":null,"installCommand":null,"outputDirectory":null,"devCommand":null}' || echo "000")
+          if [ "$code" = "200" ] || [ "$code" = "204" ]; then
+            echo "✅ Admin project settings normalized (HTTP $code)"
+          else
+            echo "::warning::Admin project normalize failed (HTTP $code). Continuing deploy."
+            cat /tmp/patch.out || true
+          fi
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@${VERCEL_CLI_VERSION}
+
+      - name: Pull + Build + Deploy (admin)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -o pipefail
+          cd "${CLIENT_APP_DIR}"
+          vercel pull --yes --environment=${{ steps.target.outputs.name }} --token="${VERCEL_TOKEN}"
+          vercel build ${{ steps.target.outputs.flag }} --token="${VERCEL_TOKEN}"
+          vercel deploy --prebuilt ${{ steps.target.outputs.flag }} --token="${VERCEL_TOKEN}"

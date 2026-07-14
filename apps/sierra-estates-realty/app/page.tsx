@@ -1,49 +1,61 @@
-import type { Metadata } from 'next';
-import HomePortal from './client/HomePortal';
-import { SiteConfig } from '@/lib/config';
-import './client/houzez.css';
+/**
+ * ════════════════════════════════════════════════════════════════════
+ *  Sierra Estates — CLIENT PAGE (single page, route: /)
+ * ════════════════════════════════════════════════════════════════════
+ *  This is the ONE and only client-facing page in the repo. It composes
+ *  every section the public site needs, all on a single route:
+ *
+ *    1. Hero + SearchBar          (above the fold)
+ *    2. Featured ListingsGrid     (with inline search/filter)
+ *    3. CompoundsMap              (52-compound Leaflet map)
+ *    4. SmartMatch quiz           (4-question → top 3 results)
+ *    5. ROICalculator             (yield + payback estimator)
+ *    6. InquiryForm (Concierge)   (POST /api/inquiries)
+ *    7. Footer
+ *
+ *  Auth + Toast providers wrap the whole app at the layout level.
+ *  All data flows through lib/api-client → /api/* routes → Firestore
+ *  (or seed fallback). No client-side Firebase SDK calls except for
+ *  sign-in.
+ */
+import { useState } from "react";
+import { AuthProvider } from "@/components/client/AuthModal";
+import { Navbar } from "@/components/client/Navbar";
+import { Hero } from "@/components/client/Hero";
+import { ListingsGrid } from "@/components/client/ListingsGrid";
+import { CompoundsMap } from "@/components/client/CompoundsMap";
+import { SmartMatch } from "@/components/client/SmartMatch";
+import { ROICalculator } from "@/components/client/ROICalculator";
+import { InquiryForm } from "@/components/client/InquiryForm";
+import { Footer } from "@/components/client/Footer";
+import type { SearchFilters } from "@/components/client/SearchBar";
 
-export const metadata: Metadata = {
-  title: 'Sierra Estates — Luxury Real Estate in New Cairo',
-  description:
-    '19 compounds, 1,200+ verified units across New Cairo. AI-curated matches, on-site verified inventory, human-closed deals.',
-  alternates: { canonical: '/' },
-  openGraph: {
-    title: 'Sierra Estates — Luxury Real Estate in New Cairo',
-    description:
-      'AI-curated, on-site verified property inventory across New Cairo compounds. Rent & resale.',
-    url: '/',
-    siteName: 'Sierra Estates',
-    type: 'website',
-    locale: 'en_US',
-    alternateLocale: 'ar_EG',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Sierra Estates — Luxury Real Estate in New Cairo',
-    description: 'AI-curated, verified property inventory across New Cairo compounds.',
-  },
-};
+export default function ClientPage() {
+  const [filters, setFilters] = useState<SearchFilters | undefined>(undefined);
 
-// Structured data so search engines classify the site as a real-estate agency.
-const JSON_LD = {
-  '@context': 'https://schema.org',
-  '@type': 'RealEstateAgent',
-  name: 'Sierra Estates',
-  url: 'https://sierra-estates.net',
-  areaServed: 'New Cairo, Egypt',
-  address: { '@type': 'PostalAddress', addressLocality: 'New Cairo', addressCountry: 'EG' },
-  sameAs: [SiteConfig.contact.whatsapp],
-};
-
-export default function HomePage() {
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
-      />
-      <HomePortal />
-    </>
+    <AuthProvider>
+      <Navbar />
+      <main>
+        {/* Section 1 — Hero + search */}
+        <Hero onSearch={setFilters} />
+
+        {/* Section 2 — Featured listings (scrolls to #listings) */}
+        <ListingsGrid initialFilters={filters} />
+
+        {/* Section 3 — Compounds map (52 markers) */}
+        <CompoundsMap />
+
+        {/* Section 4 — Smart Match quiz */}
+        <SmartMatch />
+
+        {/* Section 5 — ROI calculator */}
+        <ROICalculator />
+
+        {/* Section 6 — Concierge inquiry form */}
+        <InquiryForm />
+      </main>
+      <Footer />
+    </AuthProvider>
   );
 }
