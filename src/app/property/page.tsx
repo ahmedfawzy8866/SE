@@ -83,7 +83,6 @@ export default function PropertyPage() {
         <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gridTemplateRows:'240px 240px', gap:10, borderRadius:20, overflow:'hidden' }}>
           {/* Main img */}
           <div style={{ gridRow:'1/3', position:'relative', overflow:'hidden', cursor:'pointer', background:'#e8edf2' }} onClick={() => setImgIdx(0)}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={p.imgs[imgIdx]} alt={p.compound} style={{ width:'100%', height:'100%', objectFit:'cover', transition:`transform .6s ${T.ease}` }} />
             <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,transparent 65%,rgba(7,18,30,.5) 100%)' }} />
             <span style={{ position:'absolute', bottom:16, left:16, fontFamily:F.mono, fontSize:11, fontWeight:800, color:T.goldHi, background:'rgba(9,24,40,.88)', backdropFilter:'blur(8px)', padding:'6px 12px', borderRadius:8, letterSpacing:'.08em', textTransform:'uppercase' }}>
@@ -93,7 +92,6 @@ export default function PropertyPage() {
           {/* Thumbnails */}
           {p.imgs.slice(1,4).map((src,i) => (
             <div key={i} className="thumb-btn" onClick={() => setImgIdx(i+1)} style={{ position:'relative', overflow:'hidden', cursor:'pointer', border:`2px solid ${imgIdx===i+1 ? T.gold : 'transparent'}`, background:'#e8edf2' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={src} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
               {i===2 && p.imgs.length>4 && (
                 <div style={{ position:'absolute', inset:0, background:'rgba(7,18,30,.55)', display:'grid', placeItems:'center', color:'#fff', fontFamily:F.mono, fontSize:14, fontWeight:800 }}>+{p.imgs.length-4} more</div>
@@ -179,7 +177,6 @@ export default function PropertyPage() {
           <div style={{ position:'sticky', top:90, opacity:visible?1:0, animation:visible?`fadeUp .5s ${T.ease} .12s both`:'none' }}>
             <div style={{ background:T.ivory, border:`1px solid ${T.line}`, borderRadius:18, padding:'26px', boxShadow:`0 2px 14px rgba(10,22,40,.08)` }}>
               <div style={{ display:'flex', gap:14, alignItems:'center', marginBottom:22 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.agent.img} alt={p.agent.name} style={{ width:62, height:62, borderRadius:14, objectFit:'cover' }} />
                 <div>
                   <div style={{ fontFamily:F.mono, fontSize:10, letterSpacing:'.16em', textTransform:'uppercase', color:T.gold, fontWeight:700, marginBottom:4 }}>{p.agent.role}</div>

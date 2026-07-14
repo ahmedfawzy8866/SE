@@ -11,6 +11,7 @@ export default [
       'public/design/**',
       'extract_styles.js',
       'extract_all_styles.js',
+      'eslint.config.mjs',
       // Sub-apps / packages have their own tsconfigs and ESLint configs
       'apps/**',
       'packages/**',

@@ -84,7 +84,6 @@ export default function TourPage() {
         onTouchMove={e => { e.preventDefault(); onMove(e.touches[0].clientX); }}
         onTouchEnd={onUp}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           key={room.img}
           src={room.img}
@@ -140,7 +139,6 @@ export default function TourPage() {
           {ROOMS.map((r,i) => (
             <button key={i} className={`thumb-pill${idx===i?' on':''}`} onClick={() => setIdx(i)}
               style={{ flexShrink:0, width:72, height:44, borderRadius:10, border:'1.5px solid rgba(255,255,255,.2)', overflow:'hidden', cursor:'pointer', padding:0, background:'transparent' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={r.img} alt={r.name} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', opacity: idx===i ? 1 : 0.55 }} />
             </button>
           ))}
