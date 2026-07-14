@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { adminDb } from "../server/firebase-admin";
+import { adminDb, loadAndInitializeAdmin } from "../server/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { COLLECTIONS, type InboundAssetSignal } from "../models/schema";
 import { buildSierraCodeMetadata, type PropertyCodeInput } from "./coding-algorithm";
@@ -227,21 +227,31 @@ export class WhatsAppParserService {
   private static async checkForDuplicates(data: any): Promise<string | null> {
     if (!data.compound || !data.price) return null;
 
-    const snapshot = await adminDb.collection(COLLECTIONS.brokerListings)
-      .where('extractedData.compound', '==', data.compound)
-      .where('extractedData.bedrooms', '==', data.bedrooms)
-      .get();
+    try {
+      // Ensure Firebase Admin is initialized before querying
+      await loadAndInitializeAdmin();
 
-    const margin = 0.05; // 5% price margin
+      const snapshot = await adminDb.collection(COLLECTIONS.brokerListings)
+        .where('extractedData.compound', '==', data.compound)
+        .where('extractedData.bedrooms', '==', data.bedrooms)
+        .get();
 
-    for (const doc of snapshot.docs) {
-      const existing = doc.data() as InboundAssetSignal;
-      const existingPrice = existing.extractedData.price || 0;
-      const priceDiff = Math.abs(existingPrice - data.price) / (existingPrice || 1);
+      const margin = 0.05; // 5% price margin
+      const docs = snapshot?.docs;
 
-      if (priceDiff <= margin) {
-        return doc.id;
+      if (!docs || !Array.isArray(docs)) return null;
+
+      for (const doc of docs) {
+        const existing = doc.data() as InboundAssetSignal;
+        const existingPrice = existing.extractedData?.price || 0;
+        const priceDiff = Math.abs(existingPrice - data.price) / (existingPrice || 1);
+
+        if (priceDiff <= margin) {
+          return doc.id;
+        }
       }
+    } catch (err) {
+      logger.warn({ err }, '[ParserService] Duplicate check failed — skipping');
     }
 
     return null;

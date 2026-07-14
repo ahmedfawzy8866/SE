@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { loadAndInitializeAdmin } from '@/lib/server/firebase-admin';
 import { WhatsAppStatusService } from '@/lib/services/WhatsAppStatusService';
 import { WhatsAppParserService } from '@/lib/services/WhatsAppParserService';
 
@@ -10,6 +11,9 @@ import { WhatsAppParserService } from '@/lib/services/WhatsAppParserService';
  */
 
 export async function POST(req: NextRequest) {
+  // Ensure Firebase Admin SDK is initialized before any DB operations
+  await loadAndInitializeAdmin();
+
   // Optional secret verification for WhatsApp webhook
   const SECRET_KEY = process.env.SBR_SECRET_KEY || '';
   if (SECRET_KEY) {
