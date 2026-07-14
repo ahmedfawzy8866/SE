@@ -2,6 +2,7 @@
   "name": "se",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.33.0",
   "description": "Sierra Estates — clean Next.js + Firebase stack for the Houzez-Style Portal",
   "scripts": {
     "dev": "next dev",
@@ -11,7 +12,9 @@
     "type-check": "tsc --noEmit",
     "test": "jest --passWithNoTests",
     "test:ci": "jest --ci --passWithNoTests",
-    "prepare": "git config core.hooksPath .githooks || true"
+    "prepare": "git config core.hooksPath .githooks || true",
+    "deploy:rules": "firebase deploy --only firestore:rules,storage",
+    "deploy:functions": "firebase deploy --only functions"
   },
   "dependencies": {
     "firebase": "^11.0.0",
@@ -45,7 +48,6 @@
   "engines": {
     "node": ">=20"
   },
-  "packageManager": "pnpm@9.15.4",
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
@@ -53,6 +55,11 @@
       "protobufjs",
       "@firebase/util",
       "@google/genai"
+    ]
+  },
+  "jest": {
+    "roots": [
+      "<rootDir>/src"
     ]
   }
 }

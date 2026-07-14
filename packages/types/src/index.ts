@@ -91,3 +91,31 @@ export interface SearchLog {
   userId?: string;
   isVoice?: boolean;
 }
+
+/**
+ * Public client-portal listing — the shape of documents in the Firestore
+ * `listings` collection as read by the public portal (apps/client).
+ * Snake_case field names mirror the Firestore documents; distinct from the
+ * admin-dashboard `Listing` summary above.
+ */
+export interface PublicListing {
+  id: string;
+  /** Only listings with status "active" are publicly visible. */
+  status: string;
+  mode: 'sale' | 'rent';
+  compound_name: string;
+  location_sector: string;
+  property_type: string;
+  bedrooms: number;
+  bathrooms?: number;
+  area_sqm: number;
+  price_egp: number;
+  finishing: string;
+  delivery_status: string;
+  payment_plan?: string;
+  cover_image_url?: string;
+  virtual_tour_url?: string;
+  ai_score?: number;
+  /** Firestore Timestamp (serverTimestamp on write). */
+  created_at?: unknown;
+}

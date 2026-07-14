@@ -18,7 +18,7 @@ import {
   addDoc, serverTimestamp, QueryConstraint,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Listing } from '@sierra-estates/types';
+import type { PublicListing } from '@sierra-estates/types';
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  LISTINGS (public read — active only)
@@ -35,7 +35,7 @@ export async function fetchActiveListings(opts?: {
   minBedrooms?: number;
   maxPrice?: number;
   limitCount?: number;
-}): Promise<Listing[]> {
+}): Promise<PublicListing[]> {
   const constraints: QueryConstraint[] = [
     where('status', '==', 'active'),
     orderBy('created_at', 'desc'),
@@ -49,7 +49,7 @@ export async function fetchActiveListings(opts?: {
   const q = query(collection(db, 'listings'), ...constraints);
   const snap = await getDocs(q);
 
-  let results = snap.docs.map(d => ({ id: d.id, ...d.data() }) as Listing);
+  let results = snap.docs.map(d => ({ id: d.id, ...d.data() }) as PublicListing);
 
   // Client-side filters (can't use multiple range filters in Firestore)
   if (opts?.minBedrooms) results = results.filter(l => l.bedrooms >= opts.minBedrooms!);
@@ -62,10 +62,10 @@ export async function fetchActiveListings(opts?: {
  * Fetch a single active listing by ID (public detail page).
  * Returns null if not found OR if status !== "active".
  */
-export async function fetchActiveListingById(id: string): Promise<Listing | null> {
+export async function fetchActiveListingById(id: string): Promise<PublicListing | null> {
   const snap = await getDoc(doc(db, 'listings', id));
   if (!snap.exists()) return null;
-  const listing = { id: snap.id, ...snap.data() } as Listing;
+  const listing = { id: snap.id, ...snap.data() } as PublicListing;
   // Security: only return active listings to the public
   if (listing.status !== 'active') return null;
   return listing;
@@ -75,7 +75,7 @@ export async function fetchActiveListingById(id: string): Promise<Listing | null
  * Fetch featured listings (highest AI score, active).
  * Used on the homepage hero section.
  */
-export async function fetchFeaturedListings(count = 6): Promise<Listing[]> {
+export async function fetchFeaturedListings(count = 6): Promise<PublicListing[]> {
   const q = query(
     collection(db, 'listings'),
     where('status', '==', 'active'),
@@ -83,7 +83,7 @@ export async function fetchFeaturedListings(count = 6): Promise<Listing[]> {
     limit(count)
   );
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }) as Listing);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }) as PublicListing);
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
