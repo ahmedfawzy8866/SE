@@ -16,7 +16,7 @@
  * deps / new routes and are intentionally out of this first wiring pass.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   MapPin, Search, BedDouble, Bath, Maximize, Sparkles, Compass,
   BadgeCheck, ArrowRight, Sun, Moon, Heart, TrendingUp, Calculator,
@@ -25,13 +25,13 @@ import {
 import { useHouyezPortal } from '@/lib/houyez/useHouyezPortal';
 import {
   HOUEZ_SLIDES, HOUEZ_SEARCH_TABS, HOUEZ_TYPE_FILTERS,
-  type HouyezListing,
+  type HouyezListing, type HouyezSlide, type HouyezCompound,
 } from '@/data/houyez-properties';
 import VirtualTourViewer from '@/components/virtual-tour/VirtualTourViewer';
 import dynamic from 'next/dynamic';
 import './houyez-portal.css';
 
-const LiveMap = dynamic(() => import('@/components/Maps/LiveMap'), { ssr: false });
+const LiveMap = dynamic(() => import('@/components/Maps/LiveMap'), { ssr: false }) as React.ComponentType<{ mode?: Theme }>;
 
 const HERO_INTERVAL_MS = 6000;
 type Locale = 'en' | 'ar';
@@ -145,7 +145,7 @@ export default function HouyezPortal() {
   }, [fType]);
 
   const zones = useMemo(
-    () => Array.from(new Set(listings.map((l) => (isAr ? l.zoneAr : l.zone)))).sort(),
+    () => Array.from(new Set(listings.map((l: HouyezListing) => (isAr ? l.zoneAr : l.zone)))).filter((z): z is string => z != null).sort(),
     [listings, isAr],
   );
 
@@ -242,7 +242,7 @@ export default function HouyezPortal() {
 
       {/* ── HERO ── */}
       <section className="hero">
-        {slides.map((s, i) => (
+        {slides.map((s: HouyezSlide, i: number) => (
           <div key={s.id ?? i} className={`slide${i === slideIdx ? ' on' : ''}`} aria-hidden={i !== slideIdx}>
             <img src={s.img} alt="" loading={i === 0 ? 'eager' : 'lazy'} />
           </div>
@@ -270,7 +270,7 @@ export default function HouyezPortal() {
           </div>
         </div>
         <div className="dots" role="tablist" aria-label="hero slides">
-          {slides.map((s, i) => (
+          {slides.map((s: HouyezSlide, i: number) => (
             <button key={s.id ?? i} role="tab" aria-selected={i === slideIdx}
               aria-label={`slide ${i + 1}`} className={i === slideIdx ? 'on' : ''}
               onClick={() => setSlideIdx(i)} />
@@ -282,7 +282,7 @@ export default function HouyezPortal() {
       <div className="wrap">
         <div className="search-card">
           <div className="search-tabs" role="tablist">
-            {HOUEZ_SEARCH_TABS.map((tab) => (
+            {HOUEZ_SEARCH_TABS.map((tab: typeof HOUEZ_SEARCH_TABS[number]) => (
               <button key={tab.id} role="tab" aria-selected={tab.id === searchTab}
                 className={tab.id === searchTab ? 'active' : ''} onClick={() => setSearchTab(tab.id)}>
                 {isAr ? tab.labelAr : tab.label}
@@ -300,7 +300,7 @@ export default function HouyezPortal() {
             <div className="field">
               <label>{t('Type', 'النوع')}</label>
               <select value={fType} onChange={(e) => setFType(e.target.value)}>
-                {HOUEZ_TYPE_FILTERS.map((f) => (<option key={f.id} value={f.id}>{isAr ? f.labelAr : f.label}</option>))}
+                {HOUEZ_TYPE_FILTERS.map((f: typeof HOUEZ_TYPE_FILTERS[number]) => (<option key={f.id} value={f.id}>{isAr ? f.labelAr : f.label}</option>))}
               </select>
             </div>
             <div className="field">
@@ -354,7 +354,7 @@ export default function HouyezPortal() {
           <div className="grid-props">
             {featured.length === 0 ? (
               <div className="empty">{t('No matching properties. Try another filter.', 'لا توجد عقارات مطابقة. جرّب فلتراً آخر.')}</div>
-            ) : featured.map((p, i) => {
+            ) : featured.map((p: HouyezListing, i: number) => {
               const price = fmtPrice(p);
               const on = saved.has(p.code);
               return (
@@ -400,7 +400,7 @@ export default function HouyezPortal() {
             </div>
           </div>
           <div className="grid-comp">
-            {compounds.slice(0, 8).map((c, i) => (
+            {compounds.slice(0, 8).map((c: HouyezCompound, i: number) => (
               <a key={c.id ?? c.name} className="comp rv" href="#se-featured"
                  style={{ transitionDelay: `${(i % 4) * 60}ms` }}
                  onClick={(e) => { e.preventDefault(); scrollTo('se-featured'); }}>
