@@ -142,6 +142,7 @@ export function Nav({ active }: { active?: 'home' | 'props' | 'cpds' }) {
           <Link href="#top" className={active === 'home' ? 'active' : ''}>{t('navHome')}</Link>
           <Link href="#properties" className={active === 'props' ? 'active' : ''}>{t('navProps')}</Link>
           <Link href="#compounds" className={active === 'cpds' ? 'active' : ''}>{t('navCpds')}</Link>
+          <Link href="#map">{t('navMap')}</Link>
           <Link href="#ai">{t('navAI')}</Link>
           <Link href="#contact">{t('navContact')}</Link>
         </div>
