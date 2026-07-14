@@ -151,13 +151,13 @@ export default function HouyezPortal() {
 
   const featured = useMemo(() => {
     return listings
-      .filter((p) =>
+      .filter((p: HouyezListing) =>
         p.mode === modeForTab &&
         matchType(p) &&
         (fBeds === 'any' || p.beds >= Number(fBeds)) &&
         (fLoc === 'all' || (isAr ? p.zoneAr : p.zone) === fLoc) &&
         (fPrice === 'any' || p.mode !== 'sale' || p.egpM <= Number(fPrice)))
-      .sort((a, b) => b.ai - a.ai)
+      .sort((a: HouyezListing, b: HouyezListing) => b.ai - a.ai)
       .slice(0, 9);
   }, [listings, modeForTab, matchType, fBeds, fLoc, fPrice, isAr]);
 
