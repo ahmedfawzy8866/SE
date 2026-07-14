@@ -1,5 +1,0 @@
- WARN  Unsupported engine: wanted: {"node":"20"} (current: {"node":"v26.2.0","pnpm":"9.14.4"})
-
-> sierra-estates-functions@1.0.0 type-check H:\Sierra-Estates-Final\functions
-> tsc --noEmit
-
