@@ -3,6 +3,7 @@ import { verifyAdminRequest } from '@/lib/server/auth-guard';
 import { adminDb } from '@/lib/server/firebase-admin';
 import { AUTOMATION_COLLECTIONS } from '@/lib/models/automation';
 import { logger } from '@/lib/logger';
+import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 export async function GET(
   _req: NextRequest,
@@ -38,7 +39,7 @@ export async function GET(
       .limit(limit)
       .get();
 
-    const executions = snap.docs.map((doc) => ({
+    const executions = snap.docs.map((doc: QueryDocumentSnapshot) => ({
       id: doc.id,
       ...doc.data(),
     }));
