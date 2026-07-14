@@ -78,11 +78,11 @@ export async function verifySecretKey(req: NextRequest) {
 /**
  * Wrap API route with auth guard
  */
-export function withAdminAuth(handler: (req: NextRequest) => Promise<NextResponse>) {
-  return async (req: NextRequest) => {
+export function withAdminAuth(handler: (req: NextRequest, context: any) => Promise<NextResponse>) {
+  return async (req: NextRequest, context: any) => {
     try {
       await verifyAdminRequest(req);
-      return handler(req);
+      return handler(req, context);
     } catch (error) {
       return NextResponse.json(
         { error: error instanceof Error ? error.message : 'Unauthorized' },
@@ -95,11 +95,11 @@ export function withAdminAuth(handler: (req: NextRequest) => Promise<NextRespons
 /**
  * Wrap cron/webhook route with secret key
  */
-export function withSecretKey(handler: (req: NextRequest) => Promise<NextResponse>) {
-  return async (req: NextRequest) => {
+export function withSecretKey(handler: (req: NextRequest, context: any) => Promise<NextResponse>) {
+  return async (req: NextRequest, context: any) => {
     try {
       await verifySecretKey(req);
-      return handler(req);
+      return handler(req, context);
     } catch (error) {
       return NextResponse.json(
         { error: 'Unauthorized' },

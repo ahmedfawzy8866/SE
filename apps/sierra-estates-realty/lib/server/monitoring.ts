@@ -98,7 +98,7 @@ async function checkN8nHealth(): Promise<ServiceHealth> {
   try {
     // In production, ping the n8n API
     const response = await fetch('http://localhost:5678/api/v1/workflows', {
-      timeout: 2000,
+      signal: AbortSignal.timeout(2000),
       headers: { 'Content-Type': 'application/json' },
     }).catch(() => null);
 
@@ -128,7 +128,7 @@ async function checkPythonApiHealth(): Promise<ServiceHealth> {
   try {
     // In production, this would be the Cloud Run service endpoint
     const response = await fetch('http://localhost:8000/health', {
-      timeout: 2000,
+      signal: AbortSignal.timeout(2000),
     }).catch(() => null);
 
     const latency = performance.now() - startTime;
