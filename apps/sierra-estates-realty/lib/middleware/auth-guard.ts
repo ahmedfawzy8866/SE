@@ -78,8 +78,8 @@ export async function verifySecretKey(req: NextRequest) {
 /**
  * Wrap API route with auth guard
  */
-export function withAdminAuth(handler: (req: NextRequest, context: any) => Promise<NextResponse>) {
-  return async (req: NextRequest, context: any) => {
+export function withAdminAuth(handler: (req: NextRequest, context?: any) => Promise<NextResponse>) {
+  return async (req: NextRequest, context?: any) => {
     try {
       await verifyAdminRequest(req);
       return handler(req, context);
@@ -95,8 +95,8 @@ export function withAdminAuth(handler: (req: NextRequest, context: any) => Promi
 /**
  * Wrap cron/webhook route with secret key
  */
-export function withSecretKey(handler: (req: NextRequest, context: any) => Promise<NextResponse>) {
-  return async (req: NextRequest, context: any) => {
+export function withSecretKey(handler: (req: NextRequest, context?: any) => Promise<NextResponse>) {
+  return async (req: NextRequest, context?: any) => {
     try {
       await verifySecretKey(req);
       return handler(req, context);

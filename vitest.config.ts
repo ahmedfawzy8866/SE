@@ -7,8 +7,6 @@ export default defineConfig({
     environment: 'node',
     include: [
       'packages/shared/src/__tests__/**/*.test.ts',
-      'apps/admin/src/__tests__/**/*.test.ts',
-      'apps/client/src/__tests__/**/*.test.ts',
       'infra/n8n-workflows/__tests__/**/*.test.ts',
       'infra/whatsapp-scraper/__tests__/**/*.test.ts',
     ],

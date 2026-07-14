@@ -16,6 +16,6 @@ export async function GET(request: Request) {
     return NextResponse.json(portfolio);
   } catch (error: any) {
     logger.error('Portfolio fetch failed', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ error: 'Failed to fetch portfolio' }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
