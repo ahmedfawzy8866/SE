@@ -51,12 +51,6 @@ Recommended approach:
    - **i18n** → the repo's `lib/I18nContext.tsx` (already present on `main`).
    - **Theme** → a small `next-themes`-style provider (light/dark; see Theme section).
 
-> The static site also has an **optional Supabase path** (`supabase.js`,
-> `supabase-config.js`, `schema.sql`) that mirrors the same data shapes. The
-> monorepo standard is **Firebase/Firestore** (`houyez_*`). Prefer Firestore; the
-> Supabase files are included only so the data model and RLS intent are documented
-> in one place — don't introduce a second backend unless explicitly decided.
-
 ### Suggested component tree
 
 ```
