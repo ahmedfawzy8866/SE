@@ -11,6 +11,7 @@
     "type-check": "turbo run type-check",
     "test": "turbo run test",
     "test:ci": "turbo run test:ci",
+    "validate": "turbo run build lint type-check test",
     "deploy:rules": "firebase deploy --only firestore:rules,storage",
     "deploy:functions": "firebase deploy --only functions"
   },
