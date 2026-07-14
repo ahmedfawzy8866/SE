@@ -84,26 +84,26 @@
   .container-page {
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
   }
-  .btn {
+  .btn, .btn-primary, .btn-gold, .btn-outline, .btn-ghost, .btn-danger {
     @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5
            text-sm font-semibold transition-all duration-200 focus:outline-none
            focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2
            disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
-    @apply btn bg-navy-900 text-cream hover:bg-navy-800 shadow-card;
+    @apply bg-navy-900 text-cream hover:bg-navy-800 shadow-card;
   }
   .btn-gold {
-    @apply btn bg-gold-500 text-navy-950 hover:bg-gold-400 shadow-card;
+    @apply bg-gold-500 text-navy-950 hover:bg-gold-400 shadow-card;
   }
   .btn-outline {
-    @apply btn border border-navy-900/20 bg-transparent text-navy-900 hover:bg-navy-900/5;
+    @apply border border-navy-900/20 bg-transparent text-navy-900 hover:bg-navy-900/5;
   }
   .btn-ghost {
-    @apply btn bg-transparent text-navy-900 hover:bg-navy-900/5;
+    @apply bg-transparent text-navy-900 hover:bg-navy-900/5;
   }
   .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700;
+    @apply bg-red-600 text-white hover:bg-red-700;
   }
   .card {
     @apply rounded-lg border border-border bg-surface shadow-card;
@@ -116,16 +116,16 @@
   .label {
     @apply block text-xs font-semibold uppercase tracking-wide text-muted mb-1.5;
   }
-  .badge {
+  .badge, .badge-gold, .badge-navy, .badge-green, .badge-red, .badge-amber, .badge-gray {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5
            text-xs font-semibold;
   }
-  .badge-gold  { @apply badge bg-gold-300/30 text-gold-600; }
-  .badge-navy  { @apply badge bg-navy-900/10 text-navy-900; }
-  .badge-green { @apply badge bg-emerald-100 text-emerald-700; }
-  .badge-red   { @apply badge bg-red-100 text-red-700; }
-  .badge-amber { @apply badge bg-amber-100 text-amber-700; }
-  .badge-gray  { @apply badge bg-gray-100 text-gray-700; }
+  .badge-gold  { @apply bg-gold-300/30 text-gold-600; }
+  .badge-navy  { @apply bg-navy-900/10 text-navy-900; }
+  .badge-green { @apply bg-emerald-100 text-emerald-700; }
+  .badge-red   { @apply bg-red-100 text-red-700; }
+  .badge-amber { @apply bg-amber-100 text-amber-700; }
+  .badge-gray  { @apply bg-gray-100 text-gray-700; }
   .tab-link {
     @apply inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium
            text-muted hover:bg-navy-900/5 hover:text-navy-900 transition-colors;

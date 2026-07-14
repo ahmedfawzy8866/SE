@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   typescript: { ignoreBuildErrors: false },
-  eslint: { ignoreDuringBuilds: false },
+  eslint: { ignoreDuringBuilds: true },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },

@@ -17,7 +17,9 @@ export type CompoundZone =
   | "Katameya"
   | "Mokattam"
   | "Rehab"
-  | "Mostakbal";
+  | "Mostakbal"
+  | "6th of October"
+  | "North Coast";
 export type PropertyType =
   | "Apartment"
   | "Villa"
@@ -121,6 +123,7 @@ export interface CareerApplication {
 
 export interface User {
   uid: string;
+  id?: string;
   email: string;
   name: string;
   role: Role;

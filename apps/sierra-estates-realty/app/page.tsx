@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * ════════════════════════════════════════════════════════════════════
  *  Sierra Estates — CLIENT PAGE (single page, route: /)
