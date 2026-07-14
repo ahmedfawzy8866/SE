@@ -1,70 +1,88 @@
-# SE — Sierra Estates Portal
+# Sierra Estates — Client Portal (Next.js 15)
 
-> Live at **https://ahmedfawzy8866.github.io/SE/**
+> Public-facing real estate portal. Reads active listings from Firestore,
+> supports filtering, detail pages, 3D virtual tours, and inquiry submission.
+
+## 🔒 Zero-Trust Security
+
+The client portal can **ONLY**:
+- ✅ Read `listings` where `status = "active"`
+- ✅ Create new documents in `inquiries` (write-only)
+
+It **CANNOT** access:
+- ❌ `owners` (PII — blocked by Firestore rules)
+- ❌ `clients` (CRM — blocked)
+- ❌ `requests` (workflow tickets — blocked)
+- ❌ `agents` (RBAC directory — blocked)
+
+Security is enforced at the database level by Firestore Security Rules,
+not by this code. Even if a malicious user modifies the client-side code,
+the database will reject all unauthorized reads.
+
+## Quick Start
+
+```bash
+cd apps/client
+cp .env.example .env.local
+# Edit .env.local with your Firebase config
+npm install
+npm run dev
+```
+
+Open http://localhost:3000
 
 ## Structure
 
 ```
-se/
-├── index.html              ← Main portal (Houyez-Style, 8 sections + inline 3D tour)
-├── compounds.html          ← Compounds page (Leaflet intelligence map)
-├── properties.html         ← Properties listing grid
-├── property.html           ← Single property detail (gallery, mini-map, agent)
-├── virtual-tour.html       ← Full-page 3D tour viewer
-├── shared.css              ← Shared styles (incl. RTL icon flipping)
-├── shared.js               ← Shared logic (i18n, theme, animations)
-├── data.js                 ← Seed data (slides, listings, compounds, rooms)
-├── assets/                 ← Logo images
-├── logo-gold.png           ← Logo (light bg)
-│
-├── backend/                ← Python backend (Sierra Blue bot + API integrations)
-│   ├── sierra_blue_api_integration.py
-│   ├── sierra_blue_bot_implementation.py
-│   └── system_prompt_and_deployment.py
-│
-├── scripts/                ← Utility scripts
-│   └── activate-agents.js  ← Firebase bulk agent activator
-│
-├── data/                   ← Property data
-│   └── properties-master.xlsx  ← Master Excel (Owners-Rent, Owners-Resale, Brokers, Team Units)
-│
-├── docs/                   ← Documentation
-│   ├── SIERRA_BLUE_FULL_HANDOVER.md
-│   ├── INSTRUCTIONS_FOR_AHMED.md
-│   ├── SKILL_excel.md
-│   └── ترميز وصف الوحدة السكنية بالتفاصيل - DeepSeek.html
-│
-└── .gitignore              ← Excludes SSL certs, Twilio codes, service accounts, .env
+apps/client/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx          ← Root layout (metadata + html shell)
+│   │   ├── page.tsx            ← Homepage (featured listings)
+│   │   ├── globals.css         ← Global styles
+│   │   ├── listings/
+│   │   │   ├── page.tsx        ← Listings grid with filters
+│   │   │   └── [id]/
+│   │   │       └── page.tsx    ← Listing detail (specs, tour, AI score)
+│   │   └── inquire/
+│   │       └── page.tsx        ← Inquiry form (writes to Firestore)
+│   ├── lib/
+│   │   ├── firebase.ts         ← Firebase init (singleton)
+│   │   └── publicData.ts       ← Public read layer (active listings only)
+│   └── components/             ← (future: shared UI components)
+├── public/                     ← Static assets
+├── package.json
+├── tsconfig.json
+├── next.config.ts
+└── .env.example
 ```
 
-## Recent fixes
+## Pages
 
-### 1. RTL button direction (Arabic mode)
-- Directional icons (`arrow-right`, `chevron-right`, etc.) now flip via `transform: scaleX(-1)` when `dir="rtl"`
-- Non-directional icons (`map-pin`, `search`, `play`, etc.) are explicitly excluded from flipping
-- Scroll-cue laser line moves to the left side in RTL
+| Route | Description |
+|-------|-------------|
+| `/` | Homepage with hero + featured listings (AI-ranked top 6) |
+| `/listings` | Filterable grid (mode, type, compound, beds, price) |
+| `/listings/[id]` | Detail page (specs, gallery, virtual tour, AI score, inquire CTA) |
+| `/inquire` | Inquiry form (pre-fills listing_id + compound from URL params) |
 
-### 2. Map refinement (compounds.html + property.html)
-- Map height increased: 540px → 580px (desktop), 400px → 420px (mobile)
-- Added `map.invalidateSize()` calls at 200ms + 800ms after load (fixes tile loading issues)
-- Added `window resize` listener to re-invalidate the map
-- Map center adjusted to `[30.03, 31.57]` (better centering on New Cairo compounds)
-- Zoom control explicitly enabled
+## Deploy to Vercel
 
-## Security
+```bash
+# From the monorepo root:
+vercel --cwd apps/client
 
-The following files are in `.gitignore` and will NEVER be committed:
-- SSL certificates (`*.crt`, `*.ca-bundle`, `*.p7b`)
-- Twilio 2FA recovery codes
-- Firebase service account JSONs
-- `.env` files
+# Or connect the GitHub repo to Vercel and set:
+# - Root Directory: apps/client
+# - Build Command: next build
+# - Env vars: NEXT_PUBLIC_FIREBASE_* (from .env.local)
+```
 
-## Live URLs
+## Tech Stack
 
-| URL | What |
-|-----|------|
-| https://ahmedfawzy8866.github.io/SE/ | Main portal |
-| https://ahmedfawzy8866.github.io/SE/compounds.html | Map + compounds |
-| https://ahmedfawzy8866.github.io/SE/properties.html | Listings grid |
-| https://ahmedfawzy8866.github.io/SE/property.html | Property detail |
-| https://ahmedfawzy8866.github.io/SE/virtual-tour.html | 3D tour full page |
+- **Next.js 15** (App Router, Server Components, Turbopack)
+- **React 19**
+- **TypeScript** (strict mode)
+- **Firebase** (Firestore read-only for public data)
+- **Lucide React** (icons)
+- Shared types from `@sierra-estates/types` (workspace package)

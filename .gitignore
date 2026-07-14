@@ -1,7 +1,10 @@
-# dependencies
-/node_modules
+# dependencies (any depth, not just root)
+node_modules/
 /.pnp
 .pnp.*
+
+# legacy junk — permanently excluded (Phase 0)
+firebase/firebase/
 
 # next.js
 /.next/

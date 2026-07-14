@@ -3,7 +3,8 @@ import {
   LogOut, Languages, PanelLeftClose, PanelLeftOpen, X,
   LayoutDashboard, Users, Building2, CalendarCheck, BarChart3,
   FileText, Bot, Workflow, Zap, Settings, RefreshCw, Database,
-  Sun, Moon,
+  Sun, Moon, MessageSquare, ClipboardList,
+  Briefcase, CheckSquare, Palette, PenLine, Gavel, Activity, TerminalSquare, BarChart2, Settings2,
   type LucideIcon,
 } from 'lucide-react';
 import { auth } from '../firebase';
@@ -27,7 +28,7 @@ interface NavItem {
   label: string;
   labelAr: string;
   icon: LucideIcon;
-  section: 'core' | 'automation' | 'integrations' | 'system';
+  section: 'core' | 'operations' | 'automation' | 'intelligence' | 'integrations' | 'system';
   badge?: string;
   badgeTone?: 'success' | 'info';
 }
@@ -36,29 +37,44 @@ interface NavItem {
 // Each item carries EN + AR labels so the sidebar re-renders cleanly on
 // language switch without re-deriving the labels via the T() lookup.
 export const NAV_ITEMS: NavItem[] = [
-  // ── Core operations ────────────────────────────────────────────────
+  // ── Core operations (MegaDashboard scroll targets) ────────────────
   { id: 'overview',       label: 'Live Dashboard',    labelAr: 'لوحة التحكم',           icon: LayoutDashboard, section: 'core' },
   { id: 'leads',          label: 'Leads & CRM',       labelAr: 'العملاء و CRM',         icon: Users,           section: 'core' },
   { id: 'listings',       label: 'Property Inventory',labelAr: 'العقارات',              icon: Building2,       section: 'core' },
   { id: 'followups',      label: 'Follow-ups',        labelAr: 'المتابعات',             icon: CalendarCheck,   section: 'core' },
   { id: 'searchInsights', label: 'Search Insights',   labelAr: 'تحليلات البحث',         icon: BarChart3,       section: 'core' },
   { id: 'pageEditor',     label: 'Page Editor',       labelAr: 'محرر الصفحات',          icon: FileText,        section: 'core' },
+  // ── Operations (Pipeline + Tasks + Curator/Scribe/Closer) ──────────
+  { id: 'pipeline',       label: 'Deal Pipeline',     labelAr: 'خط الصفقات',            icon: Briefcase,       section: 'operations' },
+  { id: 'tasks',          label: 'Tasks',             labelAr: 'المهام',                icon: CheckSquare,     section: 'operations', badge: '5', badgeTone: 'info' },
+  { id: 'curator',        label: 'The Curator',       labelAr: 'المنظم',                icon: Palette,         section: 'operations' },
+  { id: 'scribe',         label: 'The Scribe',        labelAr: 'الكاتب',                icon: PenLine,         section: 'operations' },
+  { id: 'closer',         label: 'Stage-9 Closer',    labelAr: 'الإغلاق',               icon: Gavel,           section: 'operations' },
   // ── Automation & agents ────────────────────────────────────────────
-  { id: 'nexus',          label: 'Exchange Hub',      labelAr: 'مركز التبادل',          icon: Zap,             section: 'automation' },
+  { id: 'nexus',          label: 'Nexus-AI Telemetry',labelAr: 'نيكسوس',                icon: Activity,        section: 'intelligence', badge: 'LIVE', badgeTone: 'success' },
   { id: 'bots',           label: 'Bots Control',      labelAr: 'التحكم بالبوتات',       icon: Bot,             section: 'automation' },
   { id: 'agents',         label: 'AI Agents',         labelAr: 'وكلاء الذكاء',          icon: Bot,             section: 'automation', badge: '6', badgeTone: 'success' },
   { id: 'workflows',      label: 'Workflows',         labelAr: 'سير العمل',             icon: Workflow,        section: 'automation', badge: '8', badgeTone: 'info' },
+  // ── Intelligence (telemetry + reports) ─────────────────────────────
+  { id: 'openclaw',       label: 'OpenClaw Terminal', labelAr: 'أوبن كلو',              icon: TerminalSquare,  section: 'intelligence' },
+  { id: 'reports',        label: 'Reports',           labelAr: 'التقارير',              icon: BarChart2,       section: 'intelligence' },
   // ── Integrations ───────────────────────────────────────────────────
   { id: 'easyListing',    label: 'Easy Listing',      labelAr: 'إدراج سريع',            icon: Zap,             section: 'integrations' },
   { id: 'automation',     label: 'Automation Portal', labelAr: 'بوابة الأتمتة',         icon: Settings,        section: 'integrations' },
   { id: 'dataSync',       label: 'Data Sync',         labelAr: 'مزامنة البيانات',       icon: RefreshCw,       section: 'integrations' },
+  // ── Phase 3: Typed CRUD pages ──────────────────────────────────────
+  { id: 'listingsManager', label: 'Listings Manager',  labelAr: 'إدارة العقارات',        icon: ClipboardList,   section: 'integrations' },
+  { id: 'requestsTickets', label: 'Request Tickets',   labelAr: 'تذاكر الطلبات',         icon: MessageSquare,   section: 'integrations' },
   // ── System ─────────────────────────────────────────────────────────
   { id: 'dbEditor',       label: 'DB Editor',         labelAr: 'محرر قاعدة البيانات',   icon: Database,        section: 'system' },
+  { id: 'settings',       label: 'System Config',     labelAr: 'إعدادات النظام',        icon: Settings2,       section: 'system' },
 ];
 
 const SECTION_LABELS: Record<NavItem['section'], { en: string; ar: string }> = {
   core:         { en: 'Operations',   ar: 'العمليات' },
+  operations:   { en: 'Pipeline',     ar: 'الصفقات' },
   automation:   { en: 'Automation',   ar: 'الأتمتة' },
+  intelligence: { en: 'Intelligence', ar: 'الاستخبارات' },
   integrations: { en: 'Integrations', ar: 'التكاملات' },
   system:       { en: 'System',       ar: 'النظام' },
 };
