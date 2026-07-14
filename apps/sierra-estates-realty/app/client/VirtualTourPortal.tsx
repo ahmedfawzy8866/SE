@@ -48,7 +48,7 @@ export default function VirtualTourPortal() {
             ))}
           </div>
           <div style={{ textAlign: 'center', marginTop: 40 }}>
-            <Link href="/properties" className="btn btn-pri"><span>{t('viewAll')}</span> <IconArrowRight size={16} /></Link>
+            <Link href="/?view=properties" className="btn btn-pri"><span>{t('viewAll')}</span> <IconArrowRight size={16} /></Link>
           </div>
         </div>
       </section>

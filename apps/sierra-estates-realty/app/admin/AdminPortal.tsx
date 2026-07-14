@@ -32,12 +32,12 @@ import {
   ResponsiveContainer, Cell as RechartsCell, Treemap,
 } from 'recharts';
 import type { Agent as SEAgentType } from '@sierra-estates/types';
-import DBEditorPage from './pages/DBEditorPage';
-import PageEditorPage from './pages/PageEditorPage';
-import BotsControlPage from './pages/BotsControlPage';
-import FollowupsPage from './pages/FollowupsPage';
-import EasyListingPage from './pages/EasyListingPage';
-import SearchInsightsPage from './pages/SearchInsightsPage';
+import DBEditorPage from './panels/DBEditorPage';
+import PageEditorPage from './panels/PageEditorPage';
+import BotsControlPage from './panels/BotsControlPage';
+import FollowupsPage from './panels/FollowupsPage';
+import EasyListingPage from './panels/EasyListingPage';
+import SearchInsightsPage from './panels/SearchInsightsPage';
 import {
   fetchListings as adminFetchListings,
   createListingWithOwner as adminCreateListingWithOwner,

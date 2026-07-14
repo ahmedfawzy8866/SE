@@ -1,13 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, isFirebaseClientConfigured } from '@/lib/firebase';
-import '../admin-portal.css';
+import './admin-portal.css';
 
-export default function AdminLoginPage() {
-  const router = useRouter();
+/**
+ * Staff login form for the unified admin page. Rendered inline by the admin
+ * auth-gate (app/admin/layout.tsx) whenever there is no authenticated staff
+ * session — there is no separate `/admin/login` route. On a successful
+ * sign-in the layout's `onAuthStateChanged` listener re-evaluates the session
+ * and swaps this form for the portal, so this component does not navigate.
+ */
+export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,7 +28,7 @@ export default function AdminLoginPage() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.replace('/admin');
+      // The auth-gate listener (admin/layout.tsx) takes over from here.
     } catch (_err) {
       setError('Invalid credentials. Staff access only.');
     } finally {
