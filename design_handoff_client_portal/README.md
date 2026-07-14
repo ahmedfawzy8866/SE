@@ -190,7 +190,7 @@ Sections below are in live document order. IDs are the anchors in
 - **Purpose:** interactive New Cairo compound map.
 - **Library:** Leaflet 1.9.4 + `leaflet.markercluster` 1.5.3 (both from unpkg;
   install `leaflet` + `react-leaflet` or wrap Leaflet directly)
-  + `leaflet.markercluster`.
+  - `leaflet.markercluster`.
 - **Map:** `#home-map`, height 480px. CARTO light tiles (light theme) / **CARTO dark
   tiles + gold markers** (dark theme). Markers cluster when zoomed out; compound
   markers labelled with `compounds[].n` — **Arabic names when lang = AR** (52
