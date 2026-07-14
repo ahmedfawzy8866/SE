@@ -22,9 +22,11 @@ export default [
     languageOptions: {
       ecmaVersion: 2020,
       sourceType: 'module',
-      // No parserOptions.project — the root tsconfig.json has "files":[]
-      // and does not include src/**. Type-aware rules are handled by the
-      // Next.js compiler (next build) and the per-app tsconfigs in apps/.
+      parser: (await import('typescript-eslint')).parser,
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+        project: ['./tsconfig.json'],
+      },
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',

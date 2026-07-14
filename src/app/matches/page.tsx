@@ -145,7 +145,24 @@ export default function MatchesPage() {
           from { transform: scaleX(0); }
           to   { transform: scaleX(1); }
         }
+        @keyframes se-laser {
+          0%   { transform: translateY(0);     opacity: 0; }
+          8%   { opacity: .95; }
+          92%  { opacity: .95; }
+          100% { transform: translateY(640px); opacity: 0; }
+        }
+        .hero-laser {
+          position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 2;
+          pointer-events: none;
+          background: linear-gradient(90deg, transparent, #e9c176 18%, #fff 50%, #c8961a 82%, transparent);
+          box-shadow: 0 0 14px 2px rgba(233,193,118,.65);
+          opacity: .9;
+        }
+        @media (prefers-reduced-motion: no-preference) {
+          .hero-laser { animation: se-laser 5s cubic-bezier(.6,0,.4,1) infinite; }
+        }
         @media (prefers-reduced-motion: reduce) {
+          .hero-laser { display: none; }
           .mc-card, .stat-card { animation: none !important; opacity: 1 !important; }
         }
         .mc-card:hover { transform: translateY(-4px); border-color: rgba(201,162,77,.4) !important; box-shadow: 0 16px 40px rgba(10,22,40,.14) !important; }
@@ -176,6 +193,8 @@ export default function MatchesPage() {
         padding: 'clamp(48px,7vw,72px) 24px clamp(40px,6vw,60px)',
         position: 'relative', overflow: 'hidden',
       }}>
+        {/* Laser sweep — matches HouyezPortal se-laser */}
+        <div className="hero-laser" />
         {/* Gold radial glow — not cyan */}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
