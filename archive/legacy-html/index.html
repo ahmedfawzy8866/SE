@@ -1,12 +1,37 @@
-<!-- @dsCard group="Web App" viewport="1440x1024" name="Houzez-Style Portal" subtitle="Light/dark remix marketplace — Houzez cyan + gold dark mode, EN/AR, motion, live map" -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Sierra Estates · New Cairo Properties</title>
+<title>Sierra Estates · New Cairo Properties — Rent & Resale</title>
+<meta name="description" content="Sierra Estates — AI-curated rent and resale properties across 50+ New Cairo compounds. Verified listings, live AVM pricing, licensed brokers."/>
+<link rel="canonical" href="https://ahmedfawzy8866.github.io/SE/"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Sierra Estates · New Cairo Properties"/>
+<meta property="og:description" content="AI-curated rent and resale properties across 50+ New Cairo compounds. Verified listings, live AVM pricing, licensed brokers."/>
+<meta property="og:url" content="https://ahmedfawzy8866.github.io/SE/"/>
+<meta property="og:image" content="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1200&q=80"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="icon" type="image/png" href="logo-gold.png"/>
+
+<!-- Apply saved theme + language before first paint (no flash of wrong theme) -->
+<script>
+(function () {
+  var d = document.documentElement;
+  try {
+    var l = localStorage.getItem('hzp-lang') || 'en';
+    d.setAttribute('data-theme', localStorage.getItem('hzp-theme') || 'light');
+    d.lang = l;
+    d.dir = l === 'ar' ? 'rtl' : 'ltr';
+  } catch (e) { d.setAttribute('data-theme', 'light'); }
+})();
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+<link rel="preconnect" href="https://images.unsplash.com"/>
+<link rel="preconnect" href="https://unpkg.com"/>
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1920&q=85" fetchpriority="high"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800;900&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="shared.css"/>
 <script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.min.js"></script>
@@ -65,19 +90,27 @@
 @media(max-width:680px){.hero h1{font-size:32px;line-height:1.12;max-width:100%;}.hero p.sub{font-size:13.5px;}.hero .h-eyebrow{font-size:10.5px;letter-spacing:.22em;}.hero{min-height:560px;padding:60px 0 120px;}}
 @media(max-width:420px){.hero h1{font-size:26px;}}
 
-/* ── LASER BEAM — appears fast, descends slowly (like video: ~3s sweep) ──
-     Inside hero only. z-index 6 (above scrim, below search card). */
-.page-laser{position:absolute;top:0;left:0;right:0;height:100%;z-index:6;pointer-events:none;overflow:hidden;border-radius:inherit;}
-.page-laser-beam{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent 5%,rgba(233,193,118,.4) 15%,#e9c176 35%,#fff 50%,#e9c176 65%,rgba(233,193,118,.4) 85%,transparent 95%);border-radius:3px;box-shadow:0 0 20px rgba(233,193,118,1),0 0 40px rgba(200,150,26,.7),0 0 60px rgba(200,150,26,.3),0 0 80px rgba(200,150,26,.15);animation:laserSweepDown 5s ease-in-out infinite;}
-/* Laser: pause at top (0-15%), descend (15-75%), pause at bottom (75-100%)
-   This creates a visible "rest" at the top before the beam sweeps down. */
-@keyframes laserSweepDown{
-  0%{top:0;opacity:0;}
-  5%{opacity:1;}
-  15%{top:0;opacity:1;}
-  75%{top:100%;opacity:1;}
-  85%{top:100%;opacity:0;}
-  100%{top:0;opacity:0;}
+<!-- Leaflet is NOT loaded here — home.js pulls it in only when the map section nears the viewport -->
+<script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.min.js" defer></script>
+<script src="data.js" defer></script>
+<script src="shared.js" defer></script>
+<script src="home.js" defer></script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  "name": "Sierra Estates",
+  "url": "https://ahmedfawzy8866.github.io/SE/",
+  "telephone": "+2 01092048333",
+  "email": "Info@sierra-estates.net",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Banafseg 2, Villa 402",
+    "addressLocality": "New Cairo",
+    "addressCountry": "EG"
+  },
+  "areaServed": ["New Cairo", "5th Settlement", "Katameya", "Madinaty", "El Shorouk", "Mostakbal City"]
 }
 @media(max-width:768px){.page-laser-beam{height:2px;box-shadow:0 0 14px rgba(233,193,118,.9),0 0 28px rgba(200,150,26,.5),0 0 42px rgba(200,150,26,.2);}}
 @media(prefers-reduced-motion:reduce){.page-laser-beam{animation:none;opacity:.4;top:50%;}}
@@ -455,14 +488,17 @@
 </head>
 <body>
 
+<a class="skip-link" href="#main" data-i18n="skipToContent">Skip to content</a>
 <div id="site-chrome"></div>
 
+<main id="main">
+
 <!-- HERO SLIDER -->
-<header class="hero" data-screen-label="Home hero">
-  <div id="hero-slides"></div>
-  <div class="scrim"></div>
+<header class="hero">
+  <div id="hero-slides" aria-hidden="true"></div>
+  <div class="scrim" aria-hidden="true"></div>
   <div class="wrap">
-    <div class="h-eyebrow" id="hero-pre"></div>
+    <p class="h-eyebrow" id="hero-pre"></p>
     <h1 id="hero-main"></h1>
     <p class="sub" data-i18n="heroSub"></p>
     <div class="quick">
@@ -475,10 +511,14 @@
     <span class="mc-ic"><i data-lucide="map" class="i"></i></span>
     <span data-i18n="exploreMapBtn"></span>
   </a>
-  <div class="dots wrap" id="hero-dots" style="left:auto;"></div>
+  <div class="dots" id="hero-dots"></div>
   <!-- ═══ LASER BEAM — inside hero only, never covers map or 3D ═══ -->
   <div class="page-laser" aria-hidden="true">
     <div class="page-laser-beam"></div>
+  </div>
+  <div class="scroll-cue" aria-hidden="true">
+    <span class="scroll-cue-line"></span>
+    <span class="scroll-cue-label">SCROLL</span>
   </div>
 </header>
 
@@ -504,15 +544,15 @@
     <div class="search-fields">
       <!-- Compound search with autocomplete -->
       <div class="field">
-        <label data-i18n="fLoc"></label>
+        <label for="hero-compound-search" data-i18n="fLoc"></label>
         <div class="search-compound-wrap" style="position:relative;">
-          <input type="text" id="hero-compound-search" class="hero-search-input" placeholder="Search compound... (e.g. Mivida)" autocomplete="off" style="width:100%;border:none;background:none;font-family:var(--font);font-size:14px;color:var(--ink);outline:none;padding:8px 0;" />
+          <input type="text" id="hero-compound-search" class="hero-search-input" data-i18n-ph="searchCpdPh" placeholder="Search compound… (e.g. Mivida)" autocomplete="off" style="width:100%;border:none;background:none;font-family:var(--font);font-size:14px;color:var(--ink);outline:none;padding:8px 0;" />
           <div id="hero-compound-results" class="compound-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:0 0 10px 10px;box-shadow:var(--shadow-m);z-index:100;max-height:280px;overflow-y:auto;"></div>
         </div>
       </div>
       <!-- Property Type dropdown -->
       <div class="field">
-        <label data-i18n="fType"></label>
+        <label for="hero-type" data-i18n="fType"></label>
         <select id="hero-type" class="hero-select" style="width:100%;border:1.5px solid var(--line-2);border-radius:8px;padding:9px 12px;font-family:var(--font);font-size:14px;color:var(--ink);background:var(--surface-2);outline:none;cursor:pointer;">
           <option value="">Any Type</option>
           <option value="Apartment">Apartment</option>
@@ -525,7 +565,7 @@
       </div>
       <!-- Bedrooms dropdown -->
       <div class="field">
-        <label data-i18n="fBeds"></label>
+        <label for="hero-beds" data-i18n="fBeds"></label>
         <select id="hero-beds" class="hero-select" style="width:100%;border:1.5px solid var(--line-2);border-radius:8px;padding:9px 12px;font-family:var(--font);font-size:14px;color:var(--ink);background:var(--surface-2);outline:none;cursor:pointer;">
           <option value="0">Any</option>
           <option value="1">1+</option>
@@ -537,7 +577,7 @@
       </div>
       <!-- Price dropdown -->
       <div class="field">
-        <label data-i18n="fPrice"></label>
+        <label for="hero-price" data-i18n="fPrice"></label>
         <select id="hero-price" class="hero-select" style="width:100%;border:1.5px solid var(--line-2);border-radius:8px;padding:9px 12px;font-family:var(--font);font-size:14px;color:var(--ink);background:var(--surface-2);outline:none;cursor:pointer;">
           <option value="0">Any Price</option>
           <option value="5">Up to 5M EGP</option>
@@ -555,15 +595,15 @@
   </div>
 </div>
 
-<!-- MARKET TICKER -->
-<div class="ticker" data-screen-label="Market ticker"><div class="row" id="ticker-row"></div></div>
+<!-- MARKET TICKER (decorative) -->
+<div class="ticker" aria-hidden="true"><div class="row" id="ticker-row"></div></div>
 
 <!-- FEATURED PROPERTIES -->
-<section class="block" id="properties" data-screen-label="Featured properties">
+<section class="block" id="properties">
   <div class="wrap">
     <div class="sec-head rv">
       <div>
-        <div class="eyebrow" data-i18n="eyeList"></div>
+        <p class="eyebrow" data-i18n="eyeList"></p>
         <h2 data-i18n="featTit"></h2>
         <p data-i18n="featSub"></p>
       </div>
@@ -767,31 +807,73 @@
     #vtv-poster > span:nth-child(6) span:nth-child(odd) > span:first-child { font-size:18px; }
   }
 </style>
-<script>
-(function () {
-  'use strict';
-  var poster = document.getElementById('vtv-poster');
-  var iframe = document.getElementById('vtv-iframe');
-  var loading = document.getElementById('vtv-loading');
-  var fsBtn = document.getElementById('vtv-fs');
-  var frame = document.getElementById('vtv-frame');
-  var loaded = false;
-  var TOUR_SRC = 'https://listing3d.com/embed/r39d0bd4dde0a4fe693c7fe5fd230a896';
-  function activate() {
-    if (loaded) return;
-    loading.style.display = 'flex';
-    poster.style.display = 'none';
-    iframe.src = TOUR_SRC;
-    iframe.onload = function () { loading.style.display = 'none'; iframe.style.opacity = '1'; fsBtn.style.display = 'grid'; };
-    loaded = true;
-  }
-  poster.addEventListener('click', activate);
-  fsBtn.addEventListener('click', function () {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else if (frame.requestFullscreen) frame.requestFullscreen();
-  });
-})();
-</script>
+
+
+<!-- WHY SIERRA -->
+<section class="block" id="agents">
+  <div class="wrap">
+    <div class="sec-head rv centered">
+      <div>
+        <p class="eyebrow" data-i18n="eyeWhy"></p>
+        <h2 data-i18n="whyTit"></h2>
+        <p data-i18n="whySub"></p>
+      </div>
+    </div>
+    <div class="net-banner rv">
+      <div class="nb-left">
+        <p class="eyebrow" data-i18n="netEye"></p>
+        <h3 data-i18n="netTit"></h3>
+        <p data-i18n="netBody"></p>
+      </div>
+      <div class="nb-stats">
+        <div class="nb-stat"><b data-count="1500" data-suffix="+">0</b><span data-i18n="netS1L"></span></div>
+        <div class="nb-stat"><b data-count="240" data-suffix="+">0</b><span data-i18n="netS2L"></span></div>
+        <div class="nb-stat"><b data-count="100" data-suffix="%">0</b><span data-i18n="netS3L"></span></div>
+      </div>
+    </div>
+    <div class="grid-feat">
+      <div class="feat rv"><div class="ic"><i data-lucide="radar" class="i"></i></div><h4 data-i18n="w1t"></h4><p data-i18n="w1s"></p></div>
+      <div class="feat rv d1"><div class="ic"><i data-lucide="trending-up" class="i"></i></div><h4 data-i18n="w2t"></h4><p data-i18n="w2s"></p></div>
+      <div class="feat rv d2"><div class="ic"><i data-lucide="heart-handshake" class="i"></i></div><h4 data-i18n="w3t"></h4><p data-i18n="w3s"></p></div>
+      <div class="feat rv d3"><div class="ic"><i data-lucide="badge-check" class="i"></i></div><h4 data-i18n="w4t"></h4><p data-i18n="w4s"></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- AI HUB / INTELLIGENCE ENGINE -->
+<section class="ai-hub" id="ai">
+  <div class="wrap">
+    <p class="ai-eye rv"><span class="live" aria-hidden="true"></span> <span data-i18n="aiEye"></span></p>
+    <h2 class="rv" data-i18n="aiHubTit"></h2>
+    <p class="ai-lead rv" data-i18n="aiSub"></p>
+    <div class="ai-scan" aria-hidden="true"></div>
+    <div class="ai-grid" id="ai-grid"></div>
+    <div class="ai-previews" id="ai-previews"></div>
+    <div style="margin-top:16px;" class="rv">
+      <button class="tour-launch" id="tour-open" type="button">
+        <span class="t-ic" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg></span>
+        <span class="t-txt"><b data-i18n="tourLaunchTit"></b><span data-i18n="tourLaunchSub"></span></span>
+        <span class="t-play" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- COMPOUNDS -->
+<section class="block well" id="compounds">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div>
+        <p class="eyebrow" data-i18n="eyeCpd"></p>
+        <h2 data-i18n="cpdTit"></h2>
+        <p data-i18n="cpdSub"></p>
+      </div>
+      <a href="compounds.html" class="sec-link"><span data-i18n="allCpds"></span> <i data-lucide="arrow-right" class="i" style="width:16px;height:16px"></i></a>
+    </div>
+    <div class="grid-comp" id="comp-grid"></div>
+  </div>
+</section>
+
 
 <!-- ═══ LIVE MAP (SECOND — now below the 3D tour) ═══════════════════════════
      Interactive Leaflet map with marker clustering. When zoomed out,
@@ -878,7 +960,7 @@
     <div style="text-align:center;margin-top:12px;">
       <a href="compounds.html" class="btn btn-navy" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;">
         <i data-lucide="map" class="i" style="width:16px;height:16px;"></i>
-        <span>Open Full Map</span>
+        <span data-i18n="openFullMap"></span>
       </a>
     </div>
   </div>
@@ -919,14 +1001,14 @@
     <div style="text-align:center;margin-top:20px;">
       <a href="properties.html" class="btn btn-navy" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;">
         <i data-lucide="trending-up" class="i" style="width:16px;height:16px;"></i>
-        <span>View All Best Listings</span>
+        <span data-i18n="insBtn"></span>
       </a>
     </div>
   </div>
 </section>
 
 <!-- STATS -->
-<section class="stats" data-screen-label="Stats strip">
+<section class="stats">
   <div class="wrap">
     <div class="stat rv"><b data-count="1900" data-suffix="+">0</b><span data-i18n="stat1"></span></div>
     <div class="stat rv d1"><b data-count="53">0</b><span data-i18n="stat2"></span></div>
@@ -936,11 +1018,11 @@
 </section>
 
 <!-- TESTIMONIALS -->
-<section class="block testi-band" id="testimonials" data-screen-label="Testimonials">
+<section class="block testi-band" id="testimonials">
   <div class="wrap">
     <div class="sec-head rv">
       <div>
-        <div class="eyebrow" data-i18n="eyeTesti"></div>
+        <p class="eyebrow" data-i18n="eyeTesti"></p>
         <h2 data-i18n="testiTit"></h2>
         <p data-i18n="testiSub"></p>
       </div>
@@ -950,94 +1032,46 @@
 </section>
 
 <!-- PERFECT CHOICE + INQUIRY -->
-<section class="block" id="inquiry" data-screen-label="Why Sierra + inquiry form">
+<section class="block" id="inquiry">
   <div class="wrap">
     <div class="perfect rv">
       <div class="pf-left">
         <div class="eyebrow" style="color:#8fe1ff;" data-i18n="eyePerfect"></div>
         <h2 data-i18n="perfTit"></h2>
         <p data-i18n="perfSub"></p>
-        <div class="pf-item"><span class="num">01</span><div><h4 data-i18n="pc1t"></h4><p data-i18n="pc1s"></p></div></div>
-        <div class="pf-item"><span class="num">02</span><div><h4 data-i18n="pc2t"></h4><p data-i18n="pc2s"></p></div></div>
-        <div class="pf-item"><span class="num">03</span><div><h4 data-i18n="pc3t"></h4><p data-i18n="pc3s"></p></div></div>
+        <div class="pf-item"><span class="num" aria-hidden="true">01</span><div><h4 data-i18n="pc1t"></h4><p data-i18n="pc1s"></p></div></div>
+        <div class="pf-item"><span class="num" aria-hidden="true">02</span><div><h4 data-i18n="pc2t"></h4><p data-i18n="pc2s"></p></div></div>
+        <div class="pf-item"><span class="num" aria-hidden="true">03</span><div><h4 data-i18n="pc3t"></h4><p data-i18n="pc3s"></p></div></div>
       </div>
-      <form class="inq" id="inq-form">
+      <form class="inq" id="inq-form" novalidate>
         <h3 data-i18n="inqTit"></h3>
         <p data-i18n="inqSub"></p>
         <div class="seg" id="inq-seg">
-          <button type="button" class="on" data-i18n="inqBuy"></button>
-          <button type="button" data-i18n="inqRent"></button>
-          <button type="button" data-i18n="inqSell"></button>
+          <button type="button" class="on" aria-pressed="true" data-i18n="inqBuy"></button>
+          <button type="button" aria-pressed="false" data-i18n="inqRent"></button>
+          <button type="button" aria-pressed="false" data-i18n="inqSell"></button>
         </div>
         <div class="frow">
-          <div><label data-i18n="inqName"></label><input type="text" id="inq-name" required/></div>
-          <div><label data-i18n="inqPhone"></label><input type="tel" id="inq-phone" dir="ltr" required placeholder="+2 01XXXXXXXXX"/></div>
+          <div><label for="inq-name" data-i18n="inqName"></label><input id="inq-name" name="name" type="text" autocomplete="name" required/></div>
+          <div><label for="inq-phone" data-i18n="inqPhone"></label><input id="inq-phone" name="phone" type="tel" autocomplete="tel" dir="ltr" required/></div>
         </div>
         <div class="frow">
-          <div><label data-i18n="inqEmail"></label><input type="email" id="inq-email" dir="ltr" placeholder="you@example.com"/></div>
-          <div><label data-i18n="inqZone"></label><select id="inq-zone"></select></div>
+          <div><label for="inq-email" data-i18n="inqEmail"></label><input id="inq-email" name="email" type="email" autocomplete="email" dir="ltr"/></div>
+          <div><label for="inq-zone" data-i18n="inqZone"></label><select id="inq-zone" name="zone"></select></div>
         </div>
         <div class="frow">
-          <div><label data-i18n="inqType2"></label><select id="inq-type"></select></div>
-          <div><label data-i18n="inqBudget"></label><input type="text" id="inq-budget" placeholder="10,000,000" dir="ltr"/></div>
+          <div><label for="inq-type" data-i18n="inqType2"></label><select id="inq-type" name="type"></select></div>
+          <div><label for="inq-budget" data-i18n="inqBudget"></label><input id="inq-budget" name="budget" type="text" inputmode="numeric" placeholder="10,000,000" dir="ltr"/></div>
         </div>
         <button class="btn btn-pri" type="submit"><i data-lucide="send" class="i"></i> <span data-i18n="inqSend"></span></button>
-        <div id="inq-success" style="display:none;margin-top:14px;padding:14px 18px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.35);border-radius:10px;color:#16a34a;font-weight:600;font-size:13.5px;display:none;">
-          <i data-lucide="check-circle" style="width:16px;height:16px;vertical-align:middle;margin-inline-end:6px;"></i>
-          <span>Thank you! Your inquiry has been received. Our team will contact you within 24 hours.</span>
-        </div>
+        <p class="inq-done" id="inq-done" role="status" data-i18n="inqDone"></p>
       </form>
     </div>
   </div>
 </section>
 
-<!-- AI HUB / Intelligence Engine (moved below Why Sierra) -->
-<section class="ai-hub" id="ai" data-screen-label="AI hub">
-  <div class="wrap">
-    <div class="ai-eye rv"><span class="live"></span> <span data-i18n="aiEye"></span></div>
-    <h2 class="rv">Intelligence<sup>1</sup> Engine<sup>&trade;</sup></h2>
-    <p class="ai-lead rv" data-i18n="aiSub"></p>
-    <div class="ai-scan"></div>
-    <div class="ai-grid" id="ai-grid"></div>
-    <!-- AI tool preview images -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:28px;">
-      <a href="matches.html" style="display:block;border-radius:14px;overflow:hidden;position:relative;text-decoration:none;">
-        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&q=80" alt="Smart Match" style="width:100%;height:180px;object-fit:cover;transition:transform .4s var(--silk);" loading="lazy"/>
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(7,18,30,.9) 100%);"></div>
-        <div style="position:absolute;bottom:12px;left:16px;color:#fff;">
-          <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#34d399;">LIVE</div>
-          <div style="font-size:14px;font-weight:700;">Smart Match v3</div>
-        </div>
-      </a>
-      <a href="pricing.html" style="display:block;border-radius:14px;overflow:hidden;position:relative;text-decoration:none;">
-        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=80" alt="AVM Pricing" style="width:100%;height:180px;object-fit:cover;transition:transform .4s var(--silk);" loading="lazy"/>
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(7,18,30,.9) 100%);"></div>
-        <div style="position:absolute;bottom:12px;left:16px;color:#fff;">
-          <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#34d399;">LIVE</div>
-          <div style="font-size:14px;font-weight:700;">AVM Pricing Engine</div>
-        </div>
-      </a>
-      <a href="roi.html" style="display:block;border-radius:14px;overflow:hidden;position:relative;text-decoration:none;">
-        <img src="https://images.unsplash.com/photo-1613977257363-707ba9348227?w=600&q=80" alt="ROI Forecaster" style="width:100%;height:180px;object-fit:cover;transition:transform .4s var(--silk);" loading="lazy"/>
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(7,18,30,.9) 100%);"></div>
-        <div style="position:absolute;bottom:12px;left:16px;color:#fff;">
-          <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#34d399;">LIVE</div>
-          <div style="font-size:14px;font-weight:700;">ROI Forecaster</div>
-        </div>
-      </a>
-    </div>
-    <div style="margin-top:16px;" class="rv">
-      <button class="tour-launch" id="tour-open" type="button">
-        <span class="t-ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg></span>
-        <span class="t-txt"><b data-i18n="tourLaunchTit"></b><span data-i18n="tourLaunchSub"></span></span>
-        <span class="t-play"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></span>
-      </button>
-    </div>
-  </div>
-</section>
-
 <!-- CTA -->
-<section class="block" id="contact" style="padding-top:0;" data-screen-label="CTA band">
+<section class="block" id="contact" style="padding-top:0;">
   <div class="wrap">
     <div class="cta rv">
       <div class="ct-txt">
@@ -1045,39 +1079,37 @@
         <p data-i18n="ctaSub"></p>
       </div>
       <div class="ct-act">
-        <button class="btn btn-white" type="button"><i data-lucide="plus" class="i"></i> <span data-i18n="ctaBtn1"></span></button>
-        <a href="https://wa.me/201092048333" target="_blank" rel="noopener noreferrer" class="btn btn-out" style="text-decoration:none;"><i data-lucide="phone" class="i"></i> <span>+2 01092048333</span></a>
+        <button class="btn btn-white" id="cta-list" type="button"><i data-lucide="plus" class="i"></i> <span data-i18n="ctaBtn1"></span></button>
+        <a class="btn btn-out" href="https://wa.me/201092048333" target="_blank" rel="noopener noreferrer" style="text-decoration:none;"><i data-lucide="phone" class="i"></i> <span data-i18n="ctaBtn2"></span></a>
       </div>
       <div style="margin-top:14px;font-family:var(--mono);font-size:13px;color:rgba(255,255,255,.6);">
-        <i data-lucide="mail" class="i" style="width:14px;height:14px;vertical-align:-2px;"></i> <a href="mailto:info@Sierra-Estates.net" style="color:rgba(255,255,255,.7);text-decoration:none;">info@Sierra-Estates.net</a>
+        <i data-lucide="mail" class="i" style="width:14px;height:14px;vertical-align:-2px;"></i> <a href="mailto:info@sierra-estates.net" style="color:rgba(255,255,255,.7);text-decoration:none;">info@sierra-estates.net</a>
       </div>
     </div>
   </div>
 </section>
 
 <!-- PARTNERS -->
-<div class="partners" data-screen-label="Developer partners">
+<div class="partners">
   <div class="wrap">
-    <div class="p-eye rv" data-i18n="partEye"></div>
+    <p class="p-eye rv" data-i18n="partEye"></p>
     <div class="row rv d1">
       <span>EMAAR MISR</span><span>SODIC</span><span>MOUNTAIN VIEW</span><span>PALM HILLS</span><span>ORA</span><span>LA VISTA</span><span>HYDE PARK</span><span>MARAKEZ</span>
     </div>
   </div>
 </div>
 
-<footer id="site-footer" data-screen-label="Footer"></footer>
+</main>
+
+<footer id="site-footer"></footer>
 
 <!-- VIRTUAL TOUR MODAL -->
-<div class="tour-modal" id="tour-modal">
+<div class="tour-modal" id="tour-modal" role="dialog" aria-modal="true" aria-label="Virtual tour">
   <button class="t-close" id="tour-close" type="button" aria-label="Close">×</button>
   <iframe id="tour-frame" title="Sierra Estates Virtual Tour" allow="fullscreen"></iframe>
 </div>
 
-<script>
-(function () {
-  'use strict';
-  var D = window.HZDATA;
-  var isAr = (localStorage.getItem('hzp-lang') || 'en') === 'ar';
+<noscript><p style="text-align:center;padding:24px;">This site requires JavaScript to display listings and the interactive map.</p></noscript>
 
   /* hero slides */
   document.getElementById('hero-slides').innerHTML = D.slides.map(function (s, i) {

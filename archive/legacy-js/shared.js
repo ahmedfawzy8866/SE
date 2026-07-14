@@ -263,7 +263,7 @@
       '<div class="photo">' +
         '<a href="property.html?id=' + p.id + '"><img src="' + p.img + '" alt="' + p.type + ' in ' + p.cmp + '" loading="lazy"/></a>' +
         '<div class="badges">' + extra + modeTag + '</div>' +
-        '<div class="heart" onclick="this.classList.toggle(\'on\')"><i data-lucide="heart" class="i" style="width:18px;height:18px"></i></div>' +
+        '<button type="button" class="heart" aria-label="' + t('favLabel') + '" aria-pressed="false" onclick="this.classList.toggle(\'on\');this.setAttribute(\'aria-pressed\',this.classList.contains(\'on\'))"><i data-lucide="heart" class="i" style="width:18px;height:18px"></i></button>' +
         '<div class="price-float">' + D.price(p) + '</div>' +
         '<div class="ai-score">AI ' + p.ai.toFixed(1) + '</div>' +
       '</div>' +
@@ -280,8 +280,8 @@
       '<div class="foot">' +
         '<div class="agent"><span class="av">' + initials + '</span><small><b>' + p.agent + '</b>' + p.ago + '</small></div>' +
         '<div class="foot-icons">' +
-          '<a href="#"><i data-lucide="git-compare" class="i"></i></a>' +
-          '<a href="#"><i data-lucide="share-2" class="i"></i></a>' +
+          '<a href="#" aria-label="' + t('compareLabel') + '"><i data-lucide="git-compare" class="i"></i></a>' +
+          '<a href="#" aria-label="' + t('shareLabel') + '"><i data-lucide="share-2" class="i"></i></a>' +
         '</div>' +
       '</div>' +
     '</article>';
