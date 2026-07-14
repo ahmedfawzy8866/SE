@@ -37,7 +37,7 @@ export class WhatsAppParserService {
       throw new Error("Gemini API key is missing. Neural parsing disabled.");
     }
 
-    const modelName = media ? "gemini-1.5-pro" : "gemini-1.5-flash";
+    const modelName = media ? "gemini-3.1-flash-image" : "gemini-3.1-flash-lite";
     const model = genAI.getGenerativeModel({ model: modelName });
 
     const systemInstruction = `ROLE: You are the Sierra Estates Strategic Intelligence Parser (The Scribe).
