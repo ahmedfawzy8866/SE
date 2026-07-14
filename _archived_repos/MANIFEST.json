@@ -1,8 +1,0 @@
-{
-  "notice": "This manifest was removed during repository cleanup.",
-  "sourceOfTruth": "docs/obsidian-vault/Repo Cleanup & Rebuild Ledger.md",
-  "recoveryCommand": "git checkout ee5d50c6^ -- _archived_repos/MANIFEST.json",
-  "archived_repos": [],
-  "skipped": {},
-  "large_files_skipped": []
-}
