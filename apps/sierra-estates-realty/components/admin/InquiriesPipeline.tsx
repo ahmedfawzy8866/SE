@@ -5,7 +5,7 @@
  * Click a card to open a detail drawer where status can be changed
  * (PATCH /api/admin/inquiries).
  */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Loader2, Phone, Mail, MapPin, Calendar, ArrowRight } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/components/client/Toast";
@@ -29,13 +29,13 @@ export function InquiriesPipeline() {
   const [selected, setSelected] = useState<Inquiry | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try { setItems(await api.adminInquiries()); }
     catch (err: any) { toast({ title: "Failed to load inquiries", description: err.message, kind: "error" }); }
     finally { setLoading(false); }
-  }
-  useEffect(() => { load(); }, []);
+  }, [toast]);
+  useEffect(() => { load(); }, [load]);
 
   async function move(id: string, status: InquiryStatus) {
     try {

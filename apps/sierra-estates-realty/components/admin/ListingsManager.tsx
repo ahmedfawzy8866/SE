@@ -3,7 +3,7 @@
  * ListingsManager — table + create/edit drawer.
  * Permissions: manager+ can edit; admin can archive.
  */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus, Pencil, Archive, Loader2 } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/components/client/Toast";
@@ -28,13 +28,13 @@ export function ListingsManager() {
   const canEdit = me?.role === "manager" || me?.role === "admin";
   const canDelete = me?.role === "admin";
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try { setItems(await api.listings()); }
     catch (err: any) { toast({ title: "Failed to load listings", description: err.message, kind: "error" }); }
     finally { setLoading(false); }
-  }
-  useEffect(() => { load(); }, []);
+  }, [toast]);
+  useEffect(() => { load(); }, [load]);
 
   function openCreate() {
     setEditing(null);

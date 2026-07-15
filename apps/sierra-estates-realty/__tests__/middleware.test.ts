@@ -1,12 +1,15 @@
 /**
  * Tests: Edge Proxy (proxy.ts)
  *
- * The admin / public host-split logic was REMOVED — the admin console is now
- * a separate Vite SPA at apps/admin-dashboard/, deployed as its own Vercel
- * project at admin.sierra-estates.net. This app (realty) no longer has an
- * /admin route.
+ * Target architecture (INTEGRATION.md — two-domain host split):
+ *   - CLIENT host (sierra-estates.net): serves the public site; /admin
+ *     requests are 307-redirected to the admin host when ADMIN_HOST is set.
+ *   - ADMIN host (admin.sierra-estates.net): the root `/` is rewritten to
+ *     /admin so the console is served directly on its own domain.
+ *   - Single-deployment mode (no ADMIN_HOST): /admin renders locally — the
+ *     split is entirely inert.
  *
- * The proxy now handles only:
+ * The proxy also handles:
  *   1. CORS preflight for /api routes
  *   2. Shared-secret gate on /api/orchestrate
  */
@@ -14,38 +17,66 @@ import { NextRequest } from 'next/server';
 import { config, proxy as middleware } from '../proxy';
 
 const ORIGINAL_SBR = process.env.SBR_SECRET_KEY;
+const ORIGINAL_ADMIN_HOST = process.env.ADMIN_HOST;
 
 function request(url: string, init?: RequestInit): NextRequest {
   return new NextRequest(url, init);
 }
 
+function restore(name: string, value: string | undefined) {
+  if (value === undefined) delete process.env[name];
+  else process.env[name] = value;
+}
+
 afterEach(() => {
-  if (ORIGINAL_SBR === undefined) {
-    delete process.env.SBR_SECRET_KEY;
-  } else {
-    process.env.SBR_SECRET_KEY = ORIGINAL_SBR;
-  }
+  restore('SBR_SECRET_KEY', ORIGINAL_SBR);
+  restore('ADMIN_HOST', ORIGINAL_ADMIN_HOST);
 });
 
 describe('proxy config', () => {
-  it('matches only /api routes (admin route removed)', () => {
-    expect(config.matcher).toEqual(['/api/:path*']);
+  it('matches the root, /api and /admin routes', () => {
+    expect(config.matcher).toEqual(['/', '/api/:path*', '/admin/:path*']);
   });
 });
 
-describe('proxy — public routes (no /admin handling)', () => {
-  it('passes through non-api routes untouched (no /admin redirect anymore)', () => {
-    const res = middleware(request('https://sierra-estates.net/listings'));
+describe('proxy — admin / public host split', () => {
+  it('redirects /admin on the client host to the admin host (307)', () => {
+    process.env.ADMIN_HOST = 'admin.sierra-estates.net';
+    const res = middleware(request('https://sierra-estates.net/admin'));
+    expect(res.status).toBe(307);
+    expect(res.headers.get('location')).toBe('https://admin.sierra-estates.net/admin');
+  });
+
+  it('serves /admin as-is on the admin host', () => {
+    process.env.ADMIN_HOST = 'admin.sierra-estates.net';
+    const res = middleware(request('https://admin.sierra-estates.net/admin'));
     expect(res.status).toBe(200);
     expect(res.headers.get('location')).toBeNull();
   });
 
-  it('passes through /admin paths as a normal 404 (admin no longer in this app)', () => {
-    // /admin is not in the matcher, so the proxy doesn't even run for it.
-    // Next.js will return its default 404 — the admin lives at admin.sierra-estates.net now.
-    const res = middleware(request('https://sierra-estates.net/admin'));
+  it('rewrites the admin-host root `/` to /admin', () => {
+    process.env.ADMIN_HOST = 'admin.sierra-estates.net';
+    const res = middleware(request('https://admin.sierra-estates.net/'));
+    const rewrite = res.headers.get('x-middleware-rewrite');
+    expect(rewrite).toContain('/admin');
+  });
+
+  it('leaves the client-host root `/` untouched', () => {
+    process.env.ADMIN_HOST = 'admin.sierra-estates.net';
+    const res = middleware(request('https://sierra-estates.net/'));
     expect(res.status).toBe(200);
+    expect(res.headers.get('x-middleware-rewrite')).toBeNull();
     expect(res.headers.get('location')).toBeNull();
+  });
+
+  it('is fully inert in single-deployment mode (no ADMIN_HOST)', () => {
+    delete process.env.ADMIN_HOST;
+    const admin = middleware(request('https://example.com/admin'));
+    expect(admin.status).toBe(200);
+    expect(admin.headers.get('location')).toBeNull();
+    const root = middleware(request('https://example.com/'));
+    expect(root.status).toBe(200);
+    expect(root.headers.get('x-middleware-rewrite')).toBeNull();
   });
 });
 
@@ -55,6 +86,13 @@ describe('proxy — CORS preflight', () => {
       request('https://sierra-estates.net/api/listings', { method: 'OPTIONS' }),
     );
     expect(res.status).toBe(204);
+  });
+
+  it('does not hijack OPTIONS on non-api routes', () => {
+    const res = middleware(
+      request('https://sierra-estates.net/', { method: 'OPTIONS' }),
+    );
+    expect(res.status).toBe(200);
   });
 });
 

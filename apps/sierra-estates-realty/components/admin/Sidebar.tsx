@@ -5,7 +5,7 @@
  */
 import Link from "next/link";
 import {
-  LayoutDashboard, Building2, Map, Inbox, Users, BarChart3,
+  LayoutDashboard, Building2, Inbox, Users, BarChart3,
   ScrollText, Settings, LogOut, Shield, ExternalLink, PhoneCall,
 } from "lucide-react";
 import { useAuth } from "@/components/client/AuthModal";

@@ -13,7 +13,7 @@
 import { NextResponse } from "next/server";
 import {
   signSession, verifySession, tryDemoLogin, cookieOpts, SESSION_COOKIE,
-  parseCookies, DEMO_ADMIN, requireRole,
+  parseCookies,
 } from "@/lib/auth";
 import { getAdminDb } from "@/lib/firebase-admin";
 import type { Role, User } from "@/lib/types";
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
         const res = NextResponse.json({ ok: true });
         res.cookies.set(SESSION_COOKIE, sess, cookieOpts());
         return res;
-      } catch (err: any) {
+      } catch {
         return NextResponse.json({ error: "Invalid Firebase token" }, { status: 401 });
       }
     }

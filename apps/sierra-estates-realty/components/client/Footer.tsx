@@ -2,7 +2,6 @@
 /**
  * Footer — brand + columns + socials.
  */
-import Link from "next/link";
 import { Phone, Mail, MapPin, Facebook, Instagram, Linkedin } from "lucide-react";
 
 export function Footer() {

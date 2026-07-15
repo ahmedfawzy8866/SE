@@ -28,7 +28,7 @@ env:
 
 jobs:
   deploy:
-    runs-on: node24
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
