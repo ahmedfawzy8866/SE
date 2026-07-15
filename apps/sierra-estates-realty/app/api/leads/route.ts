@@ -35,28 +35,17 @@ export async function POST(req: Request) {
     const { name, email, phone, message, locale } = parseResult.data;
 
     // 1. Add to Firestore
-    const leadRef = await adminDb.collection(COLLECTIONS.stakeholders).add({
+    const leadRef = await adminDb.collection('inquiries').add({
       name,
-      email,
-      phone,
-      message,
+      email: email || undefined,
+      phone: phone || undefined,
+      notes: message || undefined,
       status: 'new',
-      phase: 'acquisition',
-      priority: 'warm',
-      via: 'Website',
-      interest: 'General Inquiry',
-      capitalAllocation: 'To be determined',
-      locale,
-      aiProfiling: {
-        interests: ['General Inquiry'],
-        topMatches: [],
-        lastAnalyzedAt: Timestamp.now(),
-      },
-      automation: {
-        followupReminderEnabled: true,
-        interactionFrequency: 'medium',
-      },
-      createdAt: Timestamp.now()
+      mode: 'sale', // default
+      source: 'website',
+      zone: locale, // using locale for zone if needed
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     // 2. Send Telegram Notification

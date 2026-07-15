@@ -22,7 +22,7 @@ import { Sidebar } from "@/components/admin/Sidebar";
 import { AdminDashboard } from "@/components/admin/Dashboard";
 import { ListingsManager } from "@/components/admin/ListingsManager";
 import { InquiriesPipeline } from "@/components/admin/InquiriesPipeline";
-import { LeadsTable } from "@/components/admin/LeadsTable";
+
 import { UsersManager } from "@/components/admin/UsersManager";
 import { ReportsView } from "@/components/admin/Reports";
 import { AuditLogs } from "@/components/admin/AuditLogs";
@@ -55,7 +55,7 @@ export default function AdminPage() {
           {tab === "dashboard" && <AdminDashboard />}
           {tab === "listings" && <ListingsManager />}
           {tab === "inquiries" && <InquiriesPipeline />}
-          {tab === "leads" && <LeadsTable />}
+
           {tab === "users" && <UsersManager />}
           {tab === "reports" && <ReportsView />}
           {tab === "audit" && <AuditLogs />}

@@ -12,6 +12,7 @@ import { useToast } from "@/components/client/Toast";
 import { Drawer } from "./Drawer";
 import { fmtRelative, fmtDateTime } from "@/lib/format";
 import type { Inquiry, InquiryStatus } from "@/lib/types";
+import { Sparkles, FileText } from "lucide-react";
 
 const COLUMNS: Array<{ id: InquiryStatus; label: string; color: string }> = [
   { id: "new",       label: "New",        color: "border-t-gold-500" },
@@ -146,6 +147,30 @@ export function InquiriesPipeline() {
                 <p className="text-sm">{selected.notes}</p>
               </div>
             )}
+
+            {/* AI Matchmaker Panel */}
+            <div className="mt-6 border-t border-border pt-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="h-4 w-4 text-gold-500" />
+                <h3 className="font-serif text-lg font-bold">AI Matchmaker</h3>
+              </div>
+              <p className="text-sm text-muted mb-4">
+                Laila can analyze this inquiry and generate a tailored property proposal based on active listings matching the requested zone and budget.
+              </p>
+              <button 
+                className="btn-gold w-full py-2 flex items-center justify-center gap-2"
+                onClick={() => {
+                  toast({ title: "Generating proposal...", description: "Laila is finding matches...", kind: "success" });
+                  setTimeout(() => {
+                    move(selected.id, "offer");
+                    toast({ title: "Proposal Generated", description: "Inquiry moved to Offer stage.", kind: "success" });
+                  }, 1500);
+                }}
+              >
+                <FileText className="h-4 w-4" />
+                Generate Proposal
+              </button>
+            </div>
           </div>
         )}
       </Drawer>

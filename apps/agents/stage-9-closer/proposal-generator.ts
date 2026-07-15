@@ -14,7 +14,7 @@ export class ProposalGenerator {
     dealId: string
   ): Promise<{ proposalUrl: string; proposalId: string }> {
     const [leadDoc, assetDoc] = await Promise.all([
-      db.collection('leads').doc(leadId).get(),
+      db.collection('inquiries').doc(leadId).get(),
       db.collection('listings').doc(assetId).get(),
     ]);
 

@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       case 'lead.updated':
       case 'lead.assigned': {
         const lead = event.data || event.payload;
-        const existing = await adminDb.collection(COLLECTIONS.stakeholders)
+        const existing = await adminDb.collection('inquiries')
           .where('pfLeadId', '==', lead.id)
           .get();
 
@@ -43,20 +43,18 @@ export async function POST(request: NextRequest) {
           name: lead.sender?.name || lead.name || 'PF Lead',
           phone: lead.sender?.phone || lead.phone || '',
           email: lead.sender?.email || lead.email || '',
-          source: 'property-finder',
-          stage: 'inbound',
-          phase: 'acquisition',
-          originChannel: `Property Finder (${lead.channel || 'web'})`,
+          source: 'property_finder',
+          status: 'new',
+          mode: 'sale', // default assumption
           pfLeadId: lead.id,
-          pfListingReferenceNumber: lead.listing?.reference || '',
-          updatedAt: Timestamp.now(),
+          notes: `PF Listing Ref: ${lead.listing?.reference || ''}`,
+          updatedAt: new Date().toISOString(),
         };
 
         if (existing.empty) {
-          await adminDb.collection(COLLECTIONS.stakeholders).add({
+          await adminDb.collection('inquiries').add({
             ...payload,
-            automation: { botInitiated: false, scoringCompleted: false, whatsappFollowupSent: false, viewingReminderSent: false },
-            createdAt: Timestamp.now(),
+            createdAt: new Date().toISOString(),
           });
         } else {
           await existing.docs[0].ref.update(payload);

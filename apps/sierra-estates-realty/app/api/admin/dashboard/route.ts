@@ -24,26 +24,24 @@ export async function GET(req: Request) {
   let leads: Lead[] = [];
   let users: User[] = [];
 
-  if (db) {
-    try {
-      const [lSnap, iSnap, ldSnap, uSnap] = await Promise.all([
-        db.collection("listings").get(),
-        db.collection("inquiries").orderBy("createdAt", "desc").limit(100).get(),
-        db.collection("leads").orderBy("createdAt", "desc").limit(100).get(),
-        db.collection("users").get(),
-      ]);
-      if (!lSnap.empty) listings = lSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-      if (!iSnap.empty) inquiries = iSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-      if (!ldSnap.empty) leads = ldSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-      if (!uSnap.empty) users = uSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-    } catch (err) {
-      console.warn("[dashboard] Firestore read failed, using seed:", err);
-    }
-  } else {
-    // Sandbox seed inquiries/leads for a believable dashboard
-    inquiries = seedInquiries();
-    leads = seedLeads();
-    users = seedUsers();
+  if (!db) {
+    throw new Error("Firestore admin not initialized");
+  }
+
+  try {
+    const [lSnap, iSnap, ldSnap, uSnap] = await Promise.all([
+      db.collection("listings").get(),
+      db.collection("inquiries").orderBy("createdAt", "desc").limit(100).get(),
+      db.collection("leads").orderBy("createdAt", "desc").limit(100).get(),
+      db.collection("users").get(),
+    ]);
+    if (!lSnap.empty) listings = lSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+    if (!iSnap.empty) inquiries = iSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+    if (!ldSnap.empty) leads = ldSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+    if (!uSnap.empty) users = uSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+  } catch (err) {
+    console.error("[dashboard] Firestore read failed:", err);
+    throw new Error("Failed to read from Firestore");
   }
 
   const activeListings = listings.filter((l) => l.status === "available");
@@ -108,28 +106,3 @@ export async function GET(req: Request) {
   });
 }
 
-function seedInquiries(): Inquiry[] {
-  return [
-    { id: "iq1", mode: "sale", name: "Hossam Adel", phone: "+20 100 111 2222", email: "hossam@example.com", zone: "5th Settlement", type: "Villa", budget: "5000-7000 USD", status: "new", source: "website", createdAt: new Date(Date.now() - 7200_000).toISOString() },
-    { id: "iq2", mode: "rent", name: "Mona Saad", phone: "+20 100 222 3333", zone: "New Cairo", type: "Apartment", budget: "1500 USD/mo", status: "contacted", source: "website", createdAt: new Date(Date.now() - 2 * 86400_000).toISOString() },
-    { id: "iq3", mode: "sale", name: "Tarek Nabil", phone: "+20 100 333 4444", zone: "Mokattam", type: "Penthouse", budget: "3500-4500 USD", status: "toured", source: "website", createdAt: new Date(Date.now() - 5 * 86400_000).toISOString() },
-    { id: "iq4", mode: "sale", name: "Yasmine Fouad", phone: "+20 100 444 5555", zone: "5th Settlement", type: "Twin House", budget: "2500 USD", status: "offer", source: "website", createdAt: new Date(Date.now() - 8 * 86400_000).toISOString() },
-    { id: "iq5", mode: "sale", name: "Khaled Emad", phone: "+20 100 555 6666", zone: "5th Settlement", type: "Villa", budget: "6000 USD", status: "closed", source: "referral", createdAt: new Date(Date.now() - 15 * 86400_000).toISOString() },
-    { id: "iq6", mode: "rent", name: "Salma Wael", phone: "+20 100 666 7777", zone: "New Cairo", type: "Apartment", budget: "1200 USD/mo", status: "lost", source: "website", createdAt: new Date(Date.now() - 20 * 86400_000).toISOString() },
-  ];
-}
-
-function seedLeads(): Lead[] {
-  return [
-    { id: "ld1", source: "property_finder", name: "Mohamed Ali", phone: "+20 122 222 3333", compound: "Mivida", message: "3BR cash buyer.", status: "new", createdAt: new Date(Date.now() - 3600_000).toISOString() },
-    { id: "ld2", source: "whatsapp", name: "Sara Hassan", phone: "+20 122 444 5555", compound: "Hyde Park New Cairo", message: "Villa for rent.", status: "contacted", createdAt: new Date(Date.now() - 86400_000).toISOString() },
-  ];
-}
-
-function seedUsers(): User[] {
-  return [
-    { uid: "demo-admin", email: "admin@sierra-estates.net", name: "Demo Admin", role: "admin", status: "active", createdAt: new Date(Date.now() - 30 * 86400_000).toISOString() },
-    { uid: "u2", email: "layla@sierra-estates.net", name: "Layla Mansour", role: "manager", status: "active", createdAt: new Date(Date.now() - 60 * 86400_000).toISOString() },
-    { uid: "u3", email: "karim@sierra-estates.net", name: "Karim Fahmy", role: "manager", status: "active", createdAt: new Date(Date.now() - 90 * 86400_000).toISOString() },
-  ];
-}
