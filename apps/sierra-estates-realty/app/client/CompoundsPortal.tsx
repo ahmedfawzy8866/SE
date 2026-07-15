@@ -31,14 +31,13 @@ export default function CompoundsPortal() {
   const [activeZones, setActiveZones] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Compound | null>(null);
 
-  const matches = (c: Compound) => {
-    if (activeZones.size && !activeZones.has(c.z)) return false;
-    const q = query.trim().toLowerCase();
-    if (q && !c.n.toLowerCase().includes(q) && !c.z.toLowerCase().includes(q)) return false;
-    return true;
-  };
   const list = useMemo(
-    () => COMPOUNDS.filter(matches).sort((a, b) => b.ai - a.ai),
+    () => COMPOUNDS.filter((c) => {
+      if (activeZones.size && !activeZones.has(c.z)) return false;
+      const q = query.trim().toLowerCase();
+      if (q && !c.n.toLowerCase().includes(q) && !c.z.toLowerCase().includes(q)) return false;
+      return true;
+    }).sort((a, b) => b.ai - a.ai),
     [query, activeZones],
   );
 

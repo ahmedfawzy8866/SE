@@ -1,31 +1,46 @@
 {
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "lib": ["ES2020"],
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "skipLibCheck": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@sierra-estates/exchange": ["./packages/exchange/exchange-client.ts"],
+      "@sierra-estates/agents": ["./packages/agents/index.ts"],
+      "@sierra-estates/agents-core": ["./packages/agents-core/src/index.ts"],
+      "@sierra-estates/memory-engine": ["./packages/memory-engine/src/index.ts"],
+      "@sierra-estates/obedian": ["./packages/obedian/src/index.ts"],
+      "@sierra-estates/db": ["./packages/db/lib/index.ts"],
+      "@sierra-estates/auth": ["./packages/auth"],
+      "@sierra-estates/config": ["./packages/config"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": ["node_modules", "design", ".next", "src", "apps", "packages", "functions"]
+  "exclude": ["node_modules", "dist", ".next", "**/__tests__/**"],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./lib/db"
+    },
+    {
+      "path": "./lib/api-client-react"
+    },
+    {
+      "path": "./lib/api-zod"
+    }
+  ]
 }

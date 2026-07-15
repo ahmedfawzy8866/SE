@@ -1,19 +1,63 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
   "framework": "nextjs",
-  "buildCommand": null,
-  "installCommand": null,
-  "outputDirectory": null,
-  "devCommand": null,
-  "regions": ["sin1"],
+  "regions": ["iad1"],
+  "crons": [
+    {
+      "path": "/api/cron/sync-leads",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/ingest-from-sheets",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/sync-listings",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/maintenance",
+      "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/cron/whatsapp-dispatch",
+      "schedule": "0 10 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/old-landing",
+      "destination": "/",
+      "permanent": true
     }
   ]
 }

@@ -1,5 +1,7 @@
 import tseslint from 'typescript-eslint'
 import unusedImports from 'eslint-plugin-unused-imports'
+import nextPlugin from '@next/eslint-plugin-next'
+import reactHooks from 'eslint-plugin-react-hooks'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 
@@ -10,7 +12,11 @@ export default [
   ...tseslint.configs.recommended,
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    plugins: { 'unused-imports': unusedImports },
+    plugins: {
+      'unused-imports': unusedImports,
+      '@next/next': nextPlugin,
+      'react-hooks': reactHooks,
+    },
     languageOptions: {
       ecmaVersion: 2020,
       sourceType: 'module',
@@ -29,6 +35,9 @@ export default [
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_',
       }],
+      '@next/next/no-img-element': 'warn',
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
     },
   },
 ]

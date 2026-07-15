@@ -1,154 +1,20 @@
-@import "tailwindcss";
+/* Minimal global reset. Surface-specific styling lives with each surface
+   (e.g. app/admin/admin-portal.css); keep this file lean so the incoming
+   client page can bring its own design without fighting global rules. */
 
-/* ────────────────────────────────────────────────────────────
-   Sierra Estates brand tokens (Tailwind 4 CSS-first config)
-   ──────────────────────────────────────────────────────────── */
-@theme {
-  /* Brand palette — extracted from the existing static site */
-  --color-navy-950: #07111e;
-  --color-navy-900: #0d2136;
-  --color-navy-800: #001f38;
-  --color-navy-700: #002b4b;
-  --color-gold-300: #e9c176;
-  --color-gold-400: #f5a623;
-  --color-gold-500: #c8961a;
-  --color-gold-600: #8f6a0f;
-  --color-cream: #faf7f0;
-  --color-ink: #1a1a26;
-
-  /* Semantic tokens */
-  --color-bg: var(--color-cream);
-  --color-surface: #ffffff;
-  --color-text: var(--color-navy-900);
-  --color-muted: #4a5568;
-  --color-border: #e5e7eb;
-  --color-accent: var(--color-gold-500);
-  --color-accent-soft: var(--color-gold-300);
-
-  /* Typography */
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, sans-serif;
-  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
-
-  /* Radius + shadow */
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 28px;
-  --shadow-card: 0 1px 2px rgba(7, 17, 30, 0.04),
-    0 4px 16px rgba(7, 17, 30, 0.06);
-  --shadow-pop: 0 12px 40px rgba(7, 17, 30, 0.18);
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-/* ────────────────────────────────────────────────────────────
-   Base layer
-   ──────────────────────────────────────────────────────────── */
-@layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-  body {
-    background: var(--color-bg);
-    color: var(--color-text);
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-  }
-  h1, h2, h3, h4 {
-    font-family: var(--font-serif);
-    letter-spacing: -0.01em;
-  }
-  /* RTL adjustments for Arabic */
-  [dir="rtl"] {
-    font-family: "Noto Sans Arabic", var(--font-sans);
-  }
-  ::selection {
-    background: var(--color-gold-300);
-    color: var(--color-navy-900);
-  }
-  /* Custom scrollbar */
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-gold-500);
-    border-radius: 6px;
-    border: 2px solid var(--color-bg);
-  }
+html,
+body {
+  margin: 0;
+  padding: 0;
 }
 
-/* ────────────────────────────────────────────────────────────
-   Utilities
-   ──────────────────────────────────────────────────────────── */
-@layer utilities {
-  .container-page {
-    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
-  }
-  .btn, .btn-primary, .btn-gold, .btn-outline, .btn-ghost, .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5
-           text-sm font-semibold transition-all duration-200 focus:outline-none
-           focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2
-           disabled:cursor-not-allowed disabled:opacity-50;
-  }
-  .btn-primary {
-    @apply bg-navy-900 text-cream hover:bg-navy-800 shadow-card;
-  }
-  .btn-gold {
-    @apply bg-gold-500 text-navy-950 hover:bg-gold-400 shadow-card;
-  }
-  .btn-outline {
-    @apply border border-navy-900/20 bg-transparent text-navy-900 hover:bg-navy-900/5;
-  }
-  .btn-ghost {
-    @apply bg-transparent text-navy-900 hover:bg-navy-900/5;
-  }
-  .btn-danger {
-    @apply bg-red-600 text-white hover:bg-red-700;
-  }
-  .card {
-    @apply rounded-lg border border-border bg-surface shadow-card;
-  }
-  .input {
-    @apply w-full rounded-md border border-border bg-surface px-3.5 py-2.5
-           text-sm text-text placeholder:text-muted
-           focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent;
-  }
-  .label {
-    @apply block text-xs font-semibold uppercase tracking-wide text-muted mb-1.5;
-  }
-  .badge, .badge-gold, .badge-navy, .badge-green, .badge-red, .badge-amber, .badge-gray {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5
-           text-xs font-semibold;
-  }
-  .badge-gold  { @apply bg-gold-300/30 text-gold-600; }
-  .badge-navy  { @apply bg-navy-900/10 text-navy-900; }
-  .badge-green { @apply bg-emerald-100 text-emerald-700; }
-  .badge-red   { @apply bg-red-100 text-red-700; }
-  .badge-amber { @apply bg-amber-100 text-amber-700; }
-  .badge-gray  { @apply bg-gray-100 text-gray-700; }
-  .tab-link {
-    @apply inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium
-           text-muted hover:bg-navy-900/5 hover:text-navy-900 transition-colors;
-  }
-  .tab-link-active {
-    @apply bg-navy-900 text-cream hover:bg-navy-800 hover:text-cream;
-  }
-  .section-eyebrow {
-    @apply text-xs font-bold uppercase tracking-[0.2em] text-gold-500;
-  }
-  .glass {
-    background: rgba(255, 255, 255, 0.06);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
-
-/* Leaflet map sizing */
-.leaflet-container { width: 100%; height: 100%; background: #0d2136; }
-.leaflet-popup-content-wrapper {
-  background: var(--color-navy-900);
-  color: var(--color-cream);
-  border-radius: var(--radius-md);
-}
-.leaflet-popup-tip { background: var(--color-navy-900); }

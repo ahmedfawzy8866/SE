@@ -3,10 +3,9 @@
   "buildCommand": "pnpm turbo build --filter=sierra-estates-realty...",
   "devCommand": "pnpm --filter sierra-estates-realty dev",
   "installCommand": "pnpm install",
-  "outputDirectory": "apps/sierra-estates-realty/.next",
   "framework": "nextjs",
   "git": {
-    "deploymentEnabled": false
+    "deploymentEnabled": true
   },
   "regions": ["fra1"],
   "crons": [

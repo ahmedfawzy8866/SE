@@ -35,13 +35,14 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   VERCEL_ORG_ID: team_UvdJ5ezVTaqEKyhqZ5QVqOKJ
   VERCEL_PROJECT_ID: ${{ vars.CLIENT_VERCEL_PROJECT_ID }}
   VERCEL_CLI_VERSION: '43.3.0'
 
 jobs:
   guard:
-    runs-on: ubuntu-latest
+    runs-on: node24
     outputs:
       run: ${{ steps.check.outputs.run }}
     steps:
@@ -62,7 +63,7 @@ jobs:
   deploy:
     needs: guard
     if: needs.guard.outputs.run == 'true'
-    runs-on: ubuntu-latest
+    runs-on: node24
     steps:
       - uses: actions/checkout@v4
 
@@ -71,7 +72,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: pnpm
 
       - name: Install dependencies

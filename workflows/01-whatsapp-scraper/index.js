@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * Workflow 01: WhatsApp Scraper
  * ─────────────────────────────────────────

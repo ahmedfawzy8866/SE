@@ -257,22 +257,4 @@ CREATE INDEX IF NOT EXISTS idx_units_compound ON units(compound);
 CREATE INDEX IF NOT EXISTS idx_inquiries_status ON inquiries(status);
 CREATE INDEX IF NOT EXISTS idx_inquiries_created ON inquiries(created_at DESC);
 
--- ═══════════════════════════════════════════════════════════════════════════
---  REALTIME (enable for compounds + listings)
--- ═══════════════════════════════════════════════════════════════════════════
 
-ALTER TABLE compounds REPLICA IDENTITY FULL;
-ALTER TABLE listings  REPLICA IDENTITY FULL;
-ALTER PUBLICATION supabase_realtime ADD TABLE compounds;
-ALTER PUBLICATION supabase_realtime ADD TABLE listings;
-
--- ═══════════════════════════════════════════════════════════════════════════
---  DONE — schema ready!
---  Next steps:
---  1. Edit supabase-config.js with your project URL + anon key
---  2. Set SIERRA_SUPABASE_ENABLED = true
---  3. Open seed-supabase.html to populate the tables
---  4. Create your admin user (run in SQL Editor after first sign-up):
---      INSERT INTO users (id, email, name, role)
---      VALUES ('YOUR-AUTH-UID', 'your@email.com', 'Ahmed', 'admin');
--- ═══════════════════════════════════════════════════════════════════════════

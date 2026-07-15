@@ -63,7 +63,9 @@
   color: var(--ink); font-weight: 800; letter-spacing: -.02em; line-height: 1.15; margin: 0;
 }
 .se-portal h1, .se-portal h2, .se-portal h3 {
-  font-family: var(--display); font-weight: 700; letter-spacing: -.015em; text-wrap: balance;
+  font-family: var(--display); font-weight: 700; letter-spacing: -.015em;
+  /* text-wrap: balance is Chrome 114+; keep it with overflow-wrap fallback */
+  overflow-wrap: break-word; text-wrap: balance;
 }
 .se-portal[dir="rtl"] h1, .se-portal[dir="rtl"] h2, .se-portal[dir="rtl"] h3 {
   font-family: 'Cairo', var(--font); font-weight: 800; letter-spacing: 0;

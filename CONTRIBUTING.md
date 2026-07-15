@@ -15,8 +15,8 @@ Welcome! This guide explains how to develop, test, and contribute to the Sierra 
 ### Setup
 ```bash
 # Clone repository
-git clone https://github.com/ahmedfawzy8866/SE.git
-cd SE
+git clone https://github.com/ahmedfawzy8866/Sierra-Estates-Final.git
+cd Sierra-Estates-Final
 
 # Install dependencies
 pnpm install

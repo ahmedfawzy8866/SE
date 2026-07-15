@@ -1,23 +1,32 @@
 {
-  "name": "se",
-  "version": "0.2.0",
+  "name": "sierra-estates",
+  "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@10.33.0",
-  "description": "Sierra Estates — pnpm + Turborepo monorepo. The Next.js app lives in apps/sierra-estates-realty.",
+  "description": "Sierra Estates — Luxury PropTech Platform for New Cairo",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "functions"
+  ],
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
-    "test": "turbo run test",
     "test:ci": "turbo run test:ci",
-    "validate": "turbo run build lint type-check test",
-    "deploy:rules": "firebase deploy --only firestore:rules,storage",
-    "deploy:functions": "firebase deploy --only functions"
+    "clean": "turbo run clean && rm -rf node_modules",
+    "link:vercel": "vercel link",
+    "deploy:preview": "vercel --build-env NEXT_PUBLIC_APP_ENV=preview",
+    "deploy:prod": "vercel --prod",
+    "deploy:firebase": "firebase deploy --only firestore:rules,storage,functions"
   },
   "devDependencies": {
-    "turbo": "^2.3.0",
-    "typescript": "^5.7.0"
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
   },
-  "engines": { "node": ">=20" }
+  "packageManager": "pnpm@9.14.4",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  }
 }

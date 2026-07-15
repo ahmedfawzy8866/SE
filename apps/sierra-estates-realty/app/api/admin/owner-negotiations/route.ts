@@ -5,7 +5,6 @@ import { adminDb } from '@/lib/server/firebase-admin';
 import { COLLECTIONS } from '@/lib/models/schema';
 import { startOrContinueOwnerNegotiation } from '@/lib/server/whatsapp-queue';
 import { logger } from '@/lib/logger';
-import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 /**
  * /api/admin/owner-negotiations — start/continue a WhatsApp negotiation with
@@ -41,7 +40,7 @@ export async function GET(req: NextRequest) {
     query = query.orderBy('updatedAt', 'desc').limit(100);
 
     const snap = await query.get();
-    const negotiations = snap.docs.map((doc: QueryDocumentSnapshot) => ({ id: doc.id, ...doc.data() }));
+    const negotiations = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
     return NextResponse.json({ negotiations });
   } catch (err) {

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, isFirebaseClientConfigured } from '@/lib/firebase';
+import { api } from '@/lib/api-client';
 import '../admin-portal.css';
 
 export default function AdminLoginPage() {
@@ -16,16 +17,24 @@ export default function AdminLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!isFirebaseClientConfigured) {
-      setError('Firebase is not configured in this environment.');
-      return;
-    }
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      if (isFirebaseClientConfigured) {
+        const { getIdToken } = await import('firebase/auth');
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        const token = await getIdToken(cred.user);
+        
+        await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'signin', email, token }),
+        });
+      } else {
+        await api.signIn(email, password);
+      }
       router.replace('/admin');
-    } catch (_err) {
-      setError('Invalid credentials. Staff access only.');
+    } catch (err: any) {
+      setError(err?.message ?? 'Invalid credentials. Staff access only.');
     } finally {
       setLoading(false);
     }

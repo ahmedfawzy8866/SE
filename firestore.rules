@@ -1,0 +1,145 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+
+    function isClient() {
+      return isAuthenticated() && getUserRole() == 'client';
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function hasEnrollment(programId) {
+      return exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + programId));
+    }
+
+    // Users collection - RBAC foundation
+    match /users/{uid} {
+      // Read: Only self or admin
+      allow read: if isOwner(uid) || isAdmin();
+
+      // Create: During signup (public), or admin can create
+      allow create: if request.auth.uid == uid || isAdmin();
+
+      // Update: Only self (except role field) or admin
+      allow update: if (isOwner(uid) && request.resource.data.role == resource.data.role)
+                     || (isAdmin() && request.resource.data.keys() == resource.data.keys());
+
+      // Delete: Admins only
+      allow delete: if isAdmin();
+    }
+
+    // Programs collection - Admin manages, clients read own enrollments
+    match /programs/{programId} {
+      // Admin: Full CRUD
+      allow read: if isAdmin();
+      allow create, update, delete: if isAdmin();
+
+      // Clients: Read only if enrolled
+      allow read: if isClient() && hasEnrollment(programId);
+
+      // Enrollments subcollection
+      match /enrollments/{enrollmentId} {
+        allow read: if isAdmin() || (isClient() && isOwner(enrollmentId));
+        allow create, update, delete: if isAdmin();
+      }
+    }
+
+    // Enrollments collection - Links clients to programs
+    match /enrollments/{enrollmentId} {
+      // Admin: Full access
+      allow read, create, update, delete: if isAdmin();
+
+      // Clients: Read own enrollments only
+      allow read: if isClient() && enrollmentId.matches('.*' + request.auth.uid + '.*');
+    }
+
+    // Agent sessions - Workflow state tracking
+    match /agent_sessions/{sessionId} {
+      // Admin: Full access
+      allow read, create, update, delete: if isAdmin();
+
+      // Clients: Read/create own sessions
+      allow read: if isClient() && isOwner(resource.data.client_uid);
+      allow create: if isClient() && request.resource.data.client_uid == request.auth.uid;
+
+      // No direct updates from clients (only admins can advance workflow)
+      allow update: if false;
+    }
+
+    // Chat messages within agent sessions
+    match /agent_sessions/{sessionId}/messages/{messageId} {
+      // Admin: Full access
+      allow read, write: if isAdmin();
+
+      // Clients: Can read and create their own messages
+      allow read: if isClient() && get(/databases/$(database)/documents/agent_sessions/$(sessionId)).data.client_uid == request.auth.uid;
+      allow create: if isClient() &&
+                      get(/databases/$(database)/documents/agent_sessions/$(sessionId)).data.client_uid == request.auth.uid &&
+                      request.resource.data.author_uid == request.auth.uid &&
+                      request.resource.data.timestamp == request.time;
+
+      // Prevent tampering with message history
+      allow update, delete: if false;
+    }
+
+    // Audit logs - Immutable
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() || isClient(); // Apps can write logs
+      allow update, delete: if false; // Immutable
+    }
+
+    // Settings - Admin only
+    match /settings/{settingId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Units (Listings) Collection - Public read for client page, admin write
+    match /units/{unitId} {
+      // Public read for client listings display
+      allow read: if true;
+
+      // Admin: Full CRUD
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Properties Collection - Public read for client page, admin write
+    match /properties/{propertyId} {
+      // Public read for client listings display
+      allow read: if true;
+
+      // Admin: Full CRUD
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Compounds Collection - Public read for client map, admin write
+    match /compounds/{compoundId} {
+      // Public read for client map display
+      allow read: if true;
+
+      // Admin: Full CRUD
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,46 +1,38 @@
-import tseslint from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
-import unusedImports from 'eslint-plugin-unused-imports';
+import tseslint from 'typescript-eslint'
 
 export default [
   {
     ignores: [
       '.next/**',
-      'node_modules/**',
       'out/**',
       'build/**',
       'coverage/**',
-      'design/**',
       'next-env.d.ts',
+      'public/design/**',
+      'extract_styles.js',
+      'extract_all_styles.js',
+      'eslint.config.mjs',
+      // Sub-apps / packages have their own tsconfigs and ESLint configs
+      'apps/**',
+      'packages/**',
     ],
   },
+  ...tseslint.configs.recommended,
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 2020,
       sourceType: 'module',
-      parser: tsParser,
+      parser: (await import('typescript-eslint')).parser,
       parserOptions: {
-        ecmaFeatures: { jsx: true },
+        tsconfigRootDir: import.meta.dirname,
+        project: ['./tsconfig.json', './tsconfig.app.json'],
       },
-    },
-    plugins: {
-      '@typescript-eslint': tseslint,
-      'unused-imports': unusedImports,
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
-      'unused-imports/no-unused-imports': 'warn',
-      'unused-imports/no-unused-vars': [
-        'warn',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_',
-        },
-      ],
-      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-unused-vars': 'warn',
     },
   },
-];
+]

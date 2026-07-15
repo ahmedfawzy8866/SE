@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { verifyAdminRequest } from '@/lib/server/auth-guard';
 import { adminDb } from '@/lib/server/firebase-admin';
 import { AUTOMATION_COLLECTIONS } from '@/lib/models/automation';
 import { logger } from '@/lib/logger';
+import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 export async function GET(
   _req: NextRequest,

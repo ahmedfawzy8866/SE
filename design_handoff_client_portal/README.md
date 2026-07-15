@@ -3,7 +3,7 @@
 ## Overview
 
 This package is the developer handoff for wiring the **live, hand-refined Sierra
-Estates client site** (currently at https://ahmedfawzy8866.github.io/SE/) into the
+Estates client site** (currently at [ahmedfawzy8866.github.io/SE](https://ahmedfawzy8866.github.io/SE/)) into the
 monorepo. The task: **port the static portal into React components** inside the
 Next.js **client-portal shell that already lives on `SE@main` under `src/`** — the
 scaffold the repo README flagged as "may be scaffolding meant to receive the
@@ -51,15 +51,9 @@ Recommended approach:
    - **i18n** → the repo's `lib/I18nContext.tsx` (already present on `main`).
    - **Theme** → a small `next-themes`-style provider (light/dark; see Theme section).
 
-> The static site also has an **optional Supabase path** (`supabase.js`,
-> `supabase-config.js`, `schema.sql`) that mirrors the same data shapes. The
-> monorepo standard is **Firebase/Firestore** (`houyez_*`). Prefer Firestore; the
-> Supabase files are included only so the data model and RLS intent are documented
-> in one place — don't introduce a second backend unless explicitly decided.
-
 ### Suggested component tree
 
-```
+```text
 src/components/portal/
 ├── PortalChrome.tsx          # sticky nav + announcement bell bar + mobile menu
 ├── Hero.tsx                  # slideshow + eyebrow/h1/sub + quick stats + laser sweep
@@ -91,6 +85,7 @@ Sections below are in live document order. IDs are the anchors in
 `design-reference/shared.js` (`I18N.en` / `I18N.ar`).
 
 ### 1. Chrome — `#site-chrome` (injected by `shared.js`)
+
 - **Purpose:** persistent nav; language + theme toggles; primary CTAs.
 - **Layout:** fixed top bar, navy translucent + backdrop blur. Left: logo
   (`logo-gold.png`) + "Future of Real Estate" subtag. Center/right nav:
@@ -101,6 +96,7 @@ Sections below are in live document order. IDs are the anchors in
   row can re-appear (same fields as hero). Mobile: hamburger drawer.
 
 ### 2. Hero — `header.hero` (`data-screen-label="Home hero"`)
+
 - **Purpose:** cinematic entry + primary search.
 - **Layout:** full-bleed, `min-height:640px`, `padding:70px 0 140px`. Background =
   crossfading image slideshow; dark gradient scrim on top.
@@ -126,6 +122,7 @@ Sections below are in live document order. IDs are the anchors in
   - **Search card** `.search-card` (see 2a).
 
 #### 2a. Hero search card — `HeroSearchCard`
+
 - Sits pulled up over the hero (`margin-top:-76px`, `z-index:5`), white/surface,
   `border-radius:14px`, `--shadow-m`.
 - **Tabs:** Resale / Rent / New Projects.
@@ -141,10 +138,12 @@ Sections below are in live document order. IDs are the anchors in
     live match count.
 
 ### 3. Market ticker — `.ticker`
+
 - Auto-scrolling single row (`#ticker-row`) of market/stat chips. Pauses on hover.
   Mono font, muted. Decorative-informational.
 
 ### 4. Featured properties — `#properties`
+
 - **Head:** eyebrow "AI-curated inventory" + H2 "Featured Properties" + sub; right
   "View all listings →" (→ `/properties`).
 - **Grid** `#prop-grid` — responsive cards from `HZDATA.listings`. Target columns:
@@ -162,6 +161,7 @@ Sections below are in live document order. IDs are the anchors in
   - Gold "View" overlay on hover → `/property?id=`.
 
 ### 5. Why Sierra — `#agents`
+
 - Centered H2 "Why Sierra Estates™". Advantage cards (`w1t…w4t` copy): One market,
   one search · Precise AVM Pricing · Human + AI Closing · Verified Inventory.
 - **Network block** (`netTit`/`netBody`): "We don't sell only our own units — we
@@ -169,10 +169,12 @@ Sections below are in live document order. IDs are the anchors in
   **240+** brokerage firms · **100%** New Cairo. (Copy verbatim in `shared.js`.)
 
 ### 6. Compounds preview — `#compounds` (`.well` background)
+
 - Head + "All 50+ compounds →" (→ `/compounds`). Grid `#comp-grid` of compound cards
   from `HZDATA.compounds` (`{n, c:[lat,lng], g:growth%, ai, z:zone, priceM, rent}`).
 
 ### 7. Virtual tour — `#tour` (`.well`)
+
 - **Purpose:** cinematic 3D-tour teaser, lazy-activated for performance.
 - **Layout:** `21/9` banner, `min-height:420px`, `border-radius:18px`, gold gradient
   border glow + soft shadow, dark base `#0a1622`.
@@ -184,9 +186,11 @@ Sections below are in live document order. IDs are the anchors in
 - Do **not** auto-load the iframe — click-to-activate is intentional.
 
 ### 8. Smart Map — `#map-section`
+
 - **Purpose:** interactive New Cairo compound map.
 - **Library:** Leaflet 1.9.4 + `leaflet.markercluster` 1.5.3 (both from unpkg;
-  install `leaflet` + `react-leaflet` or wrap Leaflet directly).
+  install `leaflet` + `react-leaflet` or wrap Leaflet directly)
+  - `leaflet.markercluster`.
 - **Map:** `#home-map`, height 480px. CARTO light tiles (light theme) / **CARTO dark
   tiles + gold markers** (dark theme). Markers cluster when zoomed out; compound
   markers labelled with `compounds[].n` — **Arabic names when lang = AR** (52
@@ -204,6 +208,7 @@ Sections below are in live document order. IDs are the anchors in
   tab).
 
 ### 9. AI Insights — `#insights`
+
 - Head "Best Listings Right Now" — AI-ranked by match score / ROI / demand.
 - **Grid** `#insights-grid` (auto-fit, min 300px) of best-listing cards.
 - **Market stat row** `#insights-market`: +24% Top Growth (Mountain View) · 9.8
@@ -211,6 +216,7 @@ Sections below are in live document order. IDs are the anchors in
   Structure is "ready for Firestore" — wire to live aggregates when available.
 
 ### 10. Intelligence Engine — "Intelligence Engine™"
+
 - Three launch cards, each with a **LIVE** badge, linking to the AI tool pages:
   - **Smart Match v3** → `/matches` (`matches.html`)
   - **AVM Pricing Engine** → `/pricing` (`pricing.html`)
@@ -219,10 +225,12 @@ Sections below are in live document order. IDs are the anchors in
   exist as pages.)
 
 ### 11. Quick request / CTA
+
 - "Have a property in New Cairo to sell or rent?" + sub, buttons "List your
   property" / "Talk to an agent". WhatsApp CTA to `wa.me/201092048333`.
 
 ### 12. Footer + Chat FAB
+
 - **Footer** `PortalFooter`: blurb, newsletter email capture, partner logos (EMAAR
   MISR · SODIC · Mountain View · Palm Hills · Ora · La Vista · Hyde Park · Marakez),
   contact `info@Sierra-Estates.net`, address "Banafseg 2, Villa 402, New Cairo".
@@ -319,7 +327,7 @@ and the design system's `colors_and_type.css`. Key ones:
 
 ## Files in this bundle
 
-```
+```text
 design-reference/
 ├── index.html          # the portal (all sections above) — primary reference
 ├── shared.css          # all shared styles, tokens, RTL, dark theme

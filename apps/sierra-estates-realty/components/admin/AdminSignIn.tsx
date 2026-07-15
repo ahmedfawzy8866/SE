@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/client/AuthModal";
 import { useToast } from "@/components/client/Toast";
 import { api } from "@/lib/api-client";
-import { firebaseEnabled, getFirebaseAuth } from "@/lib/firebase";
+import { isFirebaseClientConfigured as firebaseEnabled, auth } from "@/lib/firebase";
 import { DEMO_ADMIN } from "@/lib/auth";
 
 export function AdminSignIn() {
@@ -27,7 +27,6 @@ export function AdminSignIn() {
     setBusy(true);
     try {
       if (firebaseEnabled) {
-        const auth = getFirebaseAuth();
         if (!auth) throw new Error("Firebase not initialized");
         const { signInWithEmailAndPassword, getIdToken } = await import("firebase/auth");
         const cred = await signInWithEmailAndPassword(auth, email, password);

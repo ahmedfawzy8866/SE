@@ -7,5 +7,9 @@ export const metadata = {
 };
 
 export default function VirtualTourPage() {
-  return <VirtualTourPortal />;
+  return (
+    <div className="w-screen h-screen">
+      <VirtualTourPortal />
+    </div>
+  );
 }
