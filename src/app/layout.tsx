@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Providers } from '../components/Providers';
 import './globals.css';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: 'Sierra Estates | Luxury Real Estate Portal',
@@ -35,6 +36,7 @@ export default function RootLayout({
         <Providers>
           <main id="main-content">{children}</main>
         </Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
