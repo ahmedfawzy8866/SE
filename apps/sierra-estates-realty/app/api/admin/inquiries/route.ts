@@ -8,7 +8,7 @@
 import { NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { requireRole } from "@/lib/auth";
-import type { Inquiry } from "@/lib/types";
+
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

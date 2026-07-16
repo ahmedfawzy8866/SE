@@ -43,8 +43,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  VERCEL_ORG_ID: team_UvdJ5ezVTaqEKyhqZ5QVqOKJ
-  VERCEL_CLI_VERSION: '43.3.0'
+  # VERCEL_ORG_ID: team_UvdJ5ezVTaqEKyhqZ5QVqOKJ
+  VERCEL_CLI_VERSION: 'latest'
   LEGACY_ADMIN_PROJECT: prj_cJSEzNFE1JOAHzIdjrsJtVaqq7vJ
 
 jobs:

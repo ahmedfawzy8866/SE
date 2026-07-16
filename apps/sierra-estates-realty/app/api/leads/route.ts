@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/server/firebase-admin';
-import { Timestamp } from 'firebase-admin/firestore';
+
 import { COLLECTIONS } from '@/lib/models/schema';
 import { sendTelegramMessage } from '@/lib/telegram';
 import { applyRateLimit, publicEndpointLimiter } from '@/lib/server/rate-limit';
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const { name, email, phone, message, locale } = parseResult.data;
 
     // 1. Add to Firestore
-    const leadRef = await adminDb.collection('inquiries').add({
+    const leadRef = await adminDb.collection(COLLECTIONS.stakeholders).add({
       name,
       email: email || undefined,
       phone: phone || undefined,
