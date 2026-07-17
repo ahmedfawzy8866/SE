@@ -24,7 +24,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminRequest, AuthResult } from '@/lib/server/auth-guard';
-import { withAdminAuth } from '@/lib/middleware/auth-guard';
 import { adminDb } from '@/lib/server/firebase-admin';
 import { logger } from '@/lib/logger';
 
@@ -42,9 +41,11 @@ async function callerIsSuperadmin(authResult: AuthResult): Promise<boolean> {
   return callerDoc.data()?.role === 'superadmin';
 }
 
-const getHandler = async (req: NextRequest, { params }: { params: Promise<{ collection: string }> }) => {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ collection: string }> }) {
   const authResult = await verifyAdminRequest(req);
-  // auth already verified by withAdminAuth
+  if (!authResult.authenticated) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   if (!(await callerIsSuperadmin(authResult))) {
     return NextResponse.json(
@@ -130,9 +131,11 @@ const getHandler = async (req: NextRequest, { params }: { params: Promise<{ coll
  * POST /api/admin/db/:collection — create a new document in any collection.
  * Body: arbitrary JSON (will be stored as-is, with createdAt/updatedAt timestamps).
  */
-const postHandler = async (req: NextRequest, { params }: { params: Promise<{ collection: string }> }) => {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ collection: string }> }) {
   const authResult = await verifyAdminRequest(req);
-  // auth already verified by withAdminAuth
+  if (!authResult.authenticated) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   if (!(await callerIsSuperadmin(authResult))) {
     return NextResponse.json({ error: 'Forbidden — superadmin required' }, { status: 403 });
   }
@@ -159,6 +162,3 @@ const postHandler = async (req: NextRequest, { params }: { params: Promise<{ col
     );
   }
 }
-
-export const GET = withAdminAuth(getHandler);
-export const POST = withAdminAuth(postHandler);

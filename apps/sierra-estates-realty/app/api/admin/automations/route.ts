@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { verifyAdminRequest } from '@/lib/server/auth-guard';
-import { withAdminAuth } from '@/lib/middleware/auth-guard';
 import { adminDb } from '@/lib/server/firebase-admin';
 import { AUTOMATION_COLLECTIONS } from '@/lib/models/automation';
 import { logger } from '@/lib/logger';
-import { Timestamp } from 'firebase-admin/firestore';
+import { Timestamp, QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 const automationCreateSchema = z.object({
   name: z.string().min(1).max(200),
@@ -42,13 +41,15 @@ const automationCreateSchema = z.object({
   }).optional(),
 });
 
-const getHandler = async (req: NextRequest) => {
+export async function GET(req: NextRequest) {
   const authResult = await verifyAdminRequest(req);
-  // auth already verified by withAdminAuth
+  if (!authResult.authenticated) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   try {
     const snap = await adminDb.collection(AUTOMATION_COLLECTIONS.rules).get();
-    const rules = snap.docs.map((doc) => ({
+    const rules = snap.docs.map((doc: QueryDocumentSnapshot) => ({
       id: doc.id,
       ...doc.data(),
     }));
@@ -70,9 +71,11 @@ const getHandler = async (req: NextRequest) => {
   }
 }
 
-const postHandler = async (req: NextRequest) => {
+export async function POST(req: NextRequest) {
   const authResult = await verifyAdminRequest(req);
-  // auth already verified by withAdminAuth
+  if (!authResult.authenticated) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   try {
     const body = await req.json();
@@ -132,6 +135,3 @@ const postHandler = async (req: NextRequest) => {
     );
   }
 }
-
-export const GET = withAdminAuth(getHandler);
-export const POST = withAdminAuth(postHandler);

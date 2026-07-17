@@ -1,17 +1,5 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { logger } from '@/lib/logger';
 import { applyRateLimit, publicEndpointLimiter } from '@/lib/server/rate-limit';
-import { badRequest, successResponse, internalError } from '@/lib/server/error-response';
-
-// Validation schema for closer initiation request
-const CloserInitiateSchema = z.object({
-  propertyCode: z.string().min(1, 'Property code is required').max(50, 'Property code too long'),
-  visitorName: z.string().min(2, 'Visitor name must be at least 2 characters').max(100, 'Name too long'),
-  visitorEmail: z.string().email('Invalid email format').optional().or(z.literal('')),
-  visitorPhone: z.string().min(7, 'Phone number must be valid').max(20, 'Phone number too long')
-    .regex(/^[\d\s\-\+\(\)]+$/, 'Phone number contains invalid characters'),
-});
 
 /**
  * API: INITIATE CLOSING (STAGE 9)
@@ -26,17 +14,11 @@ export async function POST(request: Request) {
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
-    const body = await request.json();
+    const { propertyCode, visitorName, visitorEmail, visitorPhone } = await request.json();
 
-    // Validate input with Zod schema
-    const validationResult = CloserInitiateSchema.safeParse(body);
-    if (!validationResult.success) {
-      const errors = validationResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join('; ');
-      logger.warn('Closer initiation validation failed', { errors });
-      return badRequest('Invalid request parameters');
+    if (!propertyCode || !visitorName || !visitorPhone) {
+      return NextResponse.json({ error: 'Missing mandatory lead or property identity.' }, { status: 400 });
     }
-
-    const { propertyCode, visitorName, visitorEmail, visitorPhone } = validationResult.data;
 
     // 1. Determine Sourced Listing Entity & Commission Structure
     const isDirectOwner = !propertyCode.startsWith('PF-') && Math.random() > 0.4;
@@ -94,7 +76,8 @@ Sierra Estates Intelligence OS
       `
     };
 
-    return successResponse({
+    return NextResponse.json({
+      success: true,
       dealId: `deal_${Date.now()}`,
       introMessage: `No human agent responded in time (6-hour window). AI Closer Autopilot has engaged. Viewing scheduled successfully on Google Calendar for ${viewingDate.toLocaleDateString()} at 4:00 PM. A detailed coordination report has been sent to a.fawzy8866@gmail.com with co-broker outreach templates!`,
       meta: {
@@ -105,10 +88,13 @@ Sierra Estates Intelligence OS
         emailContent: emailPayload.body,
         calendarEvent: `Viewing Appointment: ${propertyCode} - ${visitorName}`
       }
-    }, 201);
+    });
 
   } catch (error) {
-    logger.error('Closer initiation failed', { error: error instanceof Error ? error.message : String(error) });
-    return internalError('Failed to synchronize with the Closer Agent.', error);
+    console.error('[API Closer] Initiation Error:', error);
+    return NextResponse.json({ 
+      error: 'Failed to synchronize with the Closer Agent.',
+      details: (error as Error).message 
+    }, { status: 500 });
   }
 }

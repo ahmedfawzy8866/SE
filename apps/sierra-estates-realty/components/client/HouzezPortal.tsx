@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { MapPin, Search, ChevronDown, MapIcon, Menu, X, Home, Filter } from 'lucide-react';
+import { MapPin, Search, ChevronDown, MapIcon, Menu, X, Home } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 // Dynamically import Leaflet map to avoid SSR issues
@@ -123,7 +123,7 @@ export default function HouzezPortal() {
 
   // Filter and sort properties
   const filteredProperties = useMemo(() => {
-    let results = MOCK_PROPERTIES.filter((p) => {
+    const results = MOCK_PROPERTIES.filter((p) => {
       const matchesPrice = p.price >= filters.priceMin && p.price <= filters.priceMax;
       const matchesBeds = filters.beds === null || p.beds === filters.beds;
       const matchesBaths = filters.baths === null || p.baths === filters.baths;
@@ -325,7 +325,6 @@ export default function HouzezPortal() {
                     property={property}
                     isSelected={selectedProperty?.id === property.id}
                     onSelect={setSelectedProperty}
-                    isDarkMode={isDarkMode}
                     surfaceColor={surfaceColor}
                     borderColor={borderColor}
                     hoverColor={hoverColor}
@@ -375,7 +374,6 @@ interface PropertyCardProps {
   property: Property;
   isSelected: boolean;
   onSelect: (property: Property) => void;
-  isDarkMode: boolean;
   surfaceColor: string;
   borderColor: string;
   hoverColor: string;
@@ -385,7 +383,6 @@ function PropertyCard({
   property,
   isSelected,
   onSelect,
-  isDarkMode,
   surfaceColor,
   borderColor,
   hoverColor,
@@ -401,8 +398,8 @@ function PropertyCard({
         isSelected ? `ring-2 ring-amber-500 ${surfaceColor}` : `border ${borderColor} ${surfaceColor} ${hoverColor}`
       }`}
     >
-      {/* Image */}
       <div className="relative h-32 overflow-hidden bg-gray-400">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={property.image}
           alt={property.title}

@@ -2,14 +2,6 @@ import { parseDSL, buildFirestoreQuery } from '../../../packages/db/lib/dsl/pars
 import { pushListingToPF } from '../../../packages/db/lib/integrations/property-finder';
 import { VIEW_CONFIGS } from '../../../packages/db/lib/sierra-estates-view-configs';
 
-jest.mock('firebase/auth', () => ({
-  getAuth: () => ({
-    currentUser: (globalThis as any).__TEST_TOKEN__
-      ? { getIdToken: async () => (globalThis as any).__TEST_TOKEN__ }
-      : null,
-  }),
-}));
-
 describe('shared db review fixes', () => {
   const mockFetch = jest.fn();
 

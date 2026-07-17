@@ -4,8 +4,8 @@ This supplements the root `AGENTS.md` with a repo-local ECC baseline.
 
 ## Repo Skill
 
-- Repo-generated Codex skill: `.agents/skills/SE/SKILL.md`
-- Claude-facing companion skill: `.claude/skills/SE/SKILL.md`
+- Repo-generated Codex skill: `.agents/skills/Sierra-Estates-Final/SKILL.md`
+- Claude-facing companion skill: `.claude/skills/Sierra-Estates-Final/SKILL.md`
 - Keep user-specific credentials and private MCPs in `~/.codex/config.toml`, not in this repo.
 
 ## MCP Baseline
@@ -21,6 +21,8 @@ The generated baseline enables GitHub, Context7, Exa, Memory, Playwright, and Se
 
 ## Workflow Files
 
-- `.claude/commands/update-pnpm-workspace-yaml.md`
+- `.claude/commands/feature-development.md`
+- `.claude/commands/add-or-update-api-endpoint.md`
+- `.claude/commands/add-or-update-whatsapp-bot-features.md`
 
 Use these workflow files as reusable task scaffolds when the detected repository workflows recur.

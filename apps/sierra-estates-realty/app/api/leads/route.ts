@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/server/firebase-admin';
-import { Timestamp } from 'firebase-admin/firestore';
+
 import { COLLECTIONS } from '@/lib/models/schema';
 import { sendTelegramMessage } from '@/lib/telegram';
 import { applyRateLimit, publicEndpointLimiter } from '@/lib/server/rate-limit';
@@ -37,26 +37,15 @@ export async function POST(req: Request) {
     // 1. Add to Firestore
     const leadRef = await adminDb.collection(COLLECTIONS.stakeholders).add({
       name,
-      email,
-      phone,
-      message,
+      email: email || undefined,
+      phone: phone || undefined,
+      notes: message || undefined,
       status: 'new',
-      phase: 'acquisition',
-      priority: 'warm',
-      via: 'Website',
-      interest: 'General Inquiry',
-      capitalAllocation: 'To be determined',
-      locale,
-      aiProfiling: {
-        interests: ['General Inquiry'],
-        topMatches: [],
-        lastAnalyzedAt: Timestamp.now(),
-      },
-      automation: {
-        followupReminderEnabled: true,
-        interactionFrequency: 'medium',
-      },
-      createdAt: Timestamp.now()
+      mode: 'sale', // default
+      source: 'website',
+      zone: locale, // using locale for zone if needed
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     // 2. Send Telegram Notification

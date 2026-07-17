@@ -54,7 +54,7 @@ export async function runUnitAdder(rawUnitData: any) {
     const sbrCode = generateSBRCode(compound, rooms, isFurnished, rawPrice, currency);
     
     // Check for deduplication
-    const existingUnitQuery = await db.collection('properties')
+    const existingUnitQuery = await db.collection('listings')
       .where('sbrCode', '==', sbrCode)
       .limit(1)
       .get();
@@ -81,7 +81,7 @@ export async function runUnitAdder(rawUnitData: any) {
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     };
     
-    const docRef = await db.collection('properties').add(newUnit);
+    const docRef = await db.collection('listings').add(newUnit);
     console.log(`[Unit Adder] Unit added with ID: ${docRef.id} and SBR: ${sbrCode}`);
     
     // Dispatch exchange event (optional telemetry)

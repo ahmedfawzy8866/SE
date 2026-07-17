@@ -1,4 +1,3 @@
-import { withSecretKey } from '@/lib/middleware/auth-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { adminDb } from '@/lib/server/firebase-admin';
@@ -108,9 +107,14 @@ function buildListingDocument(rawMessage: string, sender: string, group: string,
   };
 }
 
-const getHandler = async (req: NextRequest) => {
+export async function GET(req: NextRequest) {
   // Verify cron secret (Vercel sends this automatically in production)
-  // cron secret verified by withSecretKey wrapper
+  const authHeader = req.headers.get('authorization');
+  const cronSecret = process.env.CRON_SECRET;
+
+  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   const spreadsheetId = process.env.BROKER_INBOX_SHEET_ID;
   if (!spreadsheetId) {
@@ -234,5 +238,3 @@ const getHandler = async (req: NextRequest) => {
     );
   }
 }
-
-export const GET = withSecretKey(getHandler);

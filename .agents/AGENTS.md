@@ -64,13 +64,4 @@ We organize backend logic and AI logic into four core personas:
 3. Every commit must pass `next build`.
 4. API keys in `.env` only — NEVER in source files.
 
-## 8. Vibe Coding vs Production Core
-
-We encourage rapid, AI-assisted prototyping ("vibe coding") for new ideas, but we must protect the production core.
-
-1. **The Sandbox Rule**: All vibe-coding and experimental features MUST be built in a separate branch (`experiment/*` or `vibe/*`) or within an isolated `apps/agents/playground/` directory.
-2. **No Direct Production Commits**: Vibe-coded logic cannot be merged into `main` or the core `apps/admin` / `apps/sierra-estates-realty` without a strict review phase.
-3. **The "Scribe" Review**: Before integration, the code must be audited by the "Scribe" agent to ensure it follows the "Quiet Luxury" design protocol, strict TypeScript typing (no `any`), and is thoroughly documented.
-4. **Logic Segregation**: Experimental agent prompts or unstructured automations must be tested in `apps/agents/playground/` before being promoted to active workflows.
-
 *(This file is automatically loaded by Antigravity as the project rules.)*

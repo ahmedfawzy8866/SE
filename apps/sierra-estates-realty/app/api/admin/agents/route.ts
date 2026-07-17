@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { withAdminAuth } from '@/lib/middleware/auth-guard';
+import { verifyAdminRequest } from '@/lib/server/auth-guard';
 import { adminDb } from '@/lib/server/firebase-admin';
 import { COLLECTIONS } from '@/lib/models/schema';
 import { logger } from '@/lib/logger';
@@ -40,7 +40,11 @@ async function getWhatsappScraperAgent() {
 }
 
 /** Operational status of background workers (n8n flows, whatsapp-scraper, etc), not in-process agent personas. */
-const getHandler = async (req: NextRequest) => {
+export async function GET(req: NextRequest) {
+  const authResult = await verifyAdminRequest(req);
+  if (!authResult.authenticated) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   try {
     const snap = await adminDb.collection(COLLECTIONS.agentStatus).get();
@@ -59,7 +63,11 @@ const getHandler = async (req: NextRequest) => {
   }
 }
 
-const postHandler = async (req: NextRequest) => {
+export async function POST(req: NextRequest) {
+  const authResult = await verifyAdminRequest(req);
+  if (!authResult.authenticated) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   try {
     const parsed = agentCreateSchema.safeParse(await req.json());
@@ -88,6 +96,3 @@ const postHandler = async (req: NextRequest) => {
     );
   }
 }
-
-export const GET = withAdminAuth(getHandler);
-export const POST = withAdminAuth(postHandler);

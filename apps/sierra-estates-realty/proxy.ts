@@ -30,12 +30,22 @@ import { corsHeaders } from '@/lib/server/cors';
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const adminHost = process.env.ADMIN_HOST;
+  const requestHost = request.headers.get('host') ?? request.nextUrl.hostname;
+  const onAdminHost = Boolean(adminHost) && requestHost === adminHost;
 
-  // 0) Admin / public host split (inert unless ADMIN_HOST is set).
+  // 0a) On the admin host, the console IS the site: rewrite the root to
+  //     /admin so admin.sierra-estates.net/ serves the console directly.
+  //     API routes, /_next assets and /admin/* itself pass through untouched.
+  if (onAdminHost && pathname === '/') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/admin';
+    return NextResponse.rewrite(url);
+  }
+
+  // 0b) Admin / public host split (inert unless ADMIN_HOST is set).
   if (pathname.startsWith('/admin')) {
-    const adminHost = process.env.ADMIN_HOST;
-    const requestHost = request.headers.get('host') ?? request.nextUrl.hostname;
-    if (adminHost && requestHost !== adminHost) {
+    if (adminHost && !onAdminHost) {
       const url = new URL(request.url);
       url.hostname = adminHost;
       url.protocol = 'https:';
@@ -51,7 +61,7 @@ export function proxy(request: NextRequest) {
   const cors = corsHeaders(origin);
 
   // 1) Answer CORS preflight immediately for any /api route.
-  if (request.method === 'OPTIONS') {
+  if (request.method === 'OPTIONS' && pathname.startsWith('/api')) {
     return new NextResponse(null, { status: 204, headers: cors });
   }
 
@@ -75,7 +85,8 @@ export function proxy(request: NextRequest) {
   return res;
 }
 
-// Matches every /api route (CORS) and every /admin route (host split). The
-// secret gate inside the handler still restricts itself to /api/orchestrate —
-// do NOT move that check into the matcher, or public/cron/webhook routes break.
-export const config = { matcher: ['/api/:path*', '/admin/:path*'] };
+// Matches the root (admin-host rewrite), every /api route (CORS) and every
+// /admin route (host split). The secret gate inside the handler still
+// restricts itself to /api/orchestrate — do NOT move that check into the
+// matcher, or public/cron/webhook routes break.
+export const config = { matcher: ['/', '/api/:path*', '/admin/:path*'] };

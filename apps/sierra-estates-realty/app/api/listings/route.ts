@@ -23,20 +23,20 @@ import { COLLECTIONS } from '@/lib/models/schema';
 import { applyRateLimit, publicEndpointLimiter } from '@/lib/server/rate-limit';
 import { logger } from '@/lib/logger';
 import { SEED_LISTINGS } from '@/lib/seed';
-import { getAdminDb, getFirestoreAdmin } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { requireRole } from '@/lib/auth';
 import type { Listing } from '@/lib/types';
 
 // Firebase Firestore integration
 const getListingsFromFirebase = async () => {
   try {
-    const db = getFirestoreAdmin();
+    const db = await getAdminDb();
     if (!db) return null;
 
     const snap = await db.collection('houyez_listings').limit(1000).get();
     if (snap.empty) return null;
 
-    return snap.docs.map(doc => ({
+    return snap.docs.map((doc: any) => ({
       id: doc.id,
       ...doc.data(),
     }));

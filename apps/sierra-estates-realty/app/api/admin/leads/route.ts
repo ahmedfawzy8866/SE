@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { withAdminAuth } from '@/lib/middleware/auth-guard';
+import { verifyAdminRequest } from '@/lib/server/auth-guard';
 import { adminDb } from '@/lib/server/firebase-admin';
 import { COLLECTIONS } from '@/lib/models/schema';
 import { mapLeadToSpa, mapSpaToLeadPatch } from '@/lib/server/admin-spa-mappers';
@@ -21,7 +21,11 @@ const leadCreateSchema = z
   })
   .passthrough();
 
-const getHandler = async (req: NextRequest) => {
+export async function GET(req: NextRequest) {
+  const authResult = await verifyAdminRequest(req);
+  if (!authResult.authenticated) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   try {
     const limit = parseInt(new URL(req.url).searchParams.get('limit') || '500', 10);
@@ -38,7 +42,11 @@ const getHandler = async (req: NextRequest) => {
   }
 }
 
-const postHandler = async (req: NextRequest) => {
+export async function POST(req: NextRequest) {
+  const authResult = await verifyAdminRequest(req);
+  if (!authResult.authenticated) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   try {
     const parsed = leadCreateSchema.safeParse(await req.json());
@@ -65,6 +73,3 @@ const postHandler = async (req: NextRequest) => {
     );
   }
 }
-
-export const GET = withAdminAuth(getHandler);
-export const POST = withAdminAuth(postHandler);

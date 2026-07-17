@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/lib/logger';
 import { OmnichannelChatService } from '@/lib/services/OmnichannelChatService';
 
 /**
@@ -28,7 +27,7 @@ export async function POST(req: NextRequest) {
       action: result.actionTaken
     });
   } catch (error: any) {
-    logger.error('Web concierge request failed', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ error: "Failed to process concierge request" }, { status: 500 });
+    console.error("🚨 Web Concierge API Failure:", error);
+    return NextResponse.json({ error: "Failed to process luxury concierge signal", details: error.message }, { status: 500 });
   }
 }

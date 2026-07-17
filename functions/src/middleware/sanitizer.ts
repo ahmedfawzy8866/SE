@@ -13,7 +13,7 @@ const INJECTION_PATTERNS = [
   /\b(system|admin)\s*prompt/gi,
   /role\s*:\s*(admin|system|attacker)/gi,
   /execute\s+(code|command|sql)/gi,
-  /<script[^>]*>[\s\S]*?<\/script>/gi,
+  /<\s*script\b[^>]*>[\s\S]*?<\s*\/\s*script\b[^>]*>/gi,
   /javascript:/gi,
   /on\w+\s*=/gi, // Event handlers
   /eval\s*\(/gi,

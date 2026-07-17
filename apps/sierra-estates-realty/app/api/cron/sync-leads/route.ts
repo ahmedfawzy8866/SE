@@ -1,4 +1,3 @@
-import { withSecretKey } from '@/lib/middleware/auth-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { PFIntegrationService } from '@/lib/services/PFIntegrationService';
 import { adminDb } from '@/lib/server/firebase-admin';
@@ -12,7 +11,7 @@ import { logger } from '@/lib/logger';
  * This ensures "15-min response time" SLA compliance.
  */
 
-const getHandler = async (req: NextRequest) => {
+export async function GET(req: NextRequest) {
   // Verify cron secret (Vercel sends this header)
   const authHeader = req.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
@@ -57,5 +56,3 @@ const getHandler = async (req: NextRequest) => {
     }, { status: 500 });
   }
 }
-
-export const GET = withSecretKey(getHandler);

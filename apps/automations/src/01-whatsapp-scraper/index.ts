@@ -49,8 +49,8 @@ export function startWhatsAppWebhookServer(port: number = 3000) {
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
         };
 
-        // 3. Save to raw_leads collection
-        await db.collection('raw_leads').add(lead);
+        // 3. Save to broker_listings collection
+        await db.collection('broker_listings').add(lead);
         console.log(`[WhatsApp Scraper] Lead captured from ${sender}`);
       }
 

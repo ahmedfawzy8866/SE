@@ -24,8 +24,6 @@
 
 import { AgentOrchestrator } from '@sierra-estates/agents-core'
 import { sharedMemory } from '@sierra-estates/memory-engine'
-import { llmRouter } from '../../lib/llm/multi-llm-router'
-import { closerAgent } from '../stage-9-closer/CloserAgentEnhanced'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -198,7 +196,7 @@ export class WhatsAppBotRouter {
 
   constructor(apiKey?: string) {
     this.orchestrator = new AgentOrchestrator({ apiKey })
-    // Router initialized - logging removed for production
+    console.log('[WhatsAppBotRouter] Initialized. Liela and Sierra are ready.')
   }
 
   /**
@@ -223,7 +221,7 @@ export class WhatsAppBotRouter {
       const urgency = determineUrgency(intent, history)
       const route = routeMessage(intent, urgency, isNewClient)
 
-      // Intent classified (logging removed for production)
+      console.log(`[Router] ${phone} | intent=${intent} | urgency=${urgency} | route=${route.primaryAgent}`)
 
       // 4. Build context for agents
       const context = this.buildAgentContext(phone, msg, intent, history, leadProfile)
@@ -241,12 +239,12 @@ export class WhatsAppBotRouter {
       await sharedMemory.recordConversationTurn(phone, route.primaryAgent, 'outbound', response)
 
       const elapsed = Date.now() - startedAt
-      // Response delivered (${elapsed}ms) - logging removed for production
+      console.log(`[Router] Response delivered in ${elapsed}ms`)
 
       return response
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err)
-      // Error handling message (error logged server-side, not sent to console)
+      console.error('[WhatsAppBotRouter] Error handling message:', message)
       // Fallback response
       return 'عذراً، حدث خطأ مؤقت. سيتواصل معك فريقنا قريباً.'
     }
@@ -261,32 +259,9 @@ export class WhatsAppBotRouter {
     userMessage: string,
     phone: string
   ): Promise<string> {
-    // Handle Closer Agent for closing deals (Stage 9)
-    if (route.primaryAgent === 'closer') {
-      try {
-        const leadProfile = await sharedMemory.getLeadProfile(phone)
-        const lastProperty = (leadProfile as any)?.lastInterestedProperty
-
-        const proposalContent = await closerAgent.generateIntelligentProposal({
-          dealId: `DEAL-${phone}-${Date.now()}`,
-          leadPhone: phone,
-          propertyCode: lastProperty || 'TBD',
-          buyerProfile: leadProfile || {},
-          propertyData: {},
-          previousOffers: [],
-          negotiationHistory: [],
-        })
-
-        return proposalContent || 'نحن بصدد إعداد عرضك الخاص. سيصلك قريباً.'
-      } catch (err) {
-        // Closer agent error (logged server-side, not sent to console)
-        return 'سيتواصل معك فريق الإغلاق للانتهاء من الصفقة.'
-      }
-    }
-
     // If the primary agent is OpenClaw (handling owners directly)
     if (route.primaryAgent === 'openclaw') {
-      const openclawResult = await llmRouter.executeTask(
+      const openclawResult = await this.orchestrator.runAgentTask(
         'openclaw',
         `You are talking directly to a property owner. Extract property details (if any), encourage them to provide more info, and generate a warm, professional WhatsApp response in Egyptian Arabic: "${userMessage}"`,
         context
@@ -301,7 +276,7 @@ export class WhatsAppBotRouter {
     let enrichedContext = context
 
     if (needsData) {
-      const dataResult = await llmRouter.executeTask(
+      const dataResult = await this.orchestrator.runAgentTask(
         'openclaw',
         `Retrieve property data relevant to this client inquiry: ${userMessage}`,
         context
@@ -312,7 +287,7 @@ export class WhatsAppBotRouter {
     }
 
     if (needsAnalysis) {
-      const analysisResult = await llmRouter.executeTask(
+      const analysisResult = await this.orchestrator.runAgentTask(
         'sierra',
         `Analyze client message and generate the best 1-3 property recommendations with response strategy: ${userMessage}`,
         enrichedContext
@@ -323,7 +298,7 @@ export class WhatsAppBotRouter {
     }
 
     // Hermes always generates the final client-facing response
-    const hermesResult = await llmRouter.executeTask(
+    const hermesResult = await this.orchestrator.runAgentTask(
       'hermes',
       `Generate a warm, professional WhatsApp response in Egyptian Arabic to this client message: "${userMessage}"`,
       enrichedContext
@@ -367,7 +342,7 @@ ${history.slice(-5).map((h: unknown) => JSON.stringify(h)).join('\n') || 'None'}
    * Escalate to human agent - send alert to team WhatsApp group
    */
   private async escalateToHuman(phone: string, msg: IncomingMessage, context: string): Promise<void> {
-    // Escalation initiated (logging removed for production)
+    console.warn(`[Router] ESCALATING TO HUMAN: ${phone} | Reason: complaint/critical`)
 
     await sharedMemory.write(`escalation-${phone}-${Date.now()}`, {
       phone,
