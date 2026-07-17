@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/server/firebase-admin';
-
+import { Timestamp } from 'firebase-admin/firestore';
 import { COLLECTIONS } from '@/lib/models/schema';
 import { sendTelegramMessage } from '@/lib/telegram';
 import { applyRateLimit, publicEndpointLimiter } from '@/lib/server/rate-limit';
@@ -8,7 +8,6 @@ import { enqueueWhatsAppJob } from '@/lib/server/whatsapp-queue';
 
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-
 const leadSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address").optional(),
@@ -43,9 +42,24 @@ export async function POST(req: Request) {
       status: 'new',
       mode: 'sale', // default
       source: 'website',
-      zone: locale, // using locale for zone if needed
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      zone: locale || undefined,
+      phase: 'acquisition',
+      priority: 'warm',
+      via: 'Website',
+      interest: 'General Inquiry',
+      capitalAllocation: 'To be determined',
+      locale: locale || undefined,
+      aiProfiling: {
+        interests: ['General Inquiry'],
+        topMatches: [],
+        lastAnalyzedAt: Timestamp.now(),
+      },
+      automation: {
+        followupReminderEnabled: true,
+        interactionFrequency: 'medium',
+      },
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
     });
 
     // 2. Send Telegram Notification

@@ -33,7 +33,7 @@ env:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: node24
     steps:
       - uses: actions/checkout@v4
 
