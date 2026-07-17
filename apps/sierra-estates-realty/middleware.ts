@@ -28,7 +28,7 @@ import { corsHeaders } from '@/lib/server/cors';
  *    its own secret/HMAC) authenticate themselves and must NEVER be gated here,
  *    or we would 401 the public site and break inbound webhooks.
  */
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const adminHost = process.env.ADMIN_HOST;
   const requestHost = request.headers.get('host') ?? request.nextUrl.hostname;
