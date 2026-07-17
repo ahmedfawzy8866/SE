@@ -75,6 +75,22 @@ Both the Client Portal and the Admin/AI backend are wired directly to the same F
 
 ---
 
-## 5. Security & Credentials
+## 5. Third-Party & Portal Integrations
+
+### Property Finder (PF) Integration
+Managed by `PFIntegrationService.ts` and the webhook router:
+- **Lead Syncing**: Incoming leads from Property Finder are ingested by `/api/cron/sync-leads` or the webhook, parsed, and added to the `leads` collection in Firestore.
+- **Listing Syncing**: Properties in the `listings` collection are published to the Property Finder Enterprise API (`atlas.propertyfinder.com/v1`) via `/api/sync/publish` or updated automatically by `/api/cron/sync-listings`.
+
+### EasyListing Sourcing Hub
+The intake tool for manual sourcing:
+- **AI Extraction**: Converts raw copypasted chat logs (e.g. from WhatsApp) into formatted real estate data models.
+- **Verification**: Cross-references parsed compound names, bedroom configurations, and pricing patterns against compound limits.
+- **Deduplication**: Resolves potential conflicts before writing verified clean units into the `listings` and `houyez_listings` collections.
+
+---
+
+## 6. Security & Credentials
 - All API keys, WhatsApp tokens, and Firebase Service Accounts are securely stored as Vercel Environment Variables (under project `sierra-estates-admin`) and in local `.env.local` files.
 - Static client configurations are safely stored in `firebase-config.js` (using public web keys only).
+
