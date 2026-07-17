@@ -126,7 +126,7 @@
   /* ── Get all compounds ── */
   function getCompounds() {
     if (!connected) return Promise.resolve(D.compounds || []);
-    return db.collection('compounds').orderBy('name').get()
+    return db.collection('houyez_compounds').orderBy('name').get()
       .then(function (snap) {
         if (snap.empty) return D.compounds || [];
         return snap.docs.map(mapCompound);
@@ -139,7 +139,7 @@
     if (!connected) {
       return Promise.resolve((D.compounds || []).find(function (c) { return c.n === name; }) || null);
     }
-    return db.collection('compounds').where('name', '==', name).limit(1).get()
+    return db.collection('houyez_compounds').where('name', '==', name).limit(1).get()
       .then(function (snap) {
         if (snap.empty) return (D.compounds || []).find(function (c) { return c.n === name; }) || null;
         return mapCompound(snap.docs[0]);
@@ -150,7 +150,7 @@
   /* ── Get units for a compound ── */
   function getUnitsFor(compoundName) {
     if (!connected) return Promise.resolve([]);
-    return db.collection('properties')
+    return db.collection('houyez_listings')
       .where('compound', '==', compoundName)
       .orderBy('price')
       .get()
@@ -171,7 +171,7 @@
       return Promise.resolve(list.slice(0, filter.limit || 100));
     }
 
-    var q = db.collection('properties');
+    var q = db.collection('houyez_listings');
     if (filter.compound) q = q.where('compound', '==', filter.compound);
     if (filter.type)     q = q.where('propertyType', '==', filter.type);
     if (filter.status)   q = q.where('status', '==', filter.status);
@@ -226,7 +226,7 @@
   /* ── Real-time subscription (listings) ── */
   function subscribe(callback) {
     if (!connected) return function () {};
-    var unsub = db.collection('properties')
+    var unsub = db.collection('houyez_listings')
       .orderBy('aiScore', 'desc')
       .limit(50)
       .onSnapshot(function (snap) {
