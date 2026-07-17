@@ -19,6 +19,15 @@ import crypto from "crypto";
  *    API key (16 hex chars). This means every API key gets its own
  *    isolated tenant scope, which is the simplest correct multi-tenant
  *    behaviour. The raw API key never leaves this module.
+ *
+ * NOTE (CodeQL js/insufficient-password-hash): SHA-256 is intentional and
+ * correct here. This is NOT password storage — authentication happens in
+ * `validate_api_key` via `crypto.timingSafeEqual` on the raw key, and this
+ * function only runs on an already-validated, high-entropy API key to derive
+ * a *deterministic* namespace identifier. A salted/slow KDF (bcrypt/scrypt/
+ * argon2) would break the required stability (same key must always yield the
+ * same tenant id) and add latency to every authenticated request.
+ *
  *  - If a future deployment needs to map one API key to a different
  *    tenant id (e.g., a customer-specified slug), replace `derive_tenant_id`
  *    with a lookup — route handlers don't need to change.

@@ -7,15 +7,16 @@ Run with:
 These tests use FastAPI's TestClient (backed by httpx) so they exercise the
 real ASGI app end-to-end without needing a live server.
 """
-# pylint: disable=redefined-outer-name, missing-docstring
+# ruff: noqa: E402, F811, D100, D101, D102, D103
+# pylint: disable=redefined-outer-name, missing-docstring, import-error
 
 from __future__ import annotations
 
 import sys
 from pathlib import Path
 
-import pytest
-from fastapi.testclient import TestClient
+import pytest  # type: ignore
+from fastapi.testclient import TestClient  # type: ignore
 
 # Make sure apps/api is on the path so we can import main + property_finder_sync
 HERE = Path(__file__).resolve().parent
