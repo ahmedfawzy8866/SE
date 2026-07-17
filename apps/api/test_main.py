@@ -7,6 +7,8 @@ Run with:
 These tests use FastAPI's TestClient (backed by httpx) so they exercise the
 real ASGI app end-to-end without needing a live server.
 """
+# pylint: disable=redefined-outer-name, missing-docstring
+
 from __future__ import annotations
 
 import sys
