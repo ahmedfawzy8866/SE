@@ -1,13 +1,18 @@
-import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App.tsx';
+/**
+ * Admin Dashboard - Main Entry Point
+ * SIERRA ESTATES 3.0 — Intelligence OS
+ */
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { AdminFirebaseProvider } from './providers/FirebaseProvider';
+import App from './App';
 import './index.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <AdminFirebaseProvider>
       <App />
-    </BrowserRouter>
-  </StrictMode>,
+    </AdminFirebaseProvider>
+  </React.StrictMode>,
 );

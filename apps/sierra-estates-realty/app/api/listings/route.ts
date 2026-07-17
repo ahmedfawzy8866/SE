@@ -1,8 +1,53 @@
+/**
+ * /api/listings
+ *
+ * GET — two response modes, both public:
+ *
+ *   1. Legacy envelope mode — when `?id=` or `?limit=` is present.
+ *      Returns { success, listing | listings, count }. Kept for the static
+ *      public/client-page and lib/services/InventoryService.client.ts.
+ *      Reads Firestore via the public REST key; if the key is missing, the
+ *      read fails, or rules deny access, it falls back to seed data instead
+ *      of erroring (INTEGRATION.md data-flow contract).
+ *
+ *   2. Filter mode (default) — used by lib/api-client `api.listings()`.
+ *      Returns a bare Listing[] filtered by mode/compound/type/beds/maxUsd/q.
+ *      Reads Firestore via the Admin SDK → falls back to SEED_LISTINGS.
+ *
+ * POST — create a listing (manager+). Writes to Firestore when the Admin SDK
+ * is configured; in sandbox mode returns a demo id so the admin UI flow works.
+ */
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { COLLECTIONS } from '@/lib/models/schema';
 import { applyRateLimit, publicEndpointLimiter } from '@/lib/server/rate-limit';
 import { logger } from '@/lib/logger';
+import { SEED_LISTINGS } from '@/lib/seed';
+import { getAdminDb, getFirestoreAdmin } from '@/lib/firebase-admin';
+import { requireRole } from '@/lib/auth';
+import type { Listing } from '@/lib/types';
+
+// Firebase Firestore integration
+const getListingsFromFirebase = async () => {
+  try {
+    const db = getFirestoreAdmin();
+    if (!db) return null;
+
+    const snap = await db.collection('houyez_listings').limit(1000).get();
+    if (snap.empty) return null;
+
+    return snap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  } catch (err) {
+    console.warn('[Firebase] Firestore read failed:', err);
+    return null;
+  }
+};
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const listingsQuerySchema = z.object({
   id: z.string().min(1, 'id must not be empty').optional(),
@@ -12,7 +57,34 @@ const listingsQuerySchema = z.object({
     .positive('limit must be positive')
     .max(100, 'limit must not exceed 100')
     .optional(),
+  mode: z.string().optional(),
+  compound: z.string().optional(),
+  type: z.string().optional(),
+  beds: z.coerce.number().int().min(0).optional(),
+  maxUsd: z.coerce.number().min(0).optional(),
+  q: z.string().optional(),
 });
+
+const listingCreateSchema = z
+  .object({
+    code: z.string().max(50).optional(),
+    compound: z.string().min(1).max(100),
+    zone: z.string().max(100).optional(),
+    type: z.string().min(1).max(50),
+    beds: z.coerce.number().int().min(0).default(0),
+    bath: z.coerce.number().int().min(0).default(0),
+    area: z.coerce.number().min(0).default(0),
+    egpM: z.coerce.number().min(0).default(0),
+    usd: z.coerce.number().min(0).default(0),
+    aiScore: z.coerce.number().min(0).max(10).default(0),
+    tag: z.string().nullable().optional(),
+    mode: z.string().default('sale'),
+    agent: z.string().max(100).default(''),
+    img: z.string().url().or(z.literal('')).default(''),
+    status: z.string().default('available'),
+    description: z.string().max(5000).optional(),
+  })
+  .passthrough();
 
 const API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? '';
 const PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'sierra-estates';
@@ -26,9 +98,7 @@ interface FirestoreDocument {
   fields?: { [key: string]: FirestoreValue };
 }
 
-/**
- * Extract value from Firestore document field
- */
+/** Extract value from a Firestore REST document field. */
 function extractValue(field: FirestoreValue): any {
   if (!field) return undefined;
   if (field.stringValue) return field.stringValue;
@@ -48,14 +118,13 @@ function extractValue(field: FirestoreValue): any {
   return undefined;
 }
 
-/**
- * Query Firestore via REST API
- */
+/** Query Firestore via the public REST API (legacy envelope mode). */
 async function queryFirestoreRest(
   collectionName: string,
   limit?: number,
   docId?: string
 ): Promise<{ doc?: FirestoreDocument; docs: FirestoreDocument[] } | null> {
+  if (!API_KEY) return null;
   try {
     const url = new URL(
       `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collectionName}`
@@ -78,21 +147,16 @@ async function queryFirestoreRest(
     const data = await response.json();
 
     if (docId) {
-      // Single document response
       return { doc: data, docs: [] };
-    } else {
-      // Collection query response
-      return { docs: data.documents || [] };
     }
+    return { docs: data.documents || [] };
   } catch (error: any) {
     logger.error('[FIRESTORE_REST_ERROR]', error?.message || error);
     return null;
   }
 }
 
-/**
- * Transform Firestore document to listing object
- */
+/** Transform a Firestore REST document to the legacy envelope listing shape. */
 function transformToListing(doc: FirestoreDocument): any {
   if (!doc || !doc.fields) return null;
 
@@ -120,13 +184,54 @@ function transformToListing(doc: FirestoreDocument): any {
   };
 }
 
-export async function GET(request: Request) {
-  if (!API_KEY) {
-    return NextResponse.json(
-      { error: 'Server misconfigured: NEXT_PUBLIC_FIREBASE_API_KEY is not set', listings: [] },
-      { status: 503 }
-    );
+/** Map a seed Listing to the legacy envelope shape (offline / sandbox fallback). */
+function seedToEnvelope(l: Listing) {
+  return {
+    id: l.id,
+    title: `${l.type} · ${l.compound}`,
+    price: l.usd,
+    compound: l.compound,
+    beds: l.beds,
+    baths: l.bath,
+    area: l.area,
+    image: l.img || undefined,
+    images: l.img ? [l.img] : [],
+    description: l.description,
+    propertyType: l.type,
+    status: l.status,
+    amenities: [],
+    purpose: l.mode === 'rent' ? 'for-rent' : 'for-sale',
+    pfReferenceNumber: null,
+    publishToClient: true,
+  };
+}
+
+/** Filter-mode read: Firebase → Admin SDK → seed fallback (INTEGRATION.md contract). */
+async function readListings(): Promise<Listing[]> {
+  // Try Firebase Firestore first
+  const firebaseListings = await getListingsFromFirebase();
+  if (firebaseListings && firebaseListings.length > 0) {
+    return firebaseListings;
   }
+
+  // Fallback to Admin SDK
+  const db = await getAdminDb();
+  if (db) {
+    try {
+      const snap = await db.collection('listings').get();
+      if (!snap.empty) {
+        return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Listing[];
+      }
+    } catch (err) {
+      console.warn('[listings] Admin SDK read failed, using seed:', err);
+    }
+  }
+
+  // Final fallback to seed data
+  return SEED_LISTINGS;
+}
+
+export async function GET(request: Request) {
   const rateLimitResponse = await applyRateLimit(request, publicEndpointLimiter);
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -136,6 +241,12 @@ export async function GET(request: Request) {
     const parseResult = listingsQuerySchema.safeParse({
       id: searchParams.get('id') ?? undefined,
       limit: searchParams.get('limit') ?? undefined,
+      mode: searchParams.get('mode') ?? undefined,
+      compound: searchParams.get('compound') ?? undefined,
+      type: searchParams.get('type') ?? undefined,
+      beds: searchParams.get('beds') ?? undefined,
+      maxUsd: searchParams.get('maxUsd') ?? undefined,
+      q: searchParams.get('q') ?? undefined,
     });
 
     if (!parseResult.success) {
@@ -145,37 +256,101 @@ export async function GET(request: Request) {
       );
     }
 
-    const { id, limit } = parseResult.data;
+    const { id, limit, mode, compound, type, beds, maxUsd, q } = parseResult.data;
 
+    // ── Legacy envelope mode (?id= / ?limit=) ──────────────────────────────
     if (id) {
       const result = await queryFirestoreRest(COLLECTIONS.units, undefined, id);
-      if (!result?.doc) {
+      if (result?.doc) {
+        return NextResponse.json({ success: true, listing: transformToListing(result.doc) });
+      }
+      const seed = SEED_LISTINGS.find((l) => l.id === id);
+      if (!seed) {
         return NextResponse.json({ success: false, error: 'Listing not found' }, { status: 404 });
       }
-      const listing = transformToListing(result.doc);
-      return NextResponse.json({ success: true, listing });
+      return NextResponse.json({ success: true, listing: seedToEnvelope(seed) });
     }
 
-    const limitParam = limit ?? 12;
-    const result = await queryFirestoreRest(COLLECTIONS.units, limitParam);
+    if (limit != null) {
+      const result = await queryFirestoreRest(COLLECTIONS.units, limit);
+      if (result) {
+        let listings = (result.docs || []).map(transformToListing).filter(Boolean);
+        listings = listings.filter((l: any) => l.publishToClient === true);
+        return NextResponse.json({ success: true, listings, count: listings.length });
+      }
+      // Firestore unreachable / denied / key missing → seed fallback, never 5xx.
+      const listings = SEED_LISTINGS.slice(0, limit).map(seedToEnvelope);
+      return NextResponse.json({ success: true, listings, count: listings.length, seeded: true });
+    }
 
-    if (!result) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to fetch listings from database' },
-        { status: 500 }
+    // ── Filter mode (api-client contract): bare Listing[] ──────────────────
+    let items = await readListings();
+    items = items.filter((l) => l.status !== 'archived');
+    if (mode) items = items.filter((l) => l.mode === mode);
+    if (compound) items = items.filter((l) => l.compound.toLowerCase().includes(compound.toLowerCase()));
+    if (type) items = items.filter((l) => l.type === type);
+    if (beds != null) items = items.filter((l) => l.beds >= beds);
+    if (maxUsd != null) items = items.filter((l) => l.usd <= maxUsd);
+    if (q) {
+      const needle = q.toLowerCase();
+      items = items.filter((l) =>
+        [l.code, l.compound, l.agent, l.type, l.description ?? '']
+          .join(' ')
+          .toLowerCase()
+          .includes(needle)
       );
     }
+    items = [...items].sort((a, b) => {
+      if (!!b.featured !== !!a.featured) return b.featured ? 1 : -1;
+      return b.aiScore - a.aiScore;
+    });
 
-    let listings = (result.docs || []).map(transformToListing).filter(Boolean);
-    
-    // Only show published listings to the client
-    listings = listings.filter((l: any) => l.publishToClient === true);
-
-    return NextResponse.json({ success: true, listings, count: listings.length });
+    return NextResponse.json(items);
   } catch (error: any) {
     logger.error('[LISTINGS_ERROR] Failed to fetch listings:', error?.message || error);
     return NextResponse.json(
       { success: false, error: error?.message || 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  const rateLimitResponse = await applyRateLimit(request, publicEndpointLimiter);
+  if (rateLimitResponse) return rateLimitResponse;
+
+  try {
+    await requireRole(request, 'manager');
+  } catch (err) {
+    if (err instanceof Response) return err;
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const parsed = listingCreateSchema.safeParse(await request.json().catch(() => ({})));
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid listing payload', details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const now = new Date().toISOString();
+    const doc = { ...parsed.data, createdAt: now, updatedAt: now };
+
+    const db = await getAdminDb();
+    if (db) {
+      const ref = await db.collection('listings').add(doc);
+      return NextResponse.json({ id: ref.id }, { status: 201 });
+    }
+
+    // Sandbox mode (no Admin SDK): acknowledge with a demo id so the UI flow
+    // completes; data is not persisted (seed data is immutable).
+    return NextResponse.json({ id: `demo-${Date.now()}`, sandbox: true }, { status: 201 });
+  } catch (error: any) {
+    logger.error('[LISTINGS_CREATE_ERROR]', error?.message || error);
+    return NextResponse.json(
+      { error: error?.message || 'Internal Server Error' },
       { status: 500 }
     );
   }
