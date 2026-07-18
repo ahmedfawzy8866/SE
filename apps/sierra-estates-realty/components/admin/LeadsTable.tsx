@@ -3,7 +3,7 @@
  * LeadsTable — Property Finder webhook leads.
  * Read-only at viewer level; manager+ can change status.
  */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Loader2, PhoneCall } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/components/client/Toast";
@@ -16,13 +16,13 @@ export function LeadsTable() {
   const [items, setItems] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try { setItems(await api.adminLeads()); }
     catch (err: any) { toast({ title: "Failed to load leads", description: err.message, kind: "error" }); }
     finally { setLoading(false); }
-  }
-  useEffect(() => { load(); }, []);
+  }, [toast]);
+  useEffect(() => { load(); }, [load]);
 
   async function updateStatus(id: string, status: InquiryStatus) {
     try {

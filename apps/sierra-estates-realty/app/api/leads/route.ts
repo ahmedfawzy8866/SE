@@ -8,7 +8,6 @@ import { enqueueWhatsAppJob } from '@/lib/server/whatsapp-queue';
 
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-
 const leadSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address").optional(),
@@ -37,16 +36,19 @@ export async function POST(req: Request) {
     // 1. Add to Firestore
     const leadRef = await adminDb.collection(COLLECTIONS.stakeholders).add({
       name,
-      email,
-      phone,
-      message,
+      email: email || undefined,
+      phone: phone || undefined,
+      notes: message || undefined,
       status: 'new',
+      mode: 'sale', // default
+      source: 'website',
+      zone: locale || undefined,
       phase: 'acquisition',
       priority: 'warm',
       via: 'Website',
       interest: 'General Inquiry',
       capitalAllocation: 'To be determined',
-      locale,
+      locale: locale || undefined,
       aiProfiling: {
         interests: ['General Inquiry'],
         topMatches: [],
@@ -56,7 +58,8 @@ export async function POST(req: Request) {
         followupReminderEnabled: true,
         interactionFrequency: 'medium',
       },
-      createdAt: Timestamp.now()
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
     });
 
     // 2. Send Telegram Notification

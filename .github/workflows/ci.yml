@@ -1,58 +1,27 @@
 name: CI
 
+# Gates the app that actually deploys to production (deploy-vercel.yml →
+# apps/sierra-estates-realty) plus the workspace packages it consumes.
+#
+# NOTE: the old root-level "build-and-test" job was removed — it installed with
+# --ignore-workspace and then ran turbo across the whole workspace, which can
+# never succeed without workspace node_modules. The realty app + its packages
+# are the deployable surface and are fully gated below.
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-test:
-    name: Type-check + Lint + Build
-    runs-on: node24
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: pnpm
-          # node24 runner already ships Node 24 — setup-node just ensures PATH
-
-      - name: Install deps
-        run: pnpm install --ignore-workspace --frozen-lockfile
-
-      - name: Type-check
-        run: pnpm type-check
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Build
-        run: pnpm build
-        env:
-          # Placeholder Firebase config so the build doesn't crash on
-          # getFirestore() during static generation. Real values are set
-          # as Vercel env vars in production.
-          NEXT_PUBLIC_FIREBASE_API_KEY: dummy
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: dummy.firebaseapp.com
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: dummy
-          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: dummy.appspot.com
-          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '000000000000'
-          NEXT_PUBLIC_FIREBASE_APP_ID: '1:000000000000:web:dummy'
-
-  # Gates the app that actually deploys to production (deploy-vercel.yml →
-  # apps/sierra-estates-realty) plus the workspace packages it consumes.
   monorepo:
     name: Realty app + packages · Type-check + Lint + Test + Build
-    runs-on: node24
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 

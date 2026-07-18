@@ -36,8 +36,11 @@ export interface PFListingAnalytics { views: number; leads: number; phoneReveals
 export async function pushListingToPF(listing: SBRListing): Promise<PFSyncResult> {
   if (!listing.id) return { success: false, error: 'listing.id is required' };
 
-  let token: string | undefined;
-  if (typeof window !== 'undefined') {
+  // Test seam: unit tests inject a token via globalThis.__TEST_TOKEN__ so we
+  // don't need a live Firebase Auth session. Never set in production.
+  let token: string | undefined =
+    (globalThis as { __TEST_TOKEN__?: string }).__TEST_TOKEN__;
+  if (!token && typeof window !== 'undefined') {
     try {
       const { getAuth } = await import('firebase/auth');
       token = await getAuth().currentUser?.getIdToken();

@@ -3,7 +3,7 @@
  * UsersManager — table + role/status editor.
  * manager+ can view; admin can change role + status.
  */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Loader2, Shield, UserCog } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/components/client/Toast";
@@ -20,13 +20,13 @@ export function UsersManager() {
 
   const canEdit = me?.role === "admin";
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try { setItems(await api.adminUsers()); }
     catch (err: any) { toast({ title: "Failed to load users", description: err.message, kind: "error" }); }
     finally { setLoading(false); }
-  }
-  useEffect(() => { load(); }, []);
+  }, [toast]);
+  useEffect(() => { load(); }, [load]);
 
   async function updateRole(uid: string, role: Role) {
     if (!canEdit) return;

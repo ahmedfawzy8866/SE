@@ -5,8 +5,8 @@
  */
 import Link from "next/link";
 import {
-  LayoutDashboard, Building2, Map, Inbox, Users, BarChart3,
-  ScrollText, Settings, LogOut, Shield, ExternalLink, PhoneCall,
+  LayoutDashboard, Building2, Inbox, Users, BarChart3,
+  ScrollText, Settings, LogOut, Shield, ExternalLink,
 } from "lucide-react";
 import { useAuth } from "@/components/client/AuthModal";
 import type { AdminTab } from "./types";
@@ -15,7 +15,6 @@ const TABS: Array<{ id: AdminTab; label: string; icon: any; min: "viewer" | "man
   { id: "dashboard",  label: "Dashboard",  icon: LayoutDashboard, min: "manager" },
   { id: "listings",   label: "Listings",   icon: Building2,       min: "manager" },
   { id: "inquiries",  label: "Inquiries",  icon: Inbox,           min: "manager" },
-  { id: "leads",      label: "Leads",      icon: PhoneCall,       min: "manager" },
   { id: "users",      label: "Users",      icon: Users,           min: "manager" },
   { id: "reports",    label: "Reports",    icon: BarChart3,       min: "manager" },
   { id: "audit",      label: "Audit logs", icon: ScrollText,      min: "manager" },

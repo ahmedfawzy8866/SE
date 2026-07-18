@@ -67,7 +67,7 @@ async function checkFirestoreLead(phoneStr: string): Promise<boolean> {
   if (!db) return false;
   try {
     const cleanPhone = normalizePhone(phoneStr);
-    const leadsRef = db.collection('leads');
+    const leadsRef = db.collection('inquiries');
 
     // 1. Check exact match
     const q1 = await leadsRef.where('phone', '==', phoneStr).get();
@@ -126,7 +126,7 @@ const client = new Client({
 // Saves qr.png + qr.html so the user can open the HTML
 // file in any browser and scan a large, clear QR code.
 // ─────────────────────────────────────────────────────
-client.on('qr', async (qr) => {
+client.on('qr', async (qr: string) => {
   console.log('\n============================================================');
   console.log('🤖 SCAN THIS QR CODE WITH YOUR WHATSAPP APP TO LOG IN THE BOT');
   console.log('============================================================\n');
@@ -236,7 +236,7 @@ client.on('ready', () => {
 });
 
 // Incoming Message Handler
-client.on('message', async (msg) => {
+client.on('message', async (msg: any) => {
   try {
     const chat = await msg.getChat();
     

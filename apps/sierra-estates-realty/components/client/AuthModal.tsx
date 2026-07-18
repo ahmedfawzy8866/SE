@@ -12,7 +12,6 @@ import {
   type ReactNode,
 } from "react";
 import { X, Shield, Loader2, Mail, Lock } from "lucide-react";
-import { useI18n } from "@/lib/i18n-client";
 import { useToast } from "@/components/client/Toast";
 import { api } from "@/lib/api-client";
 import { isFirebaseClientConfigured as firebaseEnabled, auth } from "@/lib/firebase";
@@ -64,7 +63,6 @@ export function useAuth(): AuthCtx {
 }
 
 function AuthModal({ onClose, onSignedIn }: { onClose: () => void; onSignedIn: () => Promise<void> }) {
-  const { t } = useI18n();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
