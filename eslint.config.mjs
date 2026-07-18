@@ -13,6 +13,9 @@ export default [
       'extract_all_styles.js',
       'eslint.config.mjs',
       'scripts/**',
+      'push_env.js',
+      'merge_and_push_env.js',
+      '*.js',
       // Sub-apps / packages have their own tsconfigs and ESLint configs
       'apps/**',
       'packages/**',
