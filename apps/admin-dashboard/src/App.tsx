@@ -680,6 +680,7 @@ export default function App() {
     <>
       <Routes>
         <Route path="/" element={<AdminPortal />} />
+        <Route path="/admin" element={<AdminPortal />} />
         <Route 
           path="/client" 
           element={
