@@ -27,7 +27,7 @@ const MOCK_MATCHES = [
   { id: 'P-002', title: 'One Canal Residences', area: 'Dubai Canal', price: '$8.9M', score: 87 }
 ];
 
-export const CRMModule = ({ currentUserRole, currentUserId }: { currentUserRole: string, currentUserId: string }) => {
+export function ClientHub = ({ currentUserRole, currentUserId }: { currentUserRole: string, currentUserId: string }) => {
   const [filter, setFilter] = useState('All');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [showMatcher, setShowMatcher] = useState(false);
@@ -247,3 +247,4 @@ export const CRMModule = ({ currentUserRole, currentUserId }: { currentUserRole:
     </div>
   );
 };
+

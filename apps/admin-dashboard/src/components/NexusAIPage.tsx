@@ -15,7 +15,7 @@ interface ChatMessage {
   };
 }
 
-export const LolaAssistantModule = () => {
+export const NexusAIPage = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
@@ -282,3 +282,4 @@ export const LolaAssistantModule = () => {
   );
 };
 export default LolaAssistantModule;
+

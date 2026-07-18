@@ -7,7 +7,7 @@ const MOCK_CLOSINGS = [
   { id: 'CL-503', client: 'Ahmed Hassan', property: 'Skyline Penthouse', value: '$5.1M', comm: '$153k', status: 'Closed', date: '2024-03-10' }
 ];
 
-export const CloserModule = () => {
+export function Stage9CloserPage = () => {
   const [activeTab, setActiveTab] = useState('Performance');
 
   return (
@@ -161,3 +161,4 @@ export const CloserModule = () => {
     </div>
   );
 };
+
