@@ -40,13 +40,13 @@ import { ClientHub }          from './components/ClientHub';
 import { EasyListingPage }    from './components/EasyListingPage';
 
 // Original dashboard modules (functional integrations kept)
-import { BotsControlPage }    from './components/BotsControlPage';
-import { FollowupsPage }      from './components/FollowupsPage';
-import { SearchInsightsPage } from './components/SearchInsightsPage';
-import { DBEditorPage }       from './components/DBEditorPage';
-import { DataSyncHubPage }    from './components/DataSyncHubPage';
-import { SettingsPage }       from './components/SettingsPage';
-import { ListingsHubPage }    from './components/ListingsHubPage';
+import BotsControlPage    from './components/BotsControlPage';
+import FollowupsPage      from './components/FollowupsPage';
+import SearchInsightsPage from './components/SearchInsightsPage';
+import DBEditorPage       from './components/DBEditorPage';
+import DataSyncHubPage    from './components/DataSyncHubPage';
+import SettingsPage       from './components/SettingsPage';
+import ListingsHubPage    from './components/ListingsHubPage';
 
 import './index.css';
 
@@ -91,6 +91,8 @@ function AppContent() {
 
   const userRole = user?.role || 'viewer';
   const isSuperAdmin = userRole === 'super_admin';
+  // Stub translation function for original components
+  const T = (key: string) => key;
 
   if (loading) {
     return (
@@ -194,9 +196,9 @@ function AppContent() {
           {/* Operations */}
           {activeTab === 'crm'         && <ClientHub currentUserRole={userRole} currentUserId={user.id} />}
           {activeTab === 'easylisting' && <EasyListingPage currentUserRole={userRole} currentUserId={user.id} />}
-          {activeTab === 'listings'    && <ListingsHubPage />}
-          {activeTab === 'followups'   && <FollowupsPage />}
-          {activeTab === 'bots'        && <BotsControlPage />}
+          {activeTab === 'listings'    && <ListingsHubPage T={T} />}
+          {activeTab === 'followups'   && <FollowupsPage T={T} />}
+          {activeTab === 'bots'        && <BotsControlPage T={T} />}
 
           {/* Agents */}
           {activeTab === 'curator'     && <CuratorPage />}
@@ -206,12 +208,12 @@ function AppContent() {
 
           {/* Analytics */}
           {activeTab === 'reports'     && <ReportsPage />}
-          {activeTab === 'search'      && <SearchInsightsPage />}
-          {activeTab === 'datasync'    && <DataSyncHubPage />}
-          {activeTab === 'dbeditor'    && <DBEditorPage />}
+          {activeTab === 'search'      && <SearchInsightsPage T={T} />}
+          {activeTab === 'datasync'    && <DataSyncHubPage T={T} />}
+          {activeTab === 'dbeditor'    && <DBEditorPage T={T} />}
 
           {/* Config */}
-          {activeTab === 'settings'    && <SettingsPage />}
+          {activeTab === 'settings'    && <SettingsPage T={T} />}
         </div>
       </main>
     </div>

@@ -281,5 +281,6 @@ export const NexusAIPage = () => {
     </div>
   );
 };
-export default LolaAssistantModule;
+export default NexusAIPage;
+
 

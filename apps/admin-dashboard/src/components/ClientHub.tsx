@@ -27,7 +27,7 @@ const MOCK_MATCHES = [
   { id: 'P-002', title: 'One Canal Residences', area: 'Dubai Canal', price: '$8.9M', score: 87 }
 ];
 
-export function ClientHub = ({ currentUserRole, currentUserId }: { currentUserRole: string, currentUserId: string }) => {
+export const ClientHub = ({ currentUserRole, currentUserId }: { currentUserRole: string, currentUserId: string }) => {
   const [filter, setFilter] = useState('All');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [showMatcher, setShowMatcher] = useState(false);

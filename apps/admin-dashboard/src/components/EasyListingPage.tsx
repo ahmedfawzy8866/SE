@@ -188,7 +188,7 @@ type EasyListingModuleProps = {
   currentUserId: string;
 };
 
-export function EasyListingPage = ({ currentUserRole, currentUserId }: EasyListingModuleProps) => {
+export const EasyListingPage = ({ currentUserRole, currentUserId }: EasyListingModuleProps) => {
   const [inventory, setInventory] = useState<UnifiedProperty[]>([]);
   const [integrationMode, setIntegrationMode] = useState<IntegrationMode>('fallback');
   const [isLoading, setIsLoading] = useState<boolean>(true);

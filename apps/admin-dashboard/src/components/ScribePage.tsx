@@ -284,6 +284,7 @@ export const ScribePage = () => {
     </div>
   );
 };
-export default TheScribeModule;
+export default ScribePage;
+
 
 
