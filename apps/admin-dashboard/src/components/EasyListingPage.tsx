@@ -99,11 +99,26 @@ const PROPERTY_FINDER_FALLBACK: UnifiedProperty[] = [
 const PROPERTY_FINDER_PROXY_URL = import.meta.env.VITE_PROPERTY_FINDER_PROXY_URL as string | undefined;
 
 const normalizeCurrency = (value: unknown): string => {
-  if (typeof value === 'string' && value.trim().length > 0) {
-    return value.includes('EGP') ? value : `EGP ${value}`;
-  }
+  let numVal: number | null = null;
   if (typeof value === 'number') {
-    return `EGP ${value.toLocaleString('en-US')}`;
+    numVal = value;
+  } else if (typeof value === 'string') {
+    const cleaned = value.replace(/[^0-9.]/g, '');
+    if (cleaned) {
+      numVal = parseFloat(cleaned);
+    }
+  }
+  
+  if (numVal !== null) {
+    if (numVal < 10000) {
+      return `$${numVal.toLocaleString('en-US')}`;
+    } else {
+      return `EGP ${numVal.toLocaleString('en-US')}`;
+    }
+  }
+  
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return value;
   }
   return 'EGP 0';
 };
@@ -208,10 +223,25 @@ export const EasyListingPage = ({ currentUserRole, currentUserId }: EasyListingM
     contactPhone: ''
   });
 
-  // Calculate Auto-Generated Property Code
+  // Calculate Auto-Generated Property Code (SBR Code Pattern)
   const generatedPropertyCode = useMemo(() => {
-    const priceK = Math.round(Number(formData.priceVal || 0) / 100000);
-    return `${formData.compoundCode}-${formData.bedrooms}-${priceK}K-${formData.status}`;
+    const rooms = formData.bedrooms.replace(/[^0-9]/g, '');
+    const furnishing = formData.status;
+    const priceNum = Number(formData.priceVal || 0);
+    let priceCode = '';
+    if (priceNum < 10000) {
+      const kVal = priceNum / 1000;
+      priceCode = `${kVal.toFixed(kVal % 1 === 0 ? 0 : 1)}K`;
+    } else {
+      if (priceNum >= 1000000) {
+        const mVal = priceNum / 1000000;
+        priceCode = `${mVal.toFixed(mVal % 1 === 0 ? 0 : 1)}M`;
+      } else {
+        const kVal = priceNum / 1000;
+        priceCode = `${kVal.toFixed(kVal % 1 === 0 ? 0 : 1)}K`;
+      }
+    }
+    return `${formData.compoundCode}-${rooms}${furnishing}-${priceCode}`;
   }, [formData]);
 
   const applyInventoryResult = (result: InventoryPayload): void => {

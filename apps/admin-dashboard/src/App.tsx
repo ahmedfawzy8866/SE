@@ -209,7 +209,7 @@ function AppContent() {
           {/* Analytics */}
           {activeTab === 'reports'     && <ReportsPage />}
           {activeTab === 'search'      && <SearchInsightsPage T={T} />}
-          {activeTab === 'datasync'    && <DataSyncHubPage T={T} />}
+          {activeTab === 'datasync'    && <DataSyncHubPage />}
           {activeTab === 'dbeditor'    && <DBEditorPage T={T} />}
 
           {/* Config */}

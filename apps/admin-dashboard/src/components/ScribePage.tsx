@@ -105,14 +105,28 @@ export const ScribePage = () => {
         contactNum = `+20 ${phoneMatch[1].slice(0, 3)} ${phoneMatch[1].slice(3, 6)} ${phoneMatch[1].slice(6)}`;
       }
 
-      const priceK = Math.round(priceVal / 100000);
-      const generatedCode = `${compound}-${bedrooms}-${priceK}K-${text.includes('مفروش') ? 'F' : 'U'}`;
+      let priceCode = '';
+      if (priceVal < 10000) {
+        const kVal = priceVal / 1000;
+        priceCode = `${kVal.toFixed(kVal % 1 === 0 ? 0 : 1)}K`;
+      } else {
+        if (priceVal >= 1000000) {
+          const mVal = priceVal / 1000000;
+          priceCode = `${mVal.toFixed(mVal % 1 === 0 ? 0 : 1)}M`;
+        } else {
+          const kVal = priceVal / 1000;
+          priceCode = `${kVal.toFixed(kVal % 1 === 0 ? 0 : 1)}K`;
+        }
+      }
+      const furnishing = text.includes('مفروش') ? 'F' : 'U';
+      const roomsNum = bedrooms.replace(/[^0-9]/g, '');
+      const generatedCode = `${compound}-${roomsNum}${furnishing}-${priceCode}`;
 
       const parsed: NormalizedListing = {
         code: generatedCode,
         title,
         location: locationName,
-        price: `EGP ${priceVal.toLocaleString()}`,
+        price: priceVal < 10000 ? `$${priceVal.toLocaleString()}` : `EGP ${priceVal.toLocaleString()}`,
         entityType: isOwner as 'Owner' | 'Broker',
         contactName: isOwner === 'Owner' ? 'Direct Owner' : 'External Broker',
         contactPhone: contactNum,
