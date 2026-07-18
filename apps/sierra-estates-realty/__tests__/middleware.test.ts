@@ -20,7 +20,7 @@ const ORIGINAL_SBR = process.env.SBR_SECRET_KEY;
 const ORIGINAL_ADMIN_HOST = process.env.ADMIN_HOST;
 
 function request(url: string, init?: RequestInit): NextRequest {
-  return new NextRequest(url, init);
+  return new NextRequest(url, init as any);
 }
 
 function restore(name: string, value: string | undefined) {

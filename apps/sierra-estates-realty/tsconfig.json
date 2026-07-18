@@ -40,9 +40,6 @@
     "apps/**/*",
     "bots/**/*",
     "functions/**/*",
-    "public/**/*",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/__tests__/**/*"
+    "public/**/*"
   ]
 }

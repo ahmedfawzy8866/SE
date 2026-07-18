@@ -8,7 +8,7 @@ These tests use FastAPI's TestClient (backed by httpx) so they exercise the
 real ASGI app end-to-end without needing a live server.
 """
 # ruff: noqa: E402, F811
-# pylint: disable=redefined-outer-name, missing-docstring, import-error
+# pylint: disable=redefined-outer-name, missing-docstring, import-error, wrong-import-position
 
 from __future__ import annotations
 

@@ -34,7 +34,7 @@ class PropertyFinderSyncHub:
         Formulate local portfolio asset data into standard XML/JSON 
         structures expected by Property Finder syndication feeds.
         """
-        logger.info(f"Formatting Portfolio Asset ID: {asset.get('id', 'unknown')}")
+        logger.info("Formatting Portfolio Asset ID: %s", asset.get('id', 'unknown'))
         # Clean data structures for export
         return {
             "reference": asset.get("id"),
@@ -49,7 +49,7 @@ class PropertyFinderSyncHub:
         """
         Trigger batch syndication of active Portfolio Assets to Property Finder.
         """
-        logger.info(f"Syndicating {len(assets)} Portfolio Assets to Property Finder...")
+        logger.info("Syndicating %d Portfolio Assets to Property Finder...", len(assets))
         formatted_assets = [self.format_portfolio_asset(a) for a in assets]
         
         # Sync Logic
