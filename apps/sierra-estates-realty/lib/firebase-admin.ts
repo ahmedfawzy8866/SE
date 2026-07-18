@@ -26,19 +26,17 @@ export async function getAdminApp(): Promise<App | null> {
   _initTried = true;
   if (!adminEnabled()) return null;
   try {
-    const { initializeApp, getApps, cert, applicationDefault } = await import(
-      "firebase-admin/app"
-    );
-    if (getApps().length) {
-      _app = getApps()[0];
+    const admin = await import("firebase-admin");
+    if (admin.apps.length) {
+      _app = admin.apps[0];
     } else if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
       const svc = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-      _app = initializeApp({ credential: cert(svc) });
+      _app = admin.initializeApp({ credential: admin.credential.cert(svc) });
     } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       const svc = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-      _app = initializeApp({ credential: cert(svc) });
+      _app = admin.initializeApp({ credential: admin.credential.cert(svc) });
     } else {
-      _app = initializeApp({ credential: applicationDefault() });
+      _app = admin.initializeApp({ credential: admin.credential.applicationDefault() });
     }
   } catch (err) {
     console.warn("[firebase-admin] init failed:", err);
