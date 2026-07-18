@@ -65,7 +65,7 @@ export function AdminDashboard() {
                   <div className={`h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${
                     a.type === "inquiry" ? "bg-gold-300/20 text-gold-600"
                     : a.type === "lead" ? "bg-emerald-100 text-emerald-700"
-                    : a.type === "listing" ? "bg-navy-900/10 text-navy-900"
+                    : a.type === "listing" ? "bg-cream/10 text-cream"
                     : "bg-amber-100 text-amber-700"
                   }`}>
                     {a.type.charAt(0).toUpperCase()}
@@ -93,11 +93,11 @@ export function AdminDashboard() {
               data.topAgents.map((a, i) => (
                 <div key={a.name} className="flex items-center gap-3">
                   <span className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    i === 0 ? "bg-gold-500 text-navy-950" : "bg-navy-900/10 text-navy-900"
+                    i === 0 ? "bg-gold-500 text-navy-950" : "bg-cream/10 text-cream"
                   }`}>{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate">{a.name}</p>
-                    <p className="text-xs text-muted">{a.listings} listings · ★ {a.rating.toFixed(1)}</p>
+                    <p className="text-xs text-muted">{a.listings} listings · ★ {typeof a.rating === "number" ? a.rating.toFixed(1) : "—"}</p>
                   </div>
                 </div>
               ))

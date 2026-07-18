@@ -58,7 +58,20 @@ export async function POST(req: Request) {
         const decoded = await getAuth().verifyIdToken(firebaseIdToken);
         const userDoc = await db.collection("users").doc(decoded.uid).get();
         const userData = userDoc.data() as Partial<User> | undefined;
-        const role: Role = (userData?.role as Role) ?? "viewer";
+        let role: Role = (userData?.role as Role) ?? "viewer";
+
+        if (!userDoc.exists) {
+          const anyUser = await db.collection("users").limit(1).get();
+          if (anyUser.empty) {
+            role = "admin";
+          }
+          await db.collection("users").doc(decoded.uid).set({
+            email: decoded.email ?? email,
+            name: decoded.name ?? email,
+            role,
+            createdAt: new Date().toISOString(),
+          }, { merge: true });
+        }
         const sess = await signSession({
           uid: decoded.uid,
           email: decoded.email ?? email,

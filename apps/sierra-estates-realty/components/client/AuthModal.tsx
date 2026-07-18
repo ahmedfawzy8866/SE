@@ -79,13 +79,8 @@ function AuthModal({ onClose, onSignedIn }: { onClose: () => void; onSignedIn: (
         const { signInWithEmailAndPassword, getIdToken } = await import("firebase/auth");
         const cred = await signInWithEmailAndPassword(auth, email, password);
         const idToken = await getIdToken(cred.user);
-        await api.signIn(email, ""); // server ignores password when token present
-        // Re-call with token (server expects { token } field)
-        await fetch("/api/auth", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ action: "signin", email, token: idToken }),
-        });
+        // Send the token to the server to mint a session cookie
+        await api.signIn(email, password, idToken);
       } else {
         await api.signIn(email, password);
       }

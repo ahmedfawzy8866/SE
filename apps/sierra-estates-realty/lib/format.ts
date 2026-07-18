@@ -26,7 +26,8 @@ export function fmtArea(n: number): string {
   return `${n.toLocaleString("en-US")} m²`;
 }
 
-export function fmtScore(n: number): string {
+export function fmtScore(n: number | null | undefined): string {
+  if (n == null) return "0.0";
   return n.toFixed(1);
 }
 
@@ -58,7 +59,8 @@ export function fmtDateTime(iso: string): string {
   });
 }
 
-export function fmtPercent(n: number, digits = 1): string {
+export function fmtPercent(n: number | null | undefined, digits = 1): string {
+  if (n == null) return "0%";
   return `${n.toFixed(digits)}%`;
 }
 

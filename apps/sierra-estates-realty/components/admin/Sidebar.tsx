@@ -43,7 +43,7 @@ export function Sidebar({
       )}
 
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen w-64 bg-navy-950 text-cream flex flex-col transition-transform ${
+        className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen w-64 bg-navy-950/70 backdrop-blur-2xl border-r border-cream/5 shadow-[4px_0_24px_rgba(0,0,0,0.2)] text-cream flex flex-col transition-transform ${
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >

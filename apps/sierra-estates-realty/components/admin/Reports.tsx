@@ -114,7 +114,7 @@ export function ReportsView() {
                   <p className="text-sm font-medium truncate">{c.compound}</p>
                   <p className="text-xs text-muted">{c.priceM}K EGP/m² · {c.rent} EGP/mo</p>
                 </div>
-                <span className="badge-gold">{c.yield.toFixed(1)}%</span>
+                <span className="badge-gold">{typeof c.yield === "number" ? c.yield.toFixed(1) : "—"}%</span>
               </div>
             ))}
           </div>
