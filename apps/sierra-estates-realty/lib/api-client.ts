@@ -50,8 +50,8 @@ export const api = {
     }));
   },
 
-  async signIn(email: string, password: string): Promise<{ ok: true }> {
-    return json<{ ok: true }>(await fetch("/api/auth", {
+  async signIn(email: string, password: string): Promise<{ ok: true; role?: string }> {
+    return json<{ ok: true; role?: string }>(await fetch("/api/auth", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ action: "signin", email, password }),

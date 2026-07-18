@@ -65,7 +65,7 @@ export async function POST(req: Request) {
           name: userData?.name ?? decoded.name ?? email,
           role,
         });
-        const res = NextResponse.json({ ok: true });
+        const res = NextResponse.json({ ok: true, role });
         res.cookies.set(SESSION_COOKIE, sess, cookieOpts());
         return res;
       } catch {
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
     const sess = await signSession({
       uid: demo.uid, email: demo.email, name: demo.name, role: demo.role,
     });
-    const res = NextResponse.json({ ok: true });
+    const res = NextResponse.json({ ok: true, role: demo.role });
     res.cookies.set(SESSION_COOKIE, sess, cookieOpts());
     return res;
   }

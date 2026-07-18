@@ -34,12 +34,25 @@ export default function AdminLoginPage() {
           body: JSON.stringify({ action: 'signin', email, token }),
         });
 
+        const data = await res.json();
         if (!res.ok) {
-          const data = await res.json();
           throw new Error(data.error || 'Authorization failed.');
         }
+
+        if (data.role !== 'admin' && data.role !== 'manager') {
+          await fetch('/api/auth', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ action: 'signout' }),
+          });
+          throw new Error('Access denied. Staff only.');
+        }
       } else {
-        await api.signIn(email, password);
+        const data = await api.signIn(email, password);
+        if (data.role !== 'admin' && data.role !== 'manager') {
+          await api.signOut();
+          throw new Error('Access denied. Staff only.');
+        }
       }
       router.replace('/admin');
     } catch (err: any) {
@@ -66,9 +79,18 @@ export default function AdminLoginPage() {
           body: JSON.stringify({ action: 'signin', email: userEmail, token }),
         });
 
+        const data = await res.json();
         if (!res.ok) {
-          const data = await res.json();
           throw new Error(data.error || 'Authorization failed.');
+        }
+
+        if (data.role !== 'admin' && data.role !== 'manager') {
+          await fetch('/api/auth', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ action: 'signout' }),
+          });
+          throw new Error('Access denied. Staff only.');
         }
 
         router.replace('/admin');

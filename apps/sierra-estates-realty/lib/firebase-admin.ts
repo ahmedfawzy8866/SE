@@ -15,6 +15,7 @@ let _initTried = false;
 export function adminEnabled(): boolean {
   return Boolean(
     process.env.FIREBASE_SERVICE_ACCOUNT ||
+      process.env.FIREBASE_SERVICE_ACCOUNT_JSON ||
       process.env.GOOGLE_APPLICATION_CREDENTIALS ||
       process.env.FIREBASE_PROJECT_ID
   );
@@ -30,6 +31,9 @@ export async function getAdminApp(): Promise<App | null> {
     );
     if (getApps().length) {
       _app = getApps()[0];
+    } else if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+      const svc = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+      _app = initializeApp({ credential: cert(svc) });
     } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       const svc = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
       _app = initializeApp({ credential: cert(svc) });

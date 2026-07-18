@@ -75,6 +75,7 @@ export function cookieOpts() {
 export function tryDemoLogin(email: string, password: string): Session | null {
   if (
     process.env.FIREBASE_SERVICE_ACCOUNT ||
+    process.env.FIREBASE_SERVICE_ACCOUNT_JSON ||
     process.env.GOOGLE_APPLICATION_CREDENTIALS
   ) {
     return null; // Real Firebase is configured; don't allow demo login.
