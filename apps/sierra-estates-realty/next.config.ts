@@ -62,9 +62,8 @@ const nextConfig: NextConfig = {
       '@opentelemetry/sdk-trace-node': './lib/stubs/empty.js',
       '@opentelemetry/instrumentation-http': './lib/stubs/empty.js',
       '@opentelemetry/instrumentation-express': './lib/stubs/empty.js',
-      'firebase-admin': './lib/stubs/firebase-admin.js',
-      'firebase-admin/firestore': './lib/stubs/empty.js',
-      'firebase-admin/storage': './lib/stubs/empty.js',
+      // firebase-admin is intentionally NOT aliased here — it is a real
+      // server-only package handled by serverExternalPackages above.
     }
   },
   webpack(config, { isServer }) {
