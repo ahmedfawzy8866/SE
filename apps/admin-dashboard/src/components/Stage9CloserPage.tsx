@@ -1,165 +1,218 @@
-import { useState } from 'react';
-import { Target, TrendingUp, Award, MessageSquare, BarChart3, DollarSign, PieChart, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
 
-const MOCK_CLOSINGS = [
-  { id: 'CL-501', client: 'James Carter', property: 'Skyline Penthouse', value: '$5.2M', comm: '$156k', status: 'Closed', date: '2024-03-15' },
-  { id: 'CL-502', client: 'Elena Rossi', property: 'Palm Jumeirah Villa', value: '$14.8M', comm: '$444k', status: 'Finalizing', date: '2024-03-22' },
-  { id: 'CL-503', client: 'Ahmed Hassan', property: 'Skyline Penthouse', value: '$5.1M', comm: '$153k', status: 'Closed', date: '2024-03-10' }
+interface Deal {
+  id: string;
+  client: string;
+  phone: string;
+  prop: string;
+  value: string;
+  stage: 'initial' | 'negotiation' | 'contract' | 'closed';
+  prog: number;
+  signed: boolean;
+  deposit: boolean;
+  c: string;
+}
+
+const DEALS_LIST: Deal[] = [
+  { id: 'DL-0097', client: 'Ahmed Al-Rashid', phone: '+20 100 111 2233', prop: 'Villa Hyde Park · 5 Beds · 420m²', value: 'EGP 35M', stage: 'contract', prog: 85, signed: false, deposit: true, c: '#C8961A' },
+  { id: 'DL-0096', client: 'Khalid Mansour', phone: '+971 50 333 4455', prop: 'Penthouse Uptown · 4 Beds · 320m²', value: 'EGP 28M', stage: 'negotiation', prog: 60, signed: false, deposit: false, c: '#1E88D9' },
+  { id: 'DL-0095', client: 'Omar Farouk', phone: '+20 100 555 6677', prop: 'Twin House Mountain View · 4 Beds', value: 'EGP 22M', stage: 'contract', prog: 72, signed: true, deposit: true, c: '#34D399' },
+  { id: 'DL-0094', client: 'Rania Nasser', phone: '+20 102 777 8899', prop: 'Villa Villette · 5 Beds · 380m²', value: 'EGP 31M', stage: 'closed', prog: 100, signed: true, deposit: true, c: '#7C3AED' },
+  { id: 'DL-0093', client: 'Hisham Bakr', phone: '+20 109 888 9900', prop: 'Garden Villa Mivida · 3 Beds · 195m²', value: 'EGP 8.5M', stage: 'initial', prog: 25, signed: false, deposit: false, c: '#E63946' },
+  { id: 'DL-0092', client: 'Layla Karim', phone: '+20 109 666 7788', prop: 'Apartment Eastown · 3 Beds · 155m²', value: 'EGP 7.2M', stage: 'negotiation', prog: 50, signed: false, deposit: false, c: '#f59e0b' },
 ];
 
-export const Stage9CloserPage = () => {
-  const [activeTab, setActiveTab] = useState('Performance');
+export default function Stage9CloserPage() {
+  const [stageF, setStageF] = useState<string>('all');
+  const [deals, setDeals] = useState<Deal[]>(DEALS_LIST);
+
+  const STAGES = [
+    { id: 'all', lbl: 'All Deals', c: '' },
+    { id: 'initial', lbl: 'Initial Contact', c: '#E63946' },
+    { id: 'negotiation', lbl: 'Negotiation', c: '#f59e0b' },
+    { id: 'contract', lbl: 'Contract Draft', c: '#1E88D9' },
+    { id: 'closed', lbl: 'Closed ✓', c: '#34D399' },
+  ];
+
+  const filteredDeals = stageF === 'all' ? deals : deals.filter((d) => d.stage === stageF);
+  const totalPipelineVal = deals.reduce((sum, d) => sum + parseFloat(d.value.replace(/[^\d.]/g, '')), 0);
+
+  const handleToggleDocuSign = (id: string) => {
+    setDeals((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, signed: !d.signed, prog: d.signed ? d.prog - 10 : d.prog + 10 } : d))
+    );
+  };
+
+  const handleToggleStripe = (id: string) => {
+    setDeals((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, deposit: !d.deposit, prog: d.deposit ? d.prog - 15 : d.prog + 15 } : d))
+    );
+  };
 
   return (
-    <div className="closer-container animate-fade-in" style={{ padding: '2rem' }}>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
-        <div>
-          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '2.25rem', fontWeight: 300, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            <Target size={32} color="#D4AF37" />
-            The Closer Module
-            <span style={{ fontSize: '0.75rem', verticalAlign: 'middle', backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', padding: '0.2rem 0.6rem', borderRadius: '4px', marginLeft: '0.5rem', border: '1px solid rgba(34, 197, 94, 0.2)' }}>STAGES 9-10</span>
-          </h1>
-          <p className="page-subtitle" style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '1.1rem' }}>
-            Strategic Asset Finalization &amp; Intelligence Optimization.
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-           <div style={{ textAlign: 'right' }}>
-             <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Quarterly Revenue</p>
-             <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 500, color: 'var(--gold)' }}>$25.1M</p>
-           </div>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
-        {[
-          { label: 'Closing Rate', value: '68%', icon: <Award size={20} />, trend: '+12%' },
-          { label: 'Avg Deal Value', value: '$8.4M', icon: <DollarSign size={20} />, trend: '+5%' },
-          { label: 'Pipeline Velocity', value: '14 Days', icon: <TrendingUp size={20} />, trend: '-2 Days' },
-          { label: 'System Feedback', value: '94%', icon: <MessageSquare size={20} />, trend: 'Optimal' }
-        ].map((stat, i) => (
-          <div key={i} style={{ backgroundColor: 'var(--navy)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ color: 'var(--gold)', backgroundColor: 'rgba(212, 175, 55, 0.1)', padding: '0.5rem', borderRadius: '10px' }}>{stat.icon}</div>
-              <span style={{ fontSize: '0.75rem', color: '#22c55e' }}>{stat.trend}</span>
+    <div className="space-y-6 animate-fade-in-up">
+      {/* Counters Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 select-none">
+        {STAGES.slice(1).map((s) => (
+          <div
+            key={s.id}
+            className="bg-[#0a0f1d] border border-slate-800 rounded-xl p-4 flex flex-col justify-between"
+            style={{ borderTop: `2px solid ${s.c}` }}
+          >
+            <div className="text-xl font-mono font-bold text-white pr-2 text-left">{deals.filter((d) => d.stage === s.id).length}</div>
+            <div className="text-[9px] text-slate-500 font-mono uppercase tracking-wider mt-2.5">
+              {s.lbl}
             </div>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{stat.label}</p>
-            <p style={{ margin: '0.25rem 0 0', fontSize: '1.75rem', fontWeight: 300, color: 'var(--text-primary)' }}>{stat.value}</p>
           </div>
         ))}
       </div>
 
-      <div style={{ backgroundColor: 'var(--navy)', border: '1px solid var(--border)', borderRadius: '24px', overflow: 'hidden' }}>
-        <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid var(--border)', display: 'flex', gap: '2rem' }}>
-          {['Performance', 'Finalization Log', 'Optimization AI'].map(tab => (
+      {/* Pipeline Summary Bar */}
+      <div className="bg-[#0a0f1d] border border-slate-800 rounded-xl p-5 flex flex-col md:flex-row items-center gap-6 shadow-xl">
+        <div className="shrink-0 select-none">
+          <div className="text-[9px] font-mono uppercase tracking-widest text-slate-500 mb-1">
+            Total Pipeline Capital
+          </div>
+          <div className="font-mono text-2xl font-bold text-white">
+            EGP {totalPipelineVal.toFixed(1)}M
+          </div>
+        </div>
+
+        {/* Proportional visual distribution */}
+        <div className="flex-1 w-full flex h-2 rounded-full overflow-hidden bg-slate-850 relative">
+          {deals.map((d) => {
+            const val = parseFloat(d.value.replace(/[^\d.]/g, '')) || 5;
+            const pct = (val / totalPipelineVal) * 100;
+            return (
+              <div
+                key={d.id}
+                className="h-full transition-all duration-300"
+                style={{ width: `${pct}%`, backgroundColor: d.c }}
+                title={`${d.client}: ${d.value}`}
+              />
+            );
+          })}
+        </div>
+
+        <button className="px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-black shadow-[0_0_15px_rgba(6,182,212,0.3)] rounded font-bold text-xs select-none transition duration-150 active:scale-95 cursor-pointer">
+          ＋ Register Deal
+        </button>
+      </div>
+
+      {/* Stage Pills filter */}
+      <div className="flex gap-2 flex-wrap items-center select-none">
+        {STAGES.map((s) => {
+          const isSelected = stageF === s.id;
+          const count = s.id === 'all' ? deals.length : deals.filter((d) => d.stage === s.id).length;
+          return (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                backgroundColor: 'transparent',
-                border: 'none',
-                color: activeTab === tab ? 'var(--gold)' : 'var(--text-secondary)',
-                fontSize: '1rem',
-                fontWeight: activeTab === tab ? 500 : 400,
-                cursor: 'pointer',
-                paddingBottom: '1rem',
-                position: 'relative',
-                transition: 'all 0.3s'
-              }}
+              key={s.id}
+              onClick={() => setStageF(s.id)}
+              className={`px-3 py-1.5 text-xs font-mono rounded border transition duration-150 flex items-center gap-1.5 cursor-pointer hover:bg-white/10 ${
+                isSelected
+                  ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
+                  : 'bg-[#0a0f1d] text-slate-400 border-slate-800'
+              }`}
             >
-              {tab}
-              {activeTab === tab && (
-                <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: '2px', backgroundColor: 'var(--gold)', borderRadius: '2px' }}></div>
-              )}
+              <span>{s.lbl}</span>
+              <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded-full text-white/50">{count}</span>
             </button>
-          ))}
-        </div>
+          );
+        })}
+      </div>
 
-        <div style={{ padding: '2rem' }}>
-          {activeTab === 'Performance' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-               <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', padding: '2rem', border: '1px solid var(--border)' }}>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                   <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 300 }}>Revenue Distribution</h3>
-                   <PieChart size={20} color="var(--text-secondary)" />
-                 </div>
-                 <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed var(--border)', borderRadius: '12px' }}>
-                   <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>[Cinematic Chart Component Placeholder]</span>
-                 </div>
-               </div>
-               <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', padding: '2rem', border: '1px solid var(--border)' }}>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                   <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 300 }}>Closing Velocity (Days)</h3>
-                   <BarChart3 size={20} color="var(--text-secondary)" />
-                 </div>
-                 <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', gap: '1rem', padding: '0 1rem' }}>
-                   {[65, 80, 45, 90, 70, 85].map((h, i) => (
-                     <div key={i} style={{ flex: 1, height: h + '%', backgroundColor: i === 3 ? 'var(--gold)' : 'rgba(212, 175, 55, 0.2)', borderRadius: '4px 4px 0 0' }}></div>
-                   ))}
-                 </div>
-               </div>
-            </div>
-          )}
-
-          {activeTab === 'Finalization Log' && (
-            <div className="table-container">
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
-                    <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 400, fontSize: '0.9rem' }}>Transaction ID</th>
-                    <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 400, fontSize: '0.9rem' }}>Client</th>
-                    <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 400, fontSize: '0.9rem' }}>Property</th>
-                    <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 400, fontSize: '0.9rem' }}>Value</th>
-                    <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 400, fontSize: '0.9rem' }}>Status</th>
-                    <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 400, fontSize: '0.9rem' }}>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {MOCK_CLOSINGS.map(c => (
-                    <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }} className="table-row-hover">
-                      <td style={{ padding: '1.25rem 1rem', color: 'var(--gold)', fontWeight: 500 }}>{c.id}</td>
-                      <td style={{ padding: '1.25rem 1rem' }}>{c.client}</td>
-                      <td style={{ padding: '1.25rem 1rem' }}>{c.property}</td>
-                      <td style={{ padding: '1.25rem 1rem' }}>{c.value}</td>
-                      <td style={{ padding: '1.25rem 1rem' }}>
-                        <span style={{
-                          backgroundColor: c.status === 'Closed' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(212, 175, 55, 0.1)',
-                          color: c.status === 'Closed' ? '#22c55e' : 'var(--gold)',
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '6px',
-                          fontSize: '0.8rem'
-                        }}>
-                          {c.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1.25rem 1rem' }}>
-                        <button className="btn" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', backgroundColor: 'rgba(255,255,255,0.05)' }}>Details</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {activeTab === 'Optimization AI' && (
-            <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center', padding: '2rem' }}>
-              <div style={{ marginBottom: '2rem' }}>
-                <CheckCircle2 size={64} color="var(--gold)" style={{ marginBottom: '1.5rem', opacity: 0.8 }} />
-                <h3 style={{ fontSize: '1.75rem', fontWeight: 300, marginBottom: '1rem' }}>Intelligence Optimization Ready</h3>
-                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '1.1rem' }}>
-                  The Closer has analyzed recent conversions. We recommend updating the <strong>Matchmaker Neural Weights</strong> for the Downtown area to prioritize &quot;High Floor&quot; amenities over &quot;Balcony Space&quot; based on the last 5 successful deals.
-                </p>
+      {/* Deals scroll log */}
+      <div className="space-y-4">
+        {filteredDeals.map((deal) => (
+          <div
+            key={deal.id}
+            className="bg-[#0a0f1d] border border-slate-800 rounded-xl overflow-hidden shadow-xl"
+            style={{ borderLeft: `3px solid ${deal.c}` }}
+          >
+            <div className="p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5 shrink-0">
+                <div
+                  className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-base select-none shadow shrink-0"
+                  style={{ backgroundColor: `${deal.c}20`, border: `1.5px solid ${deal.c}`, color: deal.c }}
+                >
+                  {deal.client[0]?.toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-bold text-white transition duration-150 truncate">
+                    {deal.client}
+                  </div>
+                  <div className="text-xs text-slate-400 truncate mt-0.5">{deal.prop}</div>
+                </div>
               </div>
-              <button className="btn btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1rem', letterSpacing: '0.05em' }}>
-                DEPLOY SYSTEM OPTIMIZATION
-              </button>
+
+              {/* Progress Slider */}
+              <div className="flex-1 max-w-sm w-full md:mx-4">
+                <div className="flex justify-between font-mono text-[9px] text-slate-500 uppercase mb-1 select-none">
+                  <span>Realtor Closer Progress</span>
+                  <span>{deal.prog}% Complete</span>
+                </div>
+                <div className="w-full bg-slate-850 h-[4px] rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${deal.prog}%`, backgroundColor: deal.c }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col md:items-end justify-center font-mono shrink-0 select-text">
+                <div className="text-base font-bold text-white">{deal.value}</div>
+                <div className="text-[9px] text-slate-500 uppercase tracking-wider mt-1">{deal.id}</div>
+              </div>
             </div>
-          )}
-        </div>
+
+            {/* Bottom pills & interactions */}
+            <div className="p-4 border-t border-slate-800 bg-slate-900/40 flex flex-wrap gap-2 items-center">
+              <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full uppercase border shrink-0 ${
+                deal.stage === 'closed'
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  : deal.stage === 'contract'
+                  ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                  : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+              }`}>
+                {deal.stage}
+              </span>
+
+              <button
+                onClick={() => handleToggleDocuSign(deal.id)}
+                className={`text-[9.5px] font-mono px-2 py-0.5 rounded border transition hover:brightness-105 shrink-0 cursor-pointer ${
+                  deal.signed
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                    : 'bg-slate-900/40 text-slate-400 border-slate-800'
+                }`}
+              >
+                {deal.signed ? '✓ DocuSign signed' : '⚠️ Pending DocuSign'}
+              </button>
+
+              <button
+                onClick={() => handleToggleStripe(deal.id)}
+                className={`text-[9.5px] font-mono px-2 py-0.5 rounded border transition hover:brightness-105 shrink-0 cursor-pointer ${
+                  deal.deposit
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                    : 'bg-slate-900/40 text-slate-400 border-slate-800'
+                }`}
+              >
+                {deal.deposit ? '✓ Stripe Escrow Paid' : '⚠️ Stripe Pending'}
+              </button>
+
+              <div className="md:ml-auto flex gap-1.5 shrink-0">
+                <a
+                  href={`https://wa.me/${deal.phone.replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  className="px-2.5 py-1 text-[9.5px] font-mono hover:bg-white/5 text-emerald-400 border border-slate-800 hover:border-emerald-500/30 rounded transition"
+                  id={`btn-talk-broker-${deal.id}`}
+                >
+                  WhatsApp
+                </a>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
-};
-
-
+}
