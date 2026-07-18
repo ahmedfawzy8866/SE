@@ -51,7 +51,6 @@ class PropertyFinderSyncHub:
         """
         logger.info("Syndicating %d Portfolio Assets to Property Finder...", len(assets))
         formatted_assets = [self.format_portfolio_asset(a) for a in assets]
-        
         # Sync Logic
         return {
             "sync_status": "success",
