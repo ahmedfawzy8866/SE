@@ -24,7 +24,7 @@ const statusStyle = (status: string) => {
   return                             { bg: 'rgba(255,255,255,0.04)',  color: 'var(--text-secondary)', border: 'rgba(255,255,255,0.1)' };
 };
 
-export function CuratorPage = () => {
+export const CuratorPage = () => {
   const [viewMode,     setViewMode]     = useState<'grid' | 'list'>('grid');
   const [searchQuery,  setSearchQuery]  = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterKey>('All Assets');
@@ -221,4 +221,5 @@ export function CuratorPage = () => {
     </div>
   );
 };
+
 

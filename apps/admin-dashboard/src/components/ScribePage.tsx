@@ -35,7 +35,7 @@ const MOCK_EXTRACTED_LISTINGS: NormalizedListing[] = [
   }
 ];
 
-export function ScribePage = () => {
+export const ScribePage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [rawInputText, setRawInputText] = useState('');
   const [normalizedResult, setNormalizedResult] = useState<NormalizedListing | null>(null);
@@ -285,4 +285,5 @@ export function ScribePage = () => {
   );
 };
 export default TheScribeModule;
+
 
