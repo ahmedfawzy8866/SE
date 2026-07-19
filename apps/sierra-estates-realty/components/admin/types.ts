@@ -6,4 +6,5 @@ export type AdminTab =
   | "users"
   | "reports"
   | "audit"
-  | "settings";
+  | "settings"
+  | "openclaw";

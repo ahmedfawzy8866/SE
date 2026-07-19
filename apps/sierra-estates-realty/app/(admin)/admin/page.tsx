@@ -14,6 +14,7 @@
  *    6. Reports          — 4 analytics panels
  *    7. Audit logs       — Immutable action history
  *    8. Settings         — Site config (admin-only)
+ *    9. OpenClaw         — AI architect terminal (admin-only)
  */
 "use client";
 import { useState } from "react";
@@ -27,6 +28,7 @@ import { UsersManager } from "@/components/admin/UsersManager";
 import { ReportsView } from "@/components/admin/Reports";
 import { AuditLogs } from "@/components/admin/AuditLogs";
 import { SettingsView } from "@/components/admin/Settings";
+import { OpenClawTerminal } from "@/components/admin/OpenClaw";
 import type { AdminTab } from "@/components/admin/types";
 
 export default function AdminPage() {
@@ -37,9 +39,9 @@ export default function AdminPage() {
     <div className="min-h-screen bg-bg flex">
       <Sidebar
         active={tab}
-        onChange={setTab}
+        onChangeAction={setTab}
         mobileOpen={mobileSidebar}
-        onCloseMobile={() => setMobileSidebar(false)}
+        onCloseMobileAction={() => setMobileSidebar(false)}
       />
 
       <div className="flex-1 min-w-0 flex flex-col">
@@ -60,6 +62,7 @@ export default function AdminPage() {
           {tab === "reports" && <ReportsView />}
           {tab === "audit" && <AuditLogs />}
           {tab === "settings" && <SettingsView />}
+          {tab === "openclaw" && <OpenClawTerminal />}
         </main>
       </div>
     </div>

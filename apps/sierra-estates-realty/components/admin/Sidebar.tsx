@@ -6,12 +6,12 @@
 import Link from "next/link";
 import {
   LayoutDashboard, Building2, Inbox, Users, BarChart3,
-  ScrollText, Settings, LogOut, Shield, ExternalLink,
+  ScrollText, Settings, LogOut, Shield, ExternalLink, Terminal,
 } from "lucide-react";
 import { useAuth } from "@/components/client/AuthModal";
 import type { AdminTab } from "./types";
 
-const TABS: Array<{ id: AdminTab; label: string; icon: any; min: "viewer" | "manager" | "admin" }> = [
+const TABS: Array<{ id: AdminTab; label: string; icon: any; min: "viewer" | "manager" | "admin"; badge?: string }> = [
   { id: "dashboard",  label: "Dashboard",  icon: LayoutDashboard, min: "manager" },
   { id: "listings",   label: "Listings",   icon: Building2,       min: "manager" },
   { id: "inquiries",  label: "Inquiries",  icon: Inbox,           min: "manager" },
@@ -19,17 +19,18 @@ const TABS: Array<{ id: AdminTab; label: string; icon: any; min: "viewer" | "man
   { id: "reports",    label: "Reports",    icon: BarChart3,       min: "manager" },
   { id: "audit",      label: "Audit logs", icon: ScrollText,      min: "manager" },
   { id: "settings",   label: "Settings",   icon: Settings,        min: "admin" },
+  { id: "openclaw",   label: "OpenClaw",   icon: Terminal,        min: "admin",  badge: "AI" },
 ];
 
 const ROLE_ORDER = ["viewer", "manager", "admin"] as const;
 
 export function Sidebar({
-  active, onChange, mobileOpen, onCloseMobile,
+  active, onChangeAction, mobileOpen, onCloseMobileAction,
 }: {
   active: AdminTab;
-  onChange: (t: AdminTab) => void;
+  onChangeAction: (t: AdminTab) => void;
   mobileOpen: boolean;
-  onCloseMobile: () => void;
+  onCloseMobileAction: () => void;
 }) {
   const { me, signOut } = useAuth();
   const role = (me?.role as typeof ROLE_ORDER[number]) ?? "viewer";
@@ -39,7 +40,7 @@ export function Sidebar({
     <>
       {/* Mobile backdrop */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-navy-950/60" onClick={onCloseMobile} />
+        <div className="lg:hidden fixed inset-0 z-40 bg-navy-950/60" onClick={onCloseMobileAction} />
       )}
 
       <aside
@@ -64,7 +65,7 @@ export function Sidebar({
               <button
                 key={tab.id}
                 disabled={!allowed}
-                onClick={() => { onChange(tab.id); onCloseMobile(); }}
+                onClick={() => { onChangeAction(tab.id); onCloseMobileAction(); }}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   active === tab.id
                     ? "bg-gold-500 text-navy-950"
@@ -75,6 +76,11 @@ export function Sidebar({
               >
                 <tab.icon className="h-4 w-4 flex-shrink-0" />
                 <span className="flex-1 text-left">{tab.label}</span>
+                {tab.badge && allowed && (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                    {tab.badge}
+                  </span>
+                )}
                 {!allowed && <Shield className="h-3 w-3" />}
               </button>
             );
