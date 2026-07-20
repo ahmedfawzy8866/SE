@@ -76,7 +76,6 @@ export default function ClientHomePage() {
       <link rel="preconnect" href="https://images.unsplash.com" />
       <link rel="preconnect" href="https://unpkg.com" />
       {/* Hero image preload */}
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800;900&family=Cormorant+Garamond:wght@500;600;700&display=swap"
         rel="stylesheet"
@@ -389,7 +388,6 @@ export default function ClientHomePage() {
                 </span>
               </button>
 
-              {/* eslint-disable-next-line jsx-a11y/iframe-has-title */}
               <iframe
                 id="vtv-iframe"
                 className="vtv-iframe"
