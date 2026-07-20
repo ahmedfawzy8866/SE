@@ -14,7 +14,8 @@
 .nav-burger { display: none; }
 .nav-mobile { display: none; }
 @media (max-width: 719px) {
-  .nav-links, .nav-cta { display: none; }
+  /* Scoped so the hide beats the later, equal-specificity .btn-gold rule. */
+  .nav-links, .nav-right .nav-cta { display: none; }
   .nav-burger { display: grid; place-items: center; width: 38px; height: 38px; background: var(--surf); border: 1px solid var(--bd); border-radius: var(--radius-sm); color: var(--tx-s); cursor: pointer; }
   .nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px var(--gutter) 16px; border-top: 1px solid var(--bd); }
   .nav-mobile .nav-link { padding: 11px 4px; font-size: 15px; }
